@@ -6,17 +6,10 @@ import matplotlib
 from matplotlib.colors import LogNorm
 import datetime
 import pylab
-
-path1 = "/home/victor/Downloads/woodwren1.wav"
-path2 = "/home/victor/Downloads/woodwren.wav"
+import cv2
 
 #def buildSpectrum(fpath):
 
-def loadPcm(path):
-    wave = Sndfile(path, "r")
-    pcm = wave.read_frames(wave.nframes)
-    wave.close()
-    return (pcm, wave.samplerate)
 #pcmf = [float(val) / pow(2, 15) for val in pcm]
 #fs = wave.samplerate
 #nfft = int(fs*0.005)
@@ -50,6 +43,14 @@ def loadPcm(path):
 #ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
 #ax.yaxis.set_major_formatter(ticks)
 
+def loadPcm(path):
+    wave = Sndfile(path, "r")
+    pcm = wave.read_frames(wave.nframes)
+    wave.close()
+    return (pcm, wave.samplerate)
+
+#-------------------------------------------------------------------------------
+
 def timeTicks(x, pos):
     d = datetime.timedelta(seconds=x)
     return str(d)
@@ -63,15 +64,18 @@ def timeTicks(x, pos):
 def makeSpecgram(pcm, samplerate):
     fs = samplerate
     nfft = 512
-    noverlap = nfft * 0.75
+    window = np.hamming(512)
+    noverlap = 512 * 0.75
     vmin = None
     vmax = None
     
     pxx, freqs, times = matplotlib.mlab.specgram(
-            pcm, NFFT=nfft, Fs=fs, noverlap=noverlap
+            pcm, NFFT=nfft, Fs=fs, noverlap=noverlap, window=window
             )
 
     return (pxx, freqs, times)
+
+#-------------------------------------------------------------------------------
 
 def plotSpecgram(pxx, freqs, times, log=False):
     fig, ax = plt.subplots()
@@ -101,6 +105,8 @@ def plotSpecgram(pxx, freqs, times, log=False):
 
     plt.show()
 
+#-------------------------------------------------------------------------------
+
 def filterSpecgram(pxx, freqs, times, threshold):
     median_times = np.median(pxx, axis=0)
     median_freqs = np.median(pxx, axis=1)
@@ -112,4 +118,53 @@ def filterSpecgram(pxx, freqs, times, threshold):
                          fpxx[i,j] > median_freqs[i]*threshold)
     return fpxx
 
+#-------------------------------------------------------------------------------
+
+def plotMultiple(graphs, window):
+    fig, ax = plt.subplots(len(graphs), 1)
+    for i in range(len(graphs)):
+        ax[i].imshow(
+            graphs[i][window[0][0]:window[0][1],window[1][0]:window[1][1]],
+            cmap=pylab.get_cmap('Greys_r')
+        );
+    fig.show()
+
+#-------------------------------------------------------------------------------
+
+def filter_specgram(im):
+    t_blockSize = 11
+    t_C = 5
+    b_kernelsize = 5
+
+    im_blur = cv2.medianBlur(im, b_kernelsize)
+    im_thresh = cv2.adaptiveThreshold(
+        im_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
+        t_blockSize, t_C
+    )
+
+    im_result = im_thresh
+    return im_result
+
+def write_specgram(pxx, fname):
+    matplotlib.image.imsave(
+        fname,
+        10*np.log10(pxx),
+        origin='lower',
+        cmap=pylab.get_cmap('Greys')
+    )
+
+def load_specgram(fname):
+    im = cv2.imread(fname, 0)
+    return im
+
+
+#
+# Example usage pattern:
+#   >>> pcm, fs = loadPcm('./sample.wav')
+#   >>> pxx, freqs, times = makeSpecgram(pxx, freqs, times, True)
+#   >>> write_specgram(pxx, './sample.png')
+#   >>> im = load_specgram('./sample.png')
+#   >>> im_ = filter_specgram(im)
+
 #buildSpectrum("/home/victor/Downloads/woodwren.wav")
+

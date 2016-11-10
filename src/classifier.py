@@ -133,6 +133,20 @@ def filterSpecgram(pxx, freqs, times, threshold):
 
 #-------------------------------------------------------------------------------
 
+def plotRow(graphs, labels=None):
+    fig, ax = plt.subplots(1, len(graphs))
+
+    for i in xrange(len(graphs)):
+        ax[i].axis('off')
+        ax[i].imshow(
+            graphs[i], cmap=pylab.get_cmap('Greys')
+        );
+        if labels is not None: ax[i].set_title(labels[i])
+
+    fig.show()
+
+#-------------------------------------------------------------------------------
+
 def plotMultiple(graphs, window, label=None, labels=None):
     if len(graphs) > 3:
         fig, ax = plt.subplots((len(graphs)+1)/2, 2)
@@ -177,17 +191,24 @@ def filter_specgram(im):
     im_result = im_thresh
     return im_result
 
+#-------------------------------------------------------------------------------
+
 def write_specgram(pxx, fname):
     dpath = os.path.split(fname)[0]
     if not os.path.exists(dpath):
         os.makedirs(dpath)
 
-    matplotlib.image.imsave(
-        fname,
-        10*np.log10(pxx),
-        origin='lower',
-        cmap=pylab.get_cmap('Greys')
-    )
+    try:
+        matplotlib.image.imsave(
+            fname,
+            10*np.log10(pxx),
+            origin='lower',
+            cmap=pylab.get_cmap('Greys')
+            )
+    except:
+        print '\terror writing specgram file'
+
+#-------------------------------------------------------------------------------
 
 def load_specgram(fname):
     im = cv2.imread(fname, 0)
@@ -199,6 +220,8 @@ def load_specgram(fname):
 # filter specgram take filename list load store
 # ..
 
+#-------------------------------------------------------------------------------
+
 def list_wavs(path):
     paths = []
     for dirpath, dirnames, filenames in os.walk(path):
@@ -206,6 +229,8 @@ def list_wavs(path):
             if filename.endswith('.wav'):
                 paths += [os.path.join(dirpath, filename)]
     return paths
+
+#-------------------------------------------------------------------------------
 
 def create_specgrams(pathlist, specgram_dir, overwrite=False):
     paths = []
@@ -223,9 +248,10 @@ def create_specgrams(pathlist, specgram_dir, overwrite=False):
 
         pcm, fs = loadPcm(path)
         pxx, freqs, times = makeSpecgram(pcm, fs)
-        print freqs[0:4], freqs[-4:]
         write_specgram(pxx, spath)
     return paths
+
+#-------------------------------------------------------------------------------
 
 def filter_specgrams(pathlist, specgram_dir, overwrite=False):
     for path in pathlist:
@@ -242,6 +268,8 @@ def filter_specgrams(pathlist, specgram_dir, overwrite=False):
         im = load_specgram(path)
         im_ = filter_specgram(im)
         cv2.imwrite(fpath, im_)
+
+#-------------------------------------------------------------------------------
 
 def process(pcm_dir, specgram_dir):
     pcm_paths = list_wavs(pcm_dir)
@@ -273,8 +301,12 @@ def process(pcm_dir, specgram_dir):
 
 #buildSpectrum("/home/victor/Downloads/woodwren.wav")
 
+#-------------------------------------------------------------------------------
+
 def extract_features(spec_paths, features_dir):
     for path in spec_paths:
+        print 'extracting templates from', path
+
         im = -load_specgram(path)
         features = extract_templates(im)
 
@@ -298,6 +330,8 @@ def extract_features(spec_paths, features_dir):
 #
 #    return bounded_contours
 
+#-------------------------------------------------------------------------------
+
 def draw_featuers(im, contours):
     _im = im.copy()
 
@@ -306,10 +340,12 @@ def draw_featuers(im, contours):
 
     return _im
 
+#-------------------------------------------------------------------------------
+
 def extract_templates(im):
     tmp = cv2.medianBlur(im, 5)
     tmp = cv2.threshold(tmp, 255*0.65, 255, cv2.THRESH_BINARY)[1]
-    contours, hierarchy = cv2.findContours(
+    _, contours, _ = cv2.findContours(
         tmp,
         cv2.RETR_LIST,
         cv2.CHAIN_APPROX_SIMPLE
@@ -324,18 +360,53 @@ def extract_templates(im):
 
     return templates
 
+#-------------------------------------------------------------------------------
+def _writeim(im, name):
+    fig = plt.figure(frameon=False)
+    sizes = np.shape(im)
+    if sizes[0] > sizes[1]:
+        w = sizes[0]/sizes[1]
+        d = sizes[1]
+    else:
+        w = sizes[1]/sizes[0]
+        d = sizes[0]
+    fig.set_size_inches(2, 2, forward=False)
+    ax = plt.Axes(fig, [0.,0.,1.,1.])
+    #ax.set_axis_off()
+    #fig.add_axes(ax)
+    plt.set_cmap(pylab.get_cmap('Greys'))
+    ax.imshow(im)
+    print sizes
+    plt.savefig(name,dpi=d)
+
 def checkparam(im, thresh_blocksize, thresh_c, blur_kernelsize, blur_g_t, dilate, erode):
 
     im_cpy = -im.copy()
     #im_cpy = cv2.normalize(im_cpy, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-    im_cpy = im_cpy[0:1000,0:1000]
+    im_cpy = im_cpy[0:229,0:500]
+    
+    fig, ax = plt.subplots()
+    im = ax.imshow(im_cpy[:,:], extent=[0,500,100,10000], cmap=pylab.get_cmap('Greys'))
+    cbar=fig.colorbar(im)
+    cbar.set_label('dB')
+    ax.axis('tight')
+    ax.set_xlabel('time (frames)')
+    ax.set_ylabel('kHz')
+    scale = 1e3
+
+    ticks=matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
+    ax.yaxis.set_major_formatter(ticks)
+    plt.show()
+    plt.savefig('specgram-long.png')
 
     plot_im = [im_cpy]
     plot_l  = ['im']
 
+    _writeim(im_cpy, 'specgram.png')
+
     im_blur = cv2.medianBlur(im_cpy, blur_kernelsize)
-    plot_im += [im_blur]
-    plot_l += ['im blur ks:' + str(blur_kernelsize)]
+#    plot_im += [im_blur]
+#    plot_l += ['im blur ks:' + str(blur_kernelsize)]
 
     im_thresh = cv2.adaptiveThreshold(
         -im_blur,
@@ -345,53 +416,83 @@ def checkparam(im, thresh_blocksize, thresh_c, blur_kernelsize, blur_g_t, dilate
         thresh_blocksize,
         thresh_c
     )
-    plot_im += [im_thresh]
-    plot_l += ['im blur thresh bs: ' + str(thresh_blocksize) + ' c: ' + str(thresh_c)]
+#    plot_im += [im_thresh]
+#    plot_l += ['im blur thresh bs: ' + str(thresh_blocksize) + ' c: ' + str(thresh_c)]
 
     im_thresh_g = cv2.threshold(im_blur, 255*blur_g_t, 255, cv2.THRESH_BINARY)[1]
-    plot_im += [im_thresh_g.copy()]
-    plot_l += ['im blur thresh-g']
+#   plot_im += [im_thresh_g.copy()]
+#    plot_l += ['im blur thresh-g']
     im_contour_src = im_thresh_g.copy()
     #im_thresh_g = cv2.medianBlur(im_thresh_g, blur_kernelsize)
     im_thresh_g = cv2.dilate(im_thresh_g, np.ones((dilate,dilate)))
     im_thresh_g = cv2.erode(im_thresh_g, np.ones((erode, erode)))
-    plot_im += [im_thresh_g]
-    plot_l += ['im blur thresh-g erode t: ' + str(255*blur_g_t) + ' ('+str(blur_g_t)+')']
+#    plot_im += [im_thresh_g]
+#    plot_l += ['im blur thresh-g erode t: ' + str(255*blur_g_t) + ' ('+str(blur_g_t)+')']
+    _writeim(im_thresh_g, 'specgram-long-clean.png')
 
     # feature extraction
     tmp = im_contour_src
-    contours, hierarchy = cv2.findContours(
+
+    plot_im += [tmp]
+    plot_l += ['Contours']
+    _, contours, _ = cv2.findContours(
         tmp,
         cv2.RETR_LIST,
         cv2.CHAIN_APPROX_SIMPLE
     )
+    _writeim(tmp, 'contours.png')
+
     clist = []
-    imgb = cv2.GaussianBlur(im_cpy, (0,0), 3)
+    img_cpy2 = im_cpy.copy()
+    imgb = cv2.GaussianBlur(im_cpy, (0,0), 2)
     for i in xrange(len(contours)):
         r = cv2.boundingRect(contours[i])
-        if r[2] < 10 or r[3] < 40: continue
-        cropped = im_cpy[r[1]:r[1]+r[3], r[0]:r[0]+r[2]]
-        cv2.rectangle(im_blur, (r[0], r[1]), (r[0]+r[2], r[1]+r[3]), (255,0,0), 2)
-        feature = cv2.GaussianBlur(cropped, (0,0), 3)
+        if r[2] < 10 or r[3] < 20: continue
+        cropped = im_cpy[r[1]-10:r[1]+r[3]+10, r[0]-10:r[0]+r[2]+10]
+        cv2.rectangle(img_cpy2, (r[0]-10, r[1]-10), (r[0]+r[2]+10, r[1]+r[3]+10), (255,0,0), 1)
+        feature = cv2.GaussianBlur(cropped, (0,0), 2)
         clist += [feature]
 
         tmplres = match_template(imgb, feature)
         tmplres_t = cv2.threshold(tmplres, 0.8, 1, cv2.THRESH_TOZERO)[1]
-        clist += [tmplres_t]
-        ij = np.unravel_index(np.argmax(tmplres), tmplres.shape) #wtf
-        x,y=ij[::-1]
-        cv2.circle(im_blur, (x,y), 5, (255, 0, 0))
+        #clist += [tmplres_t]
+        #ij = np.unravel_index(np.argmax(tmplres), tmplres.shape) #wtf
+        #x,y=ij[::-1]
+        #cv2.circle(im_blur, (x,y), 5, (255, 0, 0))
     print len(clist)
-    if len(clist) is not 0:
-        plotMultiple(clist,[[0,1000],[0,1000]] )#[[0,1000],[0,1000]])
+    #if len(clist) is not 0:
+        #plotMultiple(clist,[[0,1000],[0,1000]] )#[[0,1000],[0,1000]])
+
+    plot_im += [img_cpy2]
+    plot_l += ['Detected Features']
+
+    _writeim(img_cpy2, 'detected-features.png')
+
+    plot_im += [clist[8]]
+    plot_l += ['Selected Feature']
+
+    _writeim(clist[8], 'selected-feature.png')
+
+    tmplres = match_template(imgb, clist[8])
+    plot_im += [tmplres]
+    plot_l += ['Cross-correlation Map']
+
+    _writeim(tmplres, 'ccm.png')
+
+    tmplres = cv2.threshold(tmplres, 0.7, 1, cv2.THRESH_TOZERO)[1]
+    plot_im += [tmplres]
+    plot_l += ['Thresholded CCM']
+
+    _writeim(tmplres, 'threshold-ccm.png')
 
     im_thresh_blur = cv2.medianBlur(im_thresh, blur_kernelsize)
-    plot_im += [im_thresh_blur]
-    plot_l += ['im blur thresh blur ks: ' + str(blur_kernelsize)]
+#    plot_im += [im_thresh_blur]
+#    plot_l += ['im blur thresh blur ks: ' + str(blur_kernelsize)]
 
     im_dilate = cv2.dilate(im_thresh, np.ones((dilate, dilate)))
     im_erode = cv2.erode(im_dilate, np.ones((erode, erode)))
-    plot_im += [im_erode]
-    plot_l += ['im blur thresh dilate + erode ks: ' + str(dilate) + ', ' + str(erode)]
+#    plot_im += [im_erode]
+#    plot_l += ['im blur thresh dilate + erode ks: ' + str(dilate) + ', ' + str(erode)]
 
-    plotMultiple(plot_im, [[0,1000],[0,1000]],None, plot_l)
+#    plotRow(plot_im, plot_l)
+    #plotMultiple(plot_im, [[0,1000],[0,1000]],None, plot_l)

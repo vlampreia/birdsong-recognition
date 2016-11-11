@@ -118,6 +118,37 @@ def plotSpecgram(pxx, freqs, times, log=False):
 
     plt.show()
 
+
+def plotWavAndSpecgram(pcm, fs):
+    fig, ax = plt.subplots(2,1)
+    pxx, freqs, times = makeSpecgram(pcm, fs)
+    extent = [times.min(), times.max(), freqs.min(), freqs.max()]
+    Time = np.linspace(0, len(pcm)/fs, num=len(pcm))
+    im0 = ax[0].plot(Time, pcm, 'k')
+    im1 = ax[1].imshow(pxx, origin='lower', extent=extent, aspect='auto', cmap=pylab.get_cmap('Greys'), norm=LogNorm())
+
+    ax[0].axis('tight')
+    ax[0].set_xlabel('time h:mm:ss')
+    ax[0].set_ylabel('dB')
+    #scale=1e3
+    #ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
+    #ax[0].yaxis.set_major_formatter(ticks)
+    formatter = matplotlib.ticker.FuncFormatter(timeTicks)
+    ax[0].xaxis.set_major_formatter(formatter)
+
+    #cbar = fig.colorbar(im1)
+    #cbar.set_label('dB')
+    ax[1].axis('tight')
+    ax[1].set_xlabel('time h:mm:ss')
+    ax[1].set_ylabel('kHz')
+    scale=1e3
+    ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
+    ax[1].yaxis.set_major_formatter(ticks)
+    formatter = matplotlib.ticker.FuncFormatter(timeTicks)
+    ax[1].xaxis.set_major_formatter(formatter)
+
+    plt.show()
+
 #-------------------------------------------------------------------------------
 
 def filterSpecgram(pxx, freqs, times, threshold):
@@ -378,6 +409,7 @@ def _writeim(im, name):
     ax.imshow(im)
     print sizes
     plt.savefig(name,dpi=d)
+
 
 def checkparam(im, thresh_blocksize, thresh_c, blur_kernelsize, blur_g_t, dilate, erode):
 

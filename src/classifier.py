@@ -11,42 +11,15 @@ import os
 from skimage.feature import match_template
 from sklearn.preprocessing import normalize
 
-#def buildSpectrum(fpath):
+from sklearn.ensemble import RandomForestClassifier
 
-#pcmf = [float(val) / pow(2, 15) for val in pcm]
-#fs = wave.samplerate
-#nfft = int(fs*0.005)
-#nfft = 512
-#noverlap = nfft * 0.75#int(fs * 0.75)
-#framesize = 0.050
-#framehop = 0.025
-#framesamples = int(framesize * samplerate)
-#hopsamples = int(framehop * samplerate)
-#hwindow = scipy.hanning(framesamples)
-#X = scipy.array([scipy.fft(hwindow*pcmf[i:i+framesamples]) for i in range(0, len(pcmf)-framesamples, hopsamples)])
-#vmin = None #db threshold
-#vmax = None
+from IPython.core.debugger import Tracer
 
+import sys
 
-# plt.specgram computes spectrogram for us..
-#fig, ax = plt.subplots()
-#pxx, freqs, times, im = ax.specgram(
-#        pcm, NFFT=nfft, Fs=fs, noverlap=noverlap,
-#        vmin=vmin, vmax=vmax,
-#        cmap=pylab.get_cmap('Greys'))
-#
-#cbar = fig.colorbar(im)
-#cbar.set_label('dB')
-#ax.axis('tight')
-#
-#ax.set_xlabel('time h:mm:ss')
-#ax.set_ylabel('kHz')
-#
-#scale = 1e3
-#ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
-#ax.yaxis.set_major_formatter(ticks)
+#-------------------------------------------------------------------------------
 
-def loadPcm(path):
+def load_pcm(path):
     wave = Sndfile(path, "r")
     pcm = wave.read_frames(wave.nframes)
     wave.close()
@@ -56,17 +29,13 @@ def loadPcm(path):
 
 #-------------------------------------------------------------------------------
 
-def timeTicks(x, pos):
+def time_ticks(x, pos):
     d = datetime.timedelta(seconds=x)
     return str(d)
-#formatter = matplotlib.ticker.FuncFormatter(timeTicks);
-#ax.xaxis.set_major_formatter(formatter)
-
-#plt.show()
 
 #-------------------------------------------------------------------------------
 
-def makeSpecgram(pcm, samplerate):
+def make_specgram(pcm, samplerate):
     fs = samplerate
     nfft = 512
     window = np.hamming(512)
@@ -82,8 +51,11 @@ def makeSpecgram(pcm, samplerate):
             )
 
     freq_mask = (freqs >= min_freq) & (freqs <= max_freq)
-
     pxx = pxx[freq_mask,:]
+
+    pxx = 10*np.log10(pxx)
+    pxx = np.array(pxx, dtype=np.uint8)
+
     freqs = freqs[freq_mask]
 
     return (pxx, freqs, times)
@@ -100,8 +72,7 @@ def plotSpecgram(pxx, freqs, times, log=False):
     im = ax.imshow(pxx, extent=extent, origin='lower', aspect='auto',
             cmap=pylab.get_cmap('Greys_r'), norm=norm
             )
-#    im = ax.pcolormesh(times, freqs, 10 * np.log10(pxx),
- #           cmap=pylab.get_cmap('Greys'))
+
     cbar = fig.colorbar(im)
     cbar.set_label('dB')
     ax.axis('tight')
@@ -118,6 +89,7 @@ def plotSpecgram(pxx, freqs, times, log=False):
 
     plt.show()
 
+#-------------------------------------------------------------------------------
 
 def plotWavAndSpecgram(pcm, fs):
     fig, ax = plt.subplots(2,1)
@@ -130,14 +102,9 @@ def plotWavAndSpecgram(pcm, fs):
     ax[0].axis('tight')
     ax[0].set_xlabel('time h:mm:ss')
     ax[0].set_ylabel('dB')
-    #scale=1e3
-    #ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
-    #ax[0].yaxis.set_major_formatter(ticks)
     formatter = matplotlib.ticker.FuncFormatter(timeTicks)
     ax[0].xaxis.set_major_formatter(formatter)
 
-    #cbar = fig.colorbar(im1)
-    #cbar.set_label('dB')
     ax[1].axis('tight')
     ax[1].set_xlabel('time h:mm:ss')
     ax[1].set_ylabel('kHz')
@@ -214,13 +181,15 @@ def filter_specgram(im):
     b_kernelsize = 5
 
     im_blur = cv2.medianBlur(im, b_kernelsize)
-    im_thresh = cv2.adaptiveThreshold(
-        im_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
-        t_blockSize, t_C
-    )
+    im_thresh = cv2.threshold(im_blur, 255*0.65, 255, cv2.THRESH_BINARY)[1]
+    im_thresh = cv2.dilate(im_thresh, np.ones((6,6)))
+    im_thresh = cv2.erode(im_thresh, np.ones((6, 6)))
+    #im_thresh = cv2.adaptiveThreshold(
+    #    im_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
+    #    t_blockSize, t_C
+    #)
 
-    im_result = im_thresh
-    return im_result
+    return im_thresh
 
 #-------------------------------------------------------------------------------
 
@@ -334,21 +303,26 @@ def process(pcm_dir, specgram_dir):
 
 #-------------------------------------------------------------------------------
 
-def extract_features(spec_paths, features_dir):
-    for path in spec_paths:
-        print 'extracting templates from', path
+#def extract_templates(spec_paths, features_dir):
+#    """Extract templates from specgrams found within a directory and write them
+#    to the subdir 'features_dir'.
+#    """
+#
+#    for path in spec_paths:
+#        print 'extracting templates from', path
+#
+#        im = -load_specgram(path)
+#        features = extract_templates(im)
+#
+#        filename = os.path.splitext(os.path.split(path)[1])[0]
+#        fpath = os.path.split(path)[0]
+#        fpath = os.path.join(fpath, features_dir)
+#        if not os.path.exists(fpath): os.makedirs(fpath)
+#        fpath = os.path.join(fpath, filename + '-')
+#
+#        for i in xrange(len(features)):
+#            cv2.imwrite(fpath + str(i) + '.png', -features[i])
 
-        im = -load_specgram(path)
-        features = extract_templates(im)
-
-        filename = os.path.splitext(os.path.split(path)[1])[0]
-        fpath = os.path.split(path)[0]
-        fpath = os.path.join(fpath, features_dir)
-        if not os.path.exists(fpath): os.makedirs(fpath)
-        fpath = os.path.join(fpath, filename + '-')
-
-        for i in xrange(len(features)):
-            cv2.imwrite(fpath + str(i) + '.png', -features[i])
 
 #    _im = im.copy()
 #    contours, hierarchy = cv2.findContours(
@@ -376,18 +350,22 @@ def draw_featuers(im, contours):
 def extract_templates(im):
     tmp = cv2.medianBlur(im, 5)
     tmp = cv2.threshold(tmp, 255*0.65, 255, cv2.THRESH_BINARY)[1]
-    _, contours, _ = cv2.findContours(
+    contours, _ = cv2.findContours(
         tmp,
         cv2.RETR_LIST,
         cv2.CHAIN_APPROX_SIMPLE
     )
     templates = []
+    #_im = im.copy()
     for i in xrange(len(contours)):
         r = cv2.boundingRect(contours[i])
         if r[2] < 10 or r[3] < 40: continue
         x = im[r[1]:r[1]+r[3], r[0]:r[0]+r[2]]
         x = cv2.GaussianBlur(x, (0,0), 1.5)
-        templates += [x]
+        templates.append(x)
+#        cv2.rectangle(_im, (r[0]-10, r[1]-10), (r[0]+r[2]+10, r[1]+r[3]+10), (255,0,0), 1)
+#    plt.imshow(_im, aspect='auto')
+#    plt.show()
 
     return templates
 
@@ -428,8 +406,8 @@ def checkparam(im, thresh_blocksize, thresh_c, blur_kernelsize, blur_g_t, dilate
 
     ticks=matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale))
     ax.yaxis.set_major_formatter(ticks)
-    plt.show()
-    plt.savefig('specgram-long.png')
+    #plt.show()
+    #plt.savefig('specgram-long.png')
 
     plot_im = [im_cpy]
     plot_l  = ['im']
@@ -528,3 +506,94 @@ def checkparam(im, thresh_blocksize, thresh_c, blur_kernelsize, blur_g_t, dilate
 
 #    plotRow(plot_im, plot_l)
     #plotMultiple(plot_im, [[0,1000],[0,1000]],None, plot_l)
+
+
+
+
+# Classification process:
+#
+#   Pre-processing stage:
+#       - Load waveform, get specgram
+#       - Clean specgram, find contours and bounds
+#       - Extract features, large blocks
+#       - Store features to file
+#   Training:
+#       - Cross-correlate each specgram with each template
+#       - gives n-template-dimensional feature vector for each specgram
+
+def cross_correlate(sgram, templates):
+    ccms = []
+
+    for template in templates:
+        ccm = match_template(sgram, template)
+        ccms.append(ccm)
+
+    return ccms;
+
+
+def get_hdl_from_path(path):
+    return os.path.splitext(os.path.split(path)[1])[0]
+
+def get_class_from_path(path):
+    return os.path.split(os.path.split(path)[0])[1]
+
+def do(overwrite=False):
+    pcm_dir   = './samples'
+    sgram_dir = './specgrams'
+    X_subdir  = 'features'
+
+    pcm_paths = list_wavs('./samples')
+
+    # load each PCM and construct sgrams
+    pcms = {}
+    sgrams = {}
+    class_templates = {}
+
+    for path in pcm_paths:
+        c = get_class_from_path(path)
+        hdl = get_hdl_from_path(path)
+
+        print 'class:', c, '-- hdl:', hdl
+        print '  load PCM', path
+        pcm, fs = load_pcm(path)
+        pcms[hdl] = (pcm, fs)
+
+        # TODO: check if specgram for hdl exists on file
+        pxx, freqs, times = make_specgram(pcm, fs)
+        clean_pxx = filter_specgram(pxx)
+        sgrams[hdl] = ((pxx, clean_pxx), (freqs, times))
+        print '    made specgram'
+
+        # TODO: check if templates for hdl exist on file
+        templates = extract_templates(clean_pxx)
+        if c not in class_templates: class_templates[c] = []
+        class_templates[c] += templates
+        print '    extracted', len(templates), 'templates'
+        print ''
+
+    total_templates = sum(len(x) for x in class_templates.values())
+    print '\nextracted', total_templates, 'total templates'
+    for k,v in class_templates.iteritems():
+      n = len(v)
+      print '  ', k, ': ', n, '(', (total_templates/n)*100, '%)'
+
+
+    # now we have all templates for all classes, lets run through each known
+    # specgram and construct CCMs
+#    print '> cross-correlating templates'
+#    class_features = {}
+#    for hdl, sgramd in sgrams.iteritems():
+#        X_ccm = cross_correlate(sgramd[0], class_templates[hdl])
+#        class_features[hdl] = X_ccm
+#
+#
+#    print '> classification test'
+#    np_samples = np.array(class_features.values())
+#    np_labels = np.array(class_features.keys())
+#
+#    clf = RandomForestClassifier()
+#    Tracer()()
+#    # TODO: separate training from test data....
+#    clf.fit(np_samples, np_labels)
+#    clf.score(np_samples, np_labels)
+#    clf.predict(np_sample)

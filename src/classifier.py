@@ -8,6 +8,7 @@ import datetime
 import pylab
 import cv2
 import os
+import sys
 from skimage.feature import match_template
 from sklearn.preprocessing import normalize
 
@@ -205,12 +206,15 @@ def write_specgram(pxx, fname):
             origin='lower',
             cmap=pylab.get_cmap('Greys')
             )
+    except ValueError as err:
+        print '\terror writing specgram file: ', err
     except:
-        print '\terror writing specgram file'
+        print '\terror writing specgram file:', sys.exc_info()[0]
 
 #-------------------------------------------------------------------------------
 
 def load_specgram(fname):
+    print 'loading specgram ', fname
     im = cv2.imread(fname, 0)
     return im
 
@@ -301,11 +305,55 @@ def process(pcm_dir, specgram_dir):
 
 #buildSpectrum("/home/victor/Downloads/woodwren.wav")
 
+def count_samples(samples_dir):
+    species_count = {}
+    paths = list_wavs(samples_dir)
+    for path in paths:
+        species = os.path.split(path)[0]
+        species = os.path.split(species)[1]
+
+        species_count[species] = species_count.get(species, 0) + 1
+
+    #pprint.pprint(species_count, width=1)
+    return species_count
+
+from lxml import html
+import requests
+import urlparse
+import urllib
+def scrape_xenocanto(samples_dir, ratings_filter = ['A']):
+    url_db = 'http://www.xeno-canto.org'
+    page = requests.get(urlparse.urljoin(url_db, '/explore/random'))
+    tree = html.fromstring(page.content)
+
+    listings = tree.xpath('//td[@class="sonobox new-species"]')
+    for listing in listings:
+        rating = listing.xpath('./div[@class="rating"]//li[@class="selected"]/span/text()')
+        if len(rating) == 0 or rating[0] not in ratings_filter: continue
+
+        species = listing.xpath('.//span[@class="common-name"]/a/text()')[0]
+
+        url_dl = listing.xpath('.//a[@download]/@href')[0]
+        url_dl = urlparse.urljoin(url_db, url_dl)
+
+        filename = listing.xpath('.//a[@download]/@download')[0]
+        target_path = os.path.join(samples_dir, species)
+        os.mkdir(target_path)
+        target_path = os.path.join(target_path, filename)
+
+        print species, '(', rating[0], ')'
+        urllib.urlretrieve(url_dl, target_path)
+        print '>', target_path
+        print ''
+
 #-------------------------------------------------------------------------------
 
 def extract_features(spec_paths, features_dir):
     for path in spec_paths:
         print 'extracting templates from', path
+        if not os.path.exists(path):
+            print 'ERROR: path doesn\'t exist:', path, 'skipping..'
+            continue;
 
         im = -load_specgram(path)
         features = extract_templates(im)

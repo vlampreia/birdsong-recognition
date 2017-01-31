@@ -16,52 +16,17 @@ from sklearn.ensemble import RandomForestClassifier
 
 from IPython.core.debugger import Tracer
 
-import sys
+from preprocessor import *
+from specgram_utils import *
+from utils import *
 
-#-------------------------------------------------------------------------------
 
-def load_pcm(path):
-    wave = Sndfile(path, "r")
-    pcm = wave.read_frames(wave.nframes)
-    wave.close()
-    if wave.channels is not 1:
-        pcm = pcm[:,0]
-    return (pcm, wave.samplerate)
 
-#-------------------------------------------------------------------------------
 
 def time_ticks(x, pos):
     d = datetime.timedelta(seconds=x)
     return str(d)
 
-#-------------------------------------------------------------------------------
-
-def make_specgram(pcm, samplerate):
-    fs = samplerate
-    nfft = 512
-    window = np.hamming(512)
-    noverlap = 512 * 0.75
-    vmin = None
-    vmax = None
-
-    min_freq = 100
-    max_freq = 10000
-
-    pxx, freqs, times = matplotlib.mlab.specgram(
-            pcm, NFFT=nfft, Fs=fs, noverlap=noverlap, window=window
-            )
-
-    freq_mask = (freqs >= min_freq) & (freqs <= max_freq)
-    pxx = pxx[freq_mask,:]
-
-    pxx = 10*np.log10(pxx)
-    pxx = np.array(pxx, dtype=np.uint8)
-
-    freqs = freqs[freq_mask]
-
-    return (pxx, freqs, times)
-
-#-------------------------------------------------------------------------------
 
 def plotSpecgram(pxx, freqs, times, log=False):
     fig, ax = plt.subplots()
@@ -90,7 +55,6 @@ def plotSpecgram(pxx, freqs, times, log=False):
 
     plt.show()
 
-#-------------------------------------------------------------------------------
 
 def plotWavAndSpecgram(pcm, fs):
     fig, ax = plt.subplots(2,1)
@@ -117,20 +81,18 @@ def plotWavAndSpecgram(pcm, fs):
 
     plt.show()
 
-#-------------------------------------------------------------------------------
 
-def filterSpecgram(pxx, freqs, times, threshold):
-    median_times = np.median(pxx, axis=0)
-    median_freqs = np.median(pxx, axis=1)
+#def filterSpecgram(pxx, freqs, times, threshold):
+#    median_times = np.median(pxx, axis=0)
+#    median_freqs = np.median(pxx, axis=1)
+#
+#    fpxx = pxx.copy();
+#    for i in range(fpxx[:,0].size):
+#        for j in range(fpxx[0,:].size):
+#            fpxx[i,j] = (fpxx[i,j] > median_times[j]*threshold and
+#                         fpxx[i,j] > median_freqs[i]*threshold)
+#    return fpxx
 
-    fpxx = pxx.copy();
-    for i in range(fpxx[:,0].size):
-        for j in range(fpxx[0,:].size):
-            fpxx[i,j] = (fpxx[i,j] > median_times[j]*threshold and
-                         fpxx[i,j] > median_freqs[i]*threshold)
-    return fpxx
-
-#-------------------------------------------------------------------------------
 
 def plotRow(graphs, labels=None):
     fig, ax = plt.subplots(1, len(graphs))
@@ -144,7 +106,6 @@ def plotRow(graphs, labels=None):
 
     fig.show()
 
-#-------------------------------------------------------------------------------
 
 def plotMultiple(graphs, window, label=None, labels=None):
     if len(graphs) > 3:
@@ -174,228 +135,6 @@ def plotMultiple(graphs, window, label=None, labels=None):
 
     fig.show()
 
-#-------------------------------------------------------------------------------
-
-def filter_specgram(im):
-    t_blockSize = 11
-    t_C = 5
-    b_kernelsize = 5
-
-    im_blur = cv2.medianBlur(im, b_kernelsize)
-    im_thresh = cv2.threshold(im_blur, 255*0.65, 255, cv2.THRESH_BINARY)[1]
-    im_thresh = cv2.dilate(im_thresh, np.ones((6,6)))
-    im_thresh = cv2.erode(im_thresh, np.ones((6, 6)))
-    #im_thresh = cv2.adaptiveThreshold(
-    #    im_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
-    #    t_blockSize, t_C
-    #)
-
-    return im_thresh
-
-#-------------------------------------------------------------------------------
-
-def write_specgram(pxx, fname):
-    dpath = os.path.split(fname)[0]
-    if not os.path.exists(dpath):
-        os.makedirs(dpath)
-
-    try:
-        matplotlib.image.imsave(
-            fname,
-            10*np.log10(pxx),
-            origin='lower',
-            cmap=pylab.get_cmap('Greys')
-            )
-    except ValueError as err:
-        print '\terror writing specgram file: ', err
-    except:
-        print '\terror writing specgram file:', sys.exc_info()[0]
-
-#-------------------------------------------------------------------------------
-
-def load_specgram(fname):
-    print 'loading specgram ', fname
-    im = cv2.imread(fname, 0)
-    return im
-
-# todo
-# walkdir func, get filenames to process
-# create specgram take filename list store
-# filter specgram take filename list load store
-# ..
-
-#-------------------------------------------------------------------------------
-
-def list_wavs(path):
-    paths = []
-    for dirpath, dirnames, filenames in os.walk(path):
-        for filename in filenames:
-            if filename.endswith('.wav'):
-                paths += [os.path.join(dirpath, filename)]
-    return paths
-
-#-------------------------------------------------------------------------------
-
-def create_specgrams(pathlist, specgram_dir, overwrite=False):
-    paths = []
-    for path in pathlist:
-        parentdir = os.path.split(path)
-        parentdir = os.path.join(os.path.split(parentdir[0])[1], parentdir[1])
-        spath = os.path.splitext(parentdir)[0]
-        spath = ''.join([os.path.join(specgram_dir, spath), '.png'])
-        paths += [spath]
-        if not overwrite and os.path.exists(spath):
-            print 'specgram from', path, 'exists as', spath
-            continue
-        else:
-            print 'generating specgram from', path, '->', spath
-
-        pcm, fs = loadPcm(path)
-        pxx, freqs, times = makeSpecgram(pcm, fs)
-        write_specgram(pxx, spath)
-    return paths
-
-#-------------------------------------------------------------------------------
-
-def filter_specgrams(pathlist, specgram_dir, overwrite=False):
-    for path in pathlist:
-        parentdir = os.path.split(path)
-        parentdir = os.path.join(os.path.split(parentdir[0])[1], parentdir[1])
-        fpath = os.path.splitext(parentdir)[0]
-        fpath = ''.join([os.path.join(specgram_dir, fpath), '_clean.png'])
-        if not overwrite and os.path.exists(fpath):
-            print 'filtered', path, 'exists as', fpath
-            continue
-        else:
-            print 'filtering', path, '->', fpath
-
-        im = load_specgram(path)
-        im_ = filter_specgram(im)
-        cv2.imwrite(fpath, im_)
-
-#-------------------------------------------------------------------------------
-
-def process(pcm_dir, specgram_dir):
-    pcm_paths = list_wavs(pcm_dir)
-    spec_paths = create_specgrams(pcm_paths, specgram_dir, False)
-    #filter_specgrams(spec_paths, specgram_dir, True)
-
-    extract_features(spec_paths, 'features')
-
-#    for dirpath, dirnames, filenames in os.walk(pcm_dir):
-#        for filename in filenames:
-#            if filename.endswith('.wav'):
-#                fpath = os.path.join(dirpath, filename)
-#                specpath = os.path.join(specgram_dir, os.path.splitext(filename)[0])
-#                print 'processing', fpath
-#                pcm, fs = loadPcm(fpath)
-#                pxx, freqs, times = makeSpecgram(pcm, fs)
-#                write_specgram(pxx, specpath)
-#                im = load_specgram(''.join([specpath,'.png']))
-#                im_ = filter_specgram(im)
-#                cv2.imwrite(''.join([specpath,'_clean.png']), im_)
-
-#
-# Example usage pattern:
-#   >>> pcm, fs = loadPcm('./sample.wav')
-#   >>> pxx, freqs, times = makeSpecgram(pxx, freqs, times, True)
-#   >>> write_specgram(pxx, './sample.png')
-#   >>> im = load_specgram('./sample.png')
-#   >>> im_ = filter_specgram(im)
-
-#buildSpectrum("/home/victor/Downloads/woodwren.wav")
-
-def count_samples(samples_dir):
-    species_count = {}
-    paths = list_wavs(samples_dir)
-    for path in paths:
-        species = os.path.split(path)[0]
-        species = os.path.split(species)[1]
-
-        species_count[species] = species_count.get(species, 0) + 1
-
-    #pprint.pprint(species_count, width=1)
-    return species_count
-
-from lxml import html
-import requests
-import urlparse
-import urllib
-def scrape_xenocanto(samples_dir, ratings_filter = ['A']):
-    url_db = 'http://www.xeno-canto.org'
-    page = requests.get(urlparse.urljoin(url_db, '/explore/random'))
-    tree = html.fromstring(page.content)
-
-    listings = tree.xpath('//td[@class="sonobox new-species"]')
-    for listing in listings:
-        rating = listing.xpath('./div[@class="rating"]//li[@class="selected"]/span/text()')
-        if len(rating) == 0 or rating[0] not in ratings_filter: continue
-
-        species = listing.xpath('.//span[@class="common-name"]/a/text()')[0]
-
-        url_dl = listing.xpath('.//a[@download]/@href')[0]
-        url_dl = urlparse.urljoin(url_db, url_dl)
-
-        filename = listing.xpath('.//a[@download]/@download')[0]
-        target_path = os.path.join(samples_dir, species)
-        os.mkdir(target_path)
-        target_path = os.path.join(target_path, filename)
-
-        print species, '(', rating[0], ')'
-        urllib.urlretrieve(url_dl, target_path)
-        print '>', target_path
-        print ''
-
-#-------------------------------------------------------------------------------
-
-def extract_features(spec_paths, features_dir):
-    for path in spec_paths:
-        print 'extracting templates from', path
-        if not os.path.exists(path):
-            print 'ERROR: path doesn\'t exist:', path, 'skipping..'
-            continue;
-
-        im = -load_specgram(path)
-        features = extract_templates(im)
-
-        filename = os.path.splitext(os.path.split(path)[1])[0]
-        fpath = os.path.split(path)[0]
-        fpath = os.path.join(fpath, features_dir)
-        if not os.path.exists(fpath): os.makedirs(fpath)
-        fpath = os.path.join(fpath, filename + '-')
-#def extract_templates(spec_paths, features_dir):
-#    """Extract templates from specgrams found within a directory and write them
-#    to the subdir 'features_dir'.
-#    """
-#
-#    for path in spec_paths:
-#        print 'extracting templates from', path
-#
-#        im = -load_specgram(path)
-#        features = extract_templates(im)
-#
-#        filename = os.path.splitext(os.path.split(path)[1])[0]
-#        fpath = os.path.split(path)[0]
-#        fpath = os.path.join(fpath, features_dir)
-#        if not os.path.exists(fpath): os.makedirs(fpath)
-#        fpath = os.path.join(fpath, filename + '-')
-#
-#        for i in xrange(len(features)):
-#            cv2.imwrite(fpath + str(i) + '.png', -features[i])
-
-
-#    _im = im.copy()
-#    contours, hierarchy = cv2.findContours(
-#        _im,
-#        cv2.RETR_LIST,
-#        cv2.CHAIN_APPROX_SIMPLE
-#    )
-#
-#    bounded_contours = map(cv2.boundingRect, contours)
-#
-#    return bounded_contours
-
-#-------------------------------------------------------------------------------
 
 def draw_featuers(im, contours):
     _im = im.copy()
@@ -405,31 +144,7 @@ def draw_featuers(im, contours):
 
     return _im
 
-#-------------------------------------------------------------------------------
 
-def extract_templates(im):
-    tmp = cv2.medianBlur(im, 5)
-    tmp = cv2.threshold(tmp, 255*0.65, 255, cv2.THRESH_BINARY)[1]
-    contours, _ = cv2.findContours(
-        tmp,
-        cv2.RETR_LIST,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-    templates = []
-    #_im = im.copy()
-    for i in xrange(len(contours)):
-        r = cv2.boundingRect(contours[i])
-        if r[2] < 10 or r[3] < 40: continue
-        x = im[r[1]:r[1]+r[3], r[0]:r[0]+r[2]]
-        x = cv2.GaussianBlur(x, (0,0), 1.5)
-        templates.append(x)
-#        cv2.rectangle(_im, (r[0]-10, r[1]-10), (r[0]+r[2]+10, r[1]+r[3]+10), (255,0,0), 1)
-#    plt.imshow(_im, aspect='auto')
-#    plt.show()
-
-    return templates
-
-#-------------------------------------------------------------------------------
 def _writeim(im, name):
     fig = plt.figure(frameon=False)
     sizes = np.shape(im)
@@ -454,7 +169,7 @@ def checkparam(im, thresh_blocksize, thresh_c, blur_kernelsize, blur_g_t, dilate
     im_cpy = -im.copy()
     #im_cpy = cv2.normalize(im_cpy, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     im_cpy = im_cpy[0:229,0:500]
-    
+
     fig, ax = plt.subplots()
     im = ax.imshow(im_cpy[:,:], extent=[0,500,100,10000], cmap=pylab.get_cmap('Greys'))
     cbar=fig.colorbar(im)

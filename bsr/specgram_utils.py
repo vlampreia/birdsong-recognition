@@ -26,7 +26,7 @@ def write_specgram(pxx, freqs, times, path):
     try:
         matplotlib.image.imsave(
             ''.join([path, '.png']),
-            10*np.log10(pxx), 'r',
+            pxx,
             origin='lower',
             cmap=pylab.get_cmap('Greys')
             )

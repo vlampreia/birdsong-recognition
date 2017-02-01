@@ -30,7 +30,9 @@ class XenoCantoScraper:
 
             species = listing.xpath('.//span[@class="common-name"]/a/text()')[0]
 
-            url_dl = listing.xpath('.//a[@download]/@href')[0]
+            url_dl = listing.xpath('.//a[@download]/@href')
+            if len(url_dl) == 0: continue
+            url_dl = url_dl[0]
             url_dl = urlparse.urljoin(self.url_base, url_dl)
 
             filename = listing.xpath('.//a[@download]/@download')[0]

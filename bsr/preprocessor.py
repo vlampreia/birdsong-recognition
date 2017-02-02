@@ -6,58 +6,6 @@ import numpy as np
 import cv2
 
 
-def process(pcm_dir, specgram_dir):
-    pcm_paths = utils.list_wavs(pcm_dir)
-    spec_paths = specgram_utils.create_specgrams(pcm_paths, specgram_dir, False)
-    #filter_specgrams(spec_paths, specgram_dir, True)
-
-    extract_features(spec_paths, 'features')
-
-#    for dirpath, dirnames, filenames in os.walk(pcm_dir):
-#        for filename in filenames:
-#            if filename.endswith('.wav'):
-#                fpath = os.path.join(dirpath, filename)
-#                specpath = os.path.join(specgram_dir, os.path.splitext(filename)[0])
-#                print 'processing', fpath
-#                pcm, fs = loadPcm(fpath)
-#                pxx, freqs, times = makeSpecgram(pcm, fs)
-#                write_specgram(pxx, specpath)
-#                im = load_specgram(''.join([specpath,'.png']))
-#                im_ = filter_specgram(im)
-#                cv2.imwrite(''.join([specpath,'_clean.png']), im_)
-
-def extract_features(spec_paths, features_dir):
-    for path in spec_paths:
-        print 'extracting templates from', path
-        if not os.path.exists(path):
-            print 'ERROR: path doesn\'t exist:', path, 'skipping..'
-            continue;
-
-        im = specgram_utils.load_specgram(path)
-        features = extract_templates(im)
-
-        filename = os.path.splitext(os.path.split(path)[1])[0]
-        fpath = os.path.split(path)[0]
-        fpath = os.path.join(fpath, features_dir)
-        if not os.path.exists(fpath): os.makedirs(fpath)
-        fpath = os.path.join(fpath, filename + '-')
-
-        for i in xrange(len(features)):
-            cv2.imwrite(fpath + str(i) + '.png', -features[i])
-
-
-#    _im = im.copy()
-#    contours, hierarchy = cv2.findContours(
-#        _im,
-#        cv2.RETR_LIST,
-#        cv2.CHAIN_APPROX_SIMPLE
-#    )
-#
-#    bounded_contours = map(cv2.boundingRect, contours)
-#
-#    return bounded_contours
-
-
 def extract_templates(im):
     """
     Extract all templates from a given spectrogram image
@@ -65,7 +13,7 @@ def extract_templates(im):
 
 #    tmp = cv2.medianBlur(im, 5)
 #    tmp = cv2.threshold(tmp, 255*0.65, 255, cv2.THRESH_BINARY)[1]
-    tmp = im.copy()
+    tmp = filter_specgram(im)
     _, contours, _ = cv2.findContours(
         tmp,
         cv2.RETR_LIST,
@@ -85,6 +33,7 @@ def extract_templates(im):
 
     return templates
 
+
 def filter_specgram(im):
     t_blockSize = 11
     t_C = 5
@@ -100,6 +49,7 @@ def filter_specgram(im):
     #)
 
     return im_thresh
+
 
 def filter_specgrams(pathlist, specgram_dir, overwrite=False):
     for path in pathlist:

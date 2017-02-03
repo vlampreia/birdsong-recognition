@@ -6,15 +6,19 @@ from xenocantoscraper import XenoCantoScraper
 from sklearn.ensemble import RandomForestClassifier
 
 import numpy as np
+import math
 import multiprocessing as mp
 
 from sklearn.model_selection import train_test_split
 import trace
 from optparse import OptionParser
 import cv2
+import random
 
 DIR_SPECTROGRAMS = './spectrograms'
 DIR_SAMPLES = './samples'
+
+#TODO: fix sample/template distribution
 
 
 class SampleHdl:
@@ -175,6 +179,7 @@ def build_all_templates(samples):
 
 def load_all_templates(samples):
     all_templates = []
+    idx = 0
 
     for sample in samples:
         if sample.spectrogram is None: continue
@@ -183,10 +188,12 @@ def load_all_templates(samples):
 
         for f in os.listdir(template_dir):
             if not os.path.splitext(f)[1] == '.png': continue
-            idx = f.split('-')
-            if not len(idx) == 2: continue
+            #idx = os.path.splitext(f)[0].split('-')
+            #if not len(idx) == 2: continue
             im_t = cv2.imread(os.path.join(template_dir, f), 0)
             t = Template(sample.spectrogram, im_t, idx)
+            idx = idx + 1
+
             sample.spectrogram.templates.append(t)
             all_templates.append(t)
 
@@ -218,7 +225,10 @@ def extract_features(spectrograms, templates, class_mapping):
     return (X, y)
 
 
-def load_features(samples):
+def load_features(samples, spectrograms, templates):
+    X = np.memmap('X.memmap', dtype='float32', mode='r', shape=(len(spectrograms), len(templates)))
+    y = np.memmap('y.memmap', dtype='float32', mode='r', shape=(len(spectrograms)))
+    return X, y
     print 'load_features NOT IMPLEMENTED'
     return None, None
 
@@ -244,71 +254,62 @@ def split_and_classify(X, y, test_size):
     Tracer()()
 
 
-def cr(i, sgram, template):
-    try:
-        ccm = cv2.matchTemplate(sgram.pxx, template.im, cv2.TM_CCOEFF_NORMED)
-    except Exception as e:
-        print 'ERROR matching template {} against {}!!'.format(i, sgram.src_sample.uid)
-        print e
-        return None
+def cr(ccm_maxs, sgram, templates):
+    divisions = 4
+    group_size = int(math.ceil(len(templates)/divisions))
+    errors = []
 
-    print 'template {} cls: {} from sgram {} on sgram {} class {} max: {}'.format(
-            i,
-            template.src_spectrogram.src_sample.label,
-            template.src_spectrogram.src_sample.uid,
-            sgram.src_sample.uid,
-            sgram.src_sample.label,
-            np.max(ccm)
-           )
+    for i in xrange(divisions):
+        left = 0 if i == 0 else 1 + i*group_size
+        right = (i+1) * group_size
 
-    #i = i+1
-    return (i, np.max(ccm))
-    #ccms.append(ccm)
-    #ccm_maxs.append(np.max(ccm))
+        print '    processing group {}-{}'.format(
+            templates[left].idx, templates[right].idx)
+
+        for template in templates[left:right]:
+            if len(sgram.pxx) < len(template.im) or \
+               len(sgram.pxx[0]) < len(template.im[0]):
+                errors.append((template.idx, 'template dim > sgram dim'))
+                continue
+
+            ccm = cv2.matchTemplate(
+                sgram.pxx,
+                template.im,
+                cv2.TM_CCOEFF_NORMED
+            )
+            ccm_maxs[int(template.idx)] = np.max(ccm)
+
+    if len(errors) > 0:
+        print '    Errors:'
+        for e in errors:
+            print '    {}'.format(e[0])
+            #TODO: write to file or smth
 
 
 def cross_correlate(sgram, templates):
-    ccm_maxs = np.zeros(len(templates))
+    ccm_maxs = mp.Array('d', len(templates))
 
-    ready_list = []
-    def cr_collect(result):
-        if result is None: return
-        ccm_maxs[result[0]] = result[1]
-        ready_list.append(result[0])
+    print 'cross correlating {} {} against {} templates'.format(
+            sgram.src_sample.uid, sgram.src_sample.label, len(templates))
 
-    results = {}
-#    pool = mp.Pool(processes=4)
-    for idx, template in enumerate(templates):
-        cr_collect(cr(idx, sgram, template))
-#        results[idx] = pool.apply_async(cr, (idx, sgram, template), callback=cr_collect)
-#        for ready in ready_list:
-#            results[ready].wait()
-#            del results[ready]
-#        ready_list = []
+    num_proc = 4
+    div = int(math.ceil(len(templates)/num_proc))
+    procs = []
 
-#    pool.close()
-#    pool.join()
+    for pidx in xrange(num_proc):
+        left = 0 if pidx == 0 else 1 + pidx*div
+        right = (pidx+1)*div
+        print 'proc {}: {} to {}'.format(pidx, left, right)
+        procs.insert(
+            pidx,
+            mp.Process(target=cr, args=(ccm_maxs, sgram, templates[left:right]))
+        )
 
+    for pidx in xrange(num_proc):
+        procs[pidx].start()
 
-#    for template in templates:
-#        if i == 50: break
-#        try:
-#            ccm = match_template(sgram['sgram'], template['template'])
-#        except Exception as e:
-#            print 'ERROR matching template {} against {}!!'.format(sgram['hdl'], i)
-#            print e
-#
-#        print 'template {} cls: {} from sgram {} on sgram {} class {} max: {}'.format(
-#                i,
-#                template['class'],
-#                template['hdl'],
-#                sgram['hdl'],
-#                sgram['class'],
-#                np.max(ccm)
-#               )
-#        i = i+1
-#        ccms.append(ccm)
-#        ccm_maxs.append(np.max(ccm))
+    for pidx in xrange(num_proc):
+        procs[pidx].join()
 
     return ccm_maxs;
 
@@ -396,131 +397,23 @@ def main():
         if options.verbose or options.informative:
             print 'loaded {} templates'.format(len(all_templates))
 
+    # shuffle templates...
+    #random.shuffle(all_templates)
+
     X = None
     y = None
     if options.features_build:
         X, y = extract_features(all_sgrams, all_templates, class_to_idx)
-        if options.verbose or options.informative:
-            print 'extracted {} features'.format(len())
+#        if options.verbose or options.informative:
+#            print 'extracted {} features'.format(len(X))
         store_features(X, y)
     elif options.features_load or options.classify:
-        X, y = load_features(samples)
+        X, y = load_features(samples, all_sgrams, all_templates)
 
     if options.classify:
+        print class_to_idx
         split_and_classify(X, y, 0.2)
 
-    return
-
-#    pcm_paths = list_wavs(DIR_SAMPLES)
-#
-#    # load each PCM and construct sgrams
-#    class_to_idx = {}
-#    lastidx=1
-#    class_pcms = {}
-#    all_sgrams = []
-#    all_templates = {}
-#
-#    pcm_paths = list_wavs(DIR_SAMPLES)
-#
-#    for path in pcm_paths:
-#        c = get_class_from_path(path)
-#        hdl = get_hdl_from_path(path)
-#
-#        if c not in class_to_idx:
-#            class_to_idx[c] = lastidx
-#            lastidx = lastidx + 1
-#
-#    if (options.spectrograms_build):
-#        all_sgrams = build_spectrograms(pcm_paths)
-#        store_spectrograms(all_sgrams)
-#    elif (options.spectrograms_load):
-#        all_sgrams = load_spectrograms()
-#
-#        parentdir = os.path.split(path)
-#        parentdir = os.path.join(os.path.split(parentdir[0])[1], parentdir[1])
-#        spath = os.path.splitext(parentdir)[0]
-#        spath = os.path.join(DIR_SPECTROGRAMS, spath)
-#
-#        print 'class:', c, '-- hdl:', hdl
-#
-#        path_sgram = ''.join([spath, '.pkl'])
-#        if build_sgrams and (overwrite_sgram or not os.path.exists(path_sgram)):
-#            print '  load PCM', path
-#            pcm, fs = load_pcm(path)
-#            if c not in class_pcms: class_pcms[c] = []
-#            class_pcms[c].append((hdl, (pcm, fs)))
-#
-#            pxx, freqs, times = make_specgram(pcm, fs)
-#            write_specgram(pxx, freqs, times, spath)
-#            print '  made specgram'
-#        else:
-#            if os.path.exists(path_sgram):
-#                pxx, freqs, times = load_specgram(spath)
-#
-#        #TODO: store filtered specgram
-#        clean_pxx = filter_specgram(pxx)
-#        all_sgrams.append({
-#            'class': c,
-#            'hdl': hdl,
-#            'sgram': pxx,
-#            'clean': clean_pxx,
-#            'freqs': freqs,
-#            'times': times
-#            })
-#
-#
-#        dir_templates = os.path.join(DIR_SPECTROGRAMS, os.path.join(c, 'features'))
-#        templates = []
-#        if build_templates:
-#            templates = extract_templates(clean_pxx)
-#
-#            if not os.path.exists(dir_templates): os.makedirs(dir_templates)
-#            fpath = os.path.join(dir_templates, ''.join([hdl, '-']))
-#
-#            for i in xrange(len(templates)):
-#                cv2.imwrite(fpath + str(i) + '.png', -templates[i])
-#
-#            if len(templates) == 0: continue
-#            for idx, template in enumerate(templates):
-#                all_templates[hdl+str(idx)] = {'hdl': hdl, 'class': c, 'template': template}
-#            print '    extracted {} templates'.format(len(templates))
-#        else:
-#            loadc = 0
-#            if os.path.exists(dir_templates):
-#                for tmplf in os.listdir(dir_templates):
-#                    template_hdl = os.path.splitext(tmplf)[0]
-#                    fpath = os.path.join(dir_templates, tmplf)
-#                    if os.path.exists(fpath) and template_hdl not in all_templates:
-#                        template = cv2.imread(fpath, 0)
-#                        all_templates[template_hdl] = {'hdl': hdl, 'class': c, 'template': template}
-#                        loadc = loadc + 1
-#            print '    loaded {} templates'.format(loadc)
-#        print ''
-#
-#    print ''
-#    print 'loaded {} total templates'.format(len(all_templates.keys()))
-#    print ''
-#    print 'total samples: {}, total features: {}'.format(len(all_sgrams), len(all_templates.keys()))
-#
-#    all_sgrams = None
-#
-#    if (build_sgrams):
-#        all_sgrams = build_spectrograms(pcm_paths)
-#
-#    if (build_templates):
-#        pass
-#
-#    X = None
-#    y = None
-#
-#    if (run_feature_extraction):
-#        #TODO: store features
-#        X, y = extract_features(all_sgrams, all_templates, class_to_idx)
-#
-#    if (run_classifier):
-#        split_and_classify(X, y, 0.2)
-#
-#    Tracer()()
 
 if __name__ == "__main__":
     main()

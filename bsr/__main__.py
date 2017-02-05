@@ -210,6 +210,59 @@ def store_all_templates(samples):
             path = os.path.join(template_dir, fname)
             cv2.imwrite(path, -template.im)
 
+def print_template_statistics(spectrograms):
+    # (total sgrams, total, min/max/avg height, min/max/avg width)
+    stats_per_class = {}
+
+    for specgram in spectrograms:
+        label = specgram.src_sample.label
+        if label not in stats_per_class:
+            stats_per_class[label] = [0, 0, -1, -1, 0, -1, -1, 0]
+
+        stats_per_class[label][0] = stats_per_class[label][0] + 1
+
+        for template in specgram.templates:
+            stats_per_class[label][1] = stats_per_class[label][1] + 1
+            len_x = len(template.im)
+            len_y = len(template.im[0])
+
+            if stats_per_class[label][2] == -1 or \
+                len_x < stats_per_class[label][2]:
+                    stats_per_class[label][2] = len_x
+
+            if stats_per_class[label][3] == -1 or \
+                len_x > stats_per_class[label][3]:
+                    stats_per_class[label][3] = len_x
+
+            stats_per_class[label][4] = (len_x + stats_per_class[label][1] * stats_per_class[label][4]) / (stats_per_class[label][1] + 1)
+
+            if stats_per_class[label][5] == -1 or \
+                len_y < stats_per_class[label][5]:
+                    stats_per_class[label][5] = len_y
+
+            if stats_per_class[label][6] == -1 or \
+                len_y > stats_per_class[label][6]:
+                    stats_per_class[label][6] = len_y
+
+            stats_per_class[label][7] = (len_y + stats_per_class[label][1] * stats_per_class[label][7]) / (stats_per_class[label][1] + 1)
+
+    print '{:<32} {:<5} {:<5}   {:<5} {:<5} {:<5}   {:<5} {:<5} {:<5}'.format(
+        '', '', '', 'y_dim', '', '', 'x_dim', '', ''
+    )
+
+    fmt_str = '{:<32} {:<5} {:<5}   {:<5} {:<5} {:<5}   {:<5} {:<5} {:<5}'
+    print fmt_str.format(
+        'label', 'sgrms', 'count', 'min', 'max', 'avg', 'min', 'max', 'avg'
+    )
+
+    print '{:_<80}'.format('')
+
+    for i in sorted(stats_per_class.items(), key=operator.itemgetter(1), reverse=True):
+        k = i[0]
+        v = i[1]
+        print fmt_str.format(
+                k[:32], v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])
+
 
 def extract_features(spectrograms, templates, class_mapping):
     X = np.memmap('X.memmap', dtype='float32', mode='w+', shape=(len(spectrograms), len(templates)))
@@ -217,7 +270,11 @@ def extract_features(spectrograms, templates, class_mapping):
 #    X = np.zeros((len(spectrograms), len(templates)))
 #    y = np.zeros(len(spectrograms))
 
+    total = len(templates)
     for idx, sgram in enumerate(spectrograms):
+        print '({}/{}) cross correlating {} {} against {} templates'.format(
+            idx, total,
+            sgram.src_sample.uid, sgram.src_sample.label, len(templates))
         X_ccm = cross_correlate(sgram, templates)
         X[idx] = X_ccm
         y[idx] = class_mapping[sgram.src_sample.label]
@@ -289,9 +346,6 @@ def cr(ccm_maxs, sgram, templates):
 def cross_correlate(sgram, templates):
     ccm_maxs = mp.Array('d', len(templates))
 
-    print 'cross correlating {} {} against {} templates'.format(
-            sgram.src_sample.uid, sgram.src_sample.label, len(templates))
-
     num_proc = 4
     div = int(math.ceil(len(templates)/num_proc))
     procs = []
@@ -360,7 +414,12 @@ def main():
         return
 
     if (options.stats):
-        print_sample_statistics(DIR_SAMPLES)
+        #print_sample_statistics(DIR_SAMPLES)
+
+        samples = gather_samples()
+        sgrams = load_all_spectrograms(samples)
+        templates = load_all_templates(samples)
+        print_template_statistics(sgrams)
         return
 
     #overwrite_sgram = False

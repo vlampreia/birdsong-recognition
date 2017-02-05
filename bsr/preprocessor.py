@@ -49,20 +49,3 @@ def filter_specgram(im):
     #)
 
     return im_thresh
-
-
-def filter_specgrams(pathlist, specgram_dir, overwrite=False):
-    for path in pathlist:
-        parentdir = os.path.split(path)
-        parentdir = os.path.join(os.path.split(parentdir[0])[1], parentdir[1])
-        fpath = os.path.splitext(parentdir)[0]
-        fpath = ''.join([os.path.join(specgram_dir, fpath), '_clean.png'])
-        if not overwrite and os.path.exists(fpath):
-            print 'filtered', path, 'exists as', fpath
-            continue
-        else:
-            print 'filtering', path, '->', fpath
-
-        im = specgram_utils.load_specgram(path)
-        im_ = filter_specgram(im)
-        cv2.imwrite(fpath, im_)

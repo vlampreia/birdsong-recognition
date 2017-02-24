@@ -46,17 +46,10 @@ def print_sample_statistics(samples_dir):
 
     fmt_samples = '{:>4}  {:<24}'
 
-    print 'wave samples'
-    print '{:-<80}'.format('')
-    print fmt_samples.format('wavs','samples')
+    print fmt_samples.format('WAVS','SAMPLES')
     print '{:_<80}'.format('')
     for sample in s:
         print fmt_samples.format(sample[1], sample[0][:24])
 
     print ''
-
-    print 'feature set'
-    print '{:-<80}'.format('')
-    print 'class              features'
-    print '{:_<80}'.format('')
-    
+    print sum(samples.values()), 'samples'

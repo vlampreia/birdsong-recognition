@@ -16,7 +16,7 @@ def load_specgram(path):
         freqs = pickle.load(f)
         times = pickle.load(f)
 
-    return (-sgram, freqs, times)
+    return (sgram, freqs, times)
 
 def write_specgram(pxx, freqs, times, path):
     dpath = os.path.split(path)[0]
@@ -36,13 +36,13 @@ def write_specgram(pxx, freqs, times, path):
             pickle.dump(times, f)
 
     except IOError as err:
-        print '\terror writing specgram file: ', err
+        print '\terror writing specgram file: {}'.format(path), err
     except NameError as err:
-        print '\terror writing specgram file: ', err
+        print '\terror writing specgram file: {}'.format(path), err
     except ValueError as err:
-        print '\terror writing specgram file: ', err
+        print '\terror writing specgram file: {}'.format(path), err
     except:
-        print '\terror writing specgram file:', sys.exc_info()[0]
+        print '\terror writing specgram file: {}'.format(path), sys.exc_info()[0]
 
 def make_specgram(pcm, samplerate):
     fs = samplerate
@@ -62,7 +62,7 @@ def make_specgram(pcm, samplerate):
     freq_mask = (freqs >= min_freq) & (freqs <= max_freq)
     pxx = pxx[freq_mask,:]
 
-    pxx = 10*np.log10(pxx)
+    pxx = 10*np.log10(pxx.clip(min=0.0000000001))
     pxx = np.array(pxx, dtype=np.uint8)
 
     freqs = freqs[freq_mask]

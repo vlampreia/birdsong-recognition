@@ -13,6 +13,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold
 from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import confusion_matrix
 
@@ -94,7 +95,7 @@ def find_templates(ids):
             template_idx = uid.split('-')[1]
 
             im_t = -cv2.imread(template_paths[uid], 0)
-            t = Template(Sample(sample_uid, None), im_t, int(idx))
+            t = Template(Sample(sample_uid, None), im_t, int(template_idx))
             templates[idx] = t
         else:
             print 'WARNING did not load template {}'.format(uid)
@@ -316,7 +317,9 @@ def print_loaded_data(data, idx_to_class):
     print fmt_str.format('TOTAL', len(data['y']), len(data['template_order']))
 
 
-def print_template_statistics(spectrograms):
+def print_template_statistics(samples):
+    spectrograms = [s.spectrogram for s in samples if s.spectrogram is not None]
+
     # (total sgrams, total, min/max/avg height, min/max/avg width)
     stats_per_class = {}
 
@@ -379,8 +382,13 @@ def extract_features(samples, templates, class_mapping):
 
     global g_options
 
-    X = [[None] * len(templates)] * len(samples)
-    y = [None] * len(samples)
+    #... uhhh, check this, and use 
+    #    X = [[None for x in range(len(templates))] for y in
+    #    range(len(samples))]
+    X = [[None for x in range(len(templates))] for y in range(len(samples))]
+    #X = [[None] * len(templates)] * len(samples)
+    y = [None for x in range(len(samples))]
+    #y = [None] * len(samples)
 #    X = np.memmap(x + 'X.memmap', dtype='float32', mode='w+', shape=(len(samples), len(templates)))
 #    y = np.memmap(x + 'y.memmap', dtype='float32', mode='w+', shape=(len(samples)))
     ids = [None] * len(samples)
@@ -515,29 +523,54 @@ def cross_correlate(sgram, templates):
     return ccm_maxs;
 
 
-def select_samples(samples):
+def select_samples(samples, exception_list=[]):
+    """
+    Filters the given samples to classes with at least 20 samples
+    """
     selected_samples = []
     class_counts = defaultdict(int)
     selected_counts = defaultdict(int)
 
     for sample in samples:
         #if sample.spectrogram is not None:
-            class_counts[sample.label] += 1
+        class_counts[sample.label] += 1
 
     for sample in samples:
-        if class_counts[sample.label] >= 20:
-           #selected_counts[sample.label] < 20 and \
-           #sample.spectrogram is not None:
+        if class_counts[sample.label] < 20: continue
+        if sample.uid in exception_list: continue
+       #selected_counts[sample.label] < 20 and \
+       #sample.spectrogram is not None:
 #        if class_counts[sample.label] > 1 and \
 #           sample.spectrogram is not None and \
 #           selected_counts[sample.label] < 3:
-            selected_samples.append(sample)
-            selected_counts[sample.label] += 1
+        selected_samples.append(sample)
+        selected_counts[sample.label] += 1
 
     return selected_samples
 
 
-def filter_samples(samples, labels):
+def limit_samples(samples):
+    """
+    Limits the number of samples to 20 per class
+    """
+    selected_samples = []
+    selected_samples_per_class = defaultdict(int)
+
+    for sample in samples:
+        if selected_samples_per_class[sample.label] < 20 and \
+           sample.spectrogram is not None:
+            selected_samples.append(sample)
+            selected_samples_per_class[sample.label] += 1
+
+    return selected_samples
+
+
+def filter_samples(samples, exclude_labels):
+    """
+    filters down the sample list to four classes, each with at least 2000
+    templates
+    """
+
     selected_samples = []
     template_counts = defaultdict(int)
 
@@ -558,11 +591,163 @@ def filter_samples(samples, labels):
     num=0
     for k,group in samples_per_class.iteritems():
         if num == 4: break
-        if labels is not None and k in labels: continue
+        if exclude_labels is not None and k in exclude_labels: continue
         num += 1
         selected_samples.extend(group)
 
     return selected_samples
+
+
+def split_data(data, train_indices, test_indices):
+    X = np.array(data['X'])
+    y = np.array(data['y'])
+    ids = np.array(data['ids'])
+
+    X_train = X[train_indices]
+    y_train = y[train_indices]
+
+    X_test = X[test_indices]
+    y_test = y[test_indices]
+
+    ids_train = ids[train_indices]
+    ids_test  = ids[test_indices]
+
+    used_templates = []
+    template_ids = []
+    for idx, uid in enumerate(data['template_order']):
+        if uid.split('-')[0] in ids_train:
+            template_ids.append(idx)
+            used_templates.append(uid)
+
+    X_train_t = np.zeros((len(X_train), len(template_ids)))
+    X_test_t =  np.zeros((len(X_test),  len(template_ids)))
+
+    for i, v in enumerate(X_train):
+        X_train_t[i] = v[template_ids]
+    for i, v in enumerate(X_test):
+        X_test_t[i] = v[template_ids]
+
+
+#    Tracer()()
+#    X = copy.deepcopy(data['X'])
+#
+#    X_train = [X[i] for i in train_indices]
+#    y_train = [data['y'][i] for i in train_indices]
+#
+#    X_test = [X[i] for i in test_indices]
+#    y_test = [data['y'][i] for i in test_indices]
+#
+#    ids_train = [data['ids'][i] for i in train_indices]
+#    ids_test =  [data['ids'][i] for i in test_indices]
+
+#    used_templates = []
+#
+#    for idx, uid in reversed(list(enumerate(data['template_order']))):
+#        if uid.split('-')[0] not in ids_train:
+#            for x in X_train: del x[idx]
+#            for x in X_test: del x[idx]
+#        else:
+#            used_templates.append(uid)
+#
+#    return X_train, X_test, y_train, y_test, used_templates#, ids_train, ids_test
+    return X_train_t, X_test_t, y_train, y_test, used_templates
+
+
+def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
+    prev_sid = ''
+    prev_label = ''
+    labels = []
+    ticks = []
+    agr_labels = []
+    agr_ticks = []
+    idx = 0
+    agr_sum = 0
+    agr_importances = []
+
+    for i, uid in enumerate(data['template_order']):
+        sid = uid.split('-')[0]
+        label = idx_to_class[data['y'][data['ids'].index(sid)]]
+
+        if label != prev_label:
+            sid = sid + '\n' + label
+            prev_label = label
+            if prev_label != '':
+                agr_importances.append(agr_sum)
+                agr_sum = 0
+            agr_ticks.append(idx)
+            agr_labels.append(label)
+            idx += 1
+
+        if len(labels) == 0 or sid != prev_sid:
+            prev_sid = sid
+            labels.append(sid)
+            ticks.append(i)
+
+        agr_sum += importances[i]
+
+    Tracer()()
+    fig, ax = plt.subplots(nrows=2)
+    ax[0].imshow([agr_importances]*2, interpolation='none', cmap=plt.cm.Blues)
+    ax[0].set_xticks(agr_ticks)
+    ax[0].set_xticklabels(agr_labels, rotation=45)
+    ax[0].set_yticks([])
+    ax[0].set_yticklabels([])
+
+    cax = ax[1].contourf([importances]*2, interpolation='none', cmap=plt.cm.Blues)
+    ax[1].set_xticks(ticks)
+    ax[1].set_xticklabels(labels, rotation=45)
+    ax[1].set_yticks([])
+    ax[1].set_yticklabels([])
+    fig.colorbar(cax, ax=ax[1])
+    fig.tight_layout()
+
+    if plot_now: plt.show()
+
+
+def plot_cnf_matrix(cnf, y, idx_to_class, plot_now=False, normalize=False, show_values=False):
+
+    _cnf = cnf
+    if normalize:
+        _cnf = np.array(cnf, copy=True, dtype='float')
+        _cnf /= _cnf.max()
+
+    plt.figure()
+    plt.imshow(_cnf, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.colorbar()
+
+    tm = np.arange(len(set(y)))
+    labels = [idx_to_class[x] for x in set(y)]
+
+    if show_values:
+        thresh = np.max(_cnf) / 2.0
+        for i in xrange(len(_cnf)):
+            for j in xrange(len(_cnf[0])):
+                plt.text(j, i, _cnf[i][j], horizontalalignment='center',
+                    color='white' if _cnf[i][j] > thresh else 'black')
+
+    plt.xticks(tm, labels, rotation=90)
+    plt.yticks(tm, labels)
+
+    if plot_now: plt.show()
+
+
+def process_scrape_options(options, samples):
+    if not options.scrape: return False
+
+    interval = options.scrape_interval or -1
+    labels_filter = [s.uid for s in samples] if options.scrape_conserve else None
+
+    scraper = XenoCantoScraper(
+        interval=interval,
+        ratings_filter=['A'],
+        labels_filter
+    )
+
+    scraper.begin_scrape(DIR_SAMPLES)
+
+    return True
+
+    
 
 
 def main():
@@ -571,9 +756,9 @@ def main():
     parser = OptionParser()
     parser.add_option("--scrape", dest="scrape", action="store_true",
                       help="Scrape random samples from XenoCanto")
-    parser.add_option("--scrape-conserve", dest="scrape2", action="store_true",
+    parser.add_option("--scrape-conserve", dest="scrape_conserve", action="store_true",
                       help="Scrape random samples from XenoCanto, but only labels which already exist")
-    parser.add_option("--scrape-period", dest="scrape3", action="store", type="int",
+    parser.add_option("--scrape-period", dest="scrape_interval", action="store", type="int",
                       help="Scrape random samples from XenoCanto, at given interval in seconds")
 
     parser.add_option("--stats", dest="stats", action="store_true",
@@ -596,10 +781,10 @@ def main():
                       help="Show template extraction results")
 
     parser.add_option("-f", "--load-features", dest="features_load",
-                      action="store_true",
+                      action="store",
                       help="Load features from file")
     parser.add_option("-F", "--make-features", dest="features_build",
-                      action="store_true",
+                      action="store",
                       help="Extract and overwrite features to file. Equivalent to -stF")
 
     parser.add_option("-c", "--classify", dest="classify", action="store_true",
@@ -613,37 +798,20 @@ def main():
     parser.add_option("-l", "--filter-label", dest="label_filter", action="store",
                       help="Process only samples of a givel label value")
 
-    parser.add_option("--split", dest="split_specgrams", action="store_true",
-                      help="Split spectrograms on 10s boundaries")
+    parser.add_option('--features-file', dest='features_file', action='store',
+                      help='pkl file to load features from.')
 
     parser.add_option("--merge", dest="merge_results", action="store_true")
+
 
     (options, args) = parser.parse_args()
     g_options = options
 
-    if (options.scrape or options.scrape2):
-        scraper = XenoCantoScraper()
 
-        def do_scrape():
-            if options.scrape:
-                scraper.retrieve_random(DIR_SAMPLES)
-            elif options.scrape2:
-                samples = gather_samples()
-                scraper.retrieve_random(DIR_SAMPLES, ['A'], [s.label for s in samples])
+    samples = gather_samples()
 
-        if options.scrape3 is not None:
-            while(True):
-                prevcount = scraper.get_pull_count()
-                do_scrape()
-                if prevcount is not scraper.get_pull_count():
-                    print 'trying again in {} seconds'.format(options.scrape3)
-                    time.sleep(options.scrape3)
-        else:
-            do_scrape()
+    if process_scrape_options(options, samples): exit()
 
-        print_sample_statistics(DIR_SAMPLES)
-        print 'scraped {} samples'.format(scraper.get_pull_count())
-        return
 
     if (options.stats):
         print_sample_statistics(DIR_SAMPLES)
@@ -651,13 +819,17 @@ def main():
         samples = gather_samples()
         sgrams = load_all_spectrograms(samples)
         templates = load_all_templates(samples)
-        print_template_statistics([s.spectrogram for s in samples if s.spectrogram is not None])
-        return
+        print_template_statistics(samples)
+        exit()
 
-    if options.split_specgrams:
-        return
+    previous_data = None
+    if options.features_file is not None:
+        if not os.path.exists(options.features_file):
+            print 'Path {} does not exist. Aborting.'.format(options.features_file)
+            exit()
+        with open(options.features_file, 'r') as f:
+            previous_data = pickle.load(f)
 
-    #overwrite_sgram = False
 
     samples = gather_samples()
     if options.verbose or options.informative:
@@ -668,7 +840,8 @@ def main():
     if options.verbose or options.informative:
         print '{} classes'.format(len(class_to_idx))
 
-    samples = select_samples(samples)
+    previous_ids = previous_data['ids'] if previous_data is not None else []
+    samples = select_samples(samples, exception_list=previous_data['ids'])
 
     all_sgrams = None
     if options.spectrograms_build:
@@ -685,52 +858,13 @@ def main():
 
 
     if options.spectrograms_load or options.spectrograms_build:
-        print ''
-        print 'vvv after spectrogram build vvv'
-        print_template_statistics([s.spectrogram for s in samples if s.spectrogram is not None])
-        print ''
-        selected_samples = []
-        selected_counts = defaultdict(int)
-        for sample in samples:
-            if selected_counts[sample.label] < 20 and \
-               sample.spectrogram is not None:
-                selected_samples.append(sample)
-                selected_counts[sample.label] += 1
-        samples = selected_samples;
-        selected_samples = None
+        print_template_statistics(samples)
+        samples = limit_samples(samples)
+        print_template_statistics(samples)
 
     # ignore classes with only one spectrogram
-    #samples = select_samples(samples)
     if options.verbose:
         print 'filtered down to {} samples'.format(len(samples))
-
-#    samples_train = []
-#    samples_test = []
-#    if os.path.exists('./splits.pkl'):
-#        with open('./splits.pkl', 'r') as f:
-#            data = pickle.load(f)
-#            
-#            samples_train = [s in samples if s.uid in data['train']]
-#            samples_test = [s in samples if s.uid in data['test']]
-            #Tracer()()
-            
-    # TODO: for all loading after templates we need to store the split to file
-    """
-    samples_train, samples_test = train_test_split(samples, test_size=0.2, random_state=0)
-
-    # make sure all test samples are present in train samples, vice versa
-    common_labels = [x for x in set([s.label for s in samples_train]) \
-                    if x in set([s.label for s in samples_test])]
-    samples_train = [s for s in samples_train if s.label in common_labels]
-    samples_test = [s for s in samples_test if s.label in common_labels]
-    """
-
-#    with open('./split.pkl', 'w') as f:
-#        pickle.dump({
-#            'train': [s.uid for s in samples_train],
-#            'test': [s.uid for s in samples_test]
-#        }, f)
-
 
     if options.templates_build:
         Tracer()()
@@ -741,7 +875,7 @@ def main():
         if options.verbose:
             print ''
             print 'vvv after template build vvv'
-            print_template_statistics([s.spectrogram for s in samples if s.spectrogram is not None])
+            print_template_statistics(samples)
             print ''
 
         store_all_templates(samples)
@@ -754,27 +888,18 @@ def main():
 
 
     #samples = filter_samples(samples, ['Common Whitethroat', 'White-breasted Wood Wren', 'Pale-breasted Spinetail', 'Chestnut-breasted Wren', 'Corn Bunting', 'Ortolan Bunting', 'Common Chiffchaff'])
-    samples = filter_samples(samples, ['Common Reed Bunting', 'Pale-breasted Spinetail', 'Chestnut-breasted Wren', 'Common Cuckoo', 'Common Chiffchaff', 'Corn Bunting', 'Ortolan Bunting', 'Rufous-browed Peppershrike'])
-    all_templates = []
-    #templates_train = []
-    #for sample in samples_train:
-    templates_per_class = defaultdict(int)
-#    for sample in samples:
-#        if sample.spectrogram is None: continue
-#        templates_per_class[sample.label] += len(sample.spectrogram.templates)
+    samples = filter_samples(samples, None)
+    print_template_statistics(samples)
 
-    # TODO: split templates before
-    # here we're leaving out the last few
+    all_templates = []
+    templates_per_class = defaultdict(int)
+
     for sample in samples:
         if sample.spectrogram is not None:
             if templates_per_class[sample.label] >= 3000: continue
-            #templates_train.extend(sample.spectrogram.templates)
-            # Take first n templates in load order
             all_templates.extend(sample.spectrogram.templates[:2500])
             templates_per_class[sample.label] += min(2500,len(sample.spectrogram.templates))
 
-#    print '{} test samples, {} train samples {} templates'.format(
-#        len(samples_test), len(samples_train), len(templates_train))
 
     if len(all_templates) is 0:
         print 'Loaded no raw templates'
@@ -782,7 +907,7 @@ def main():
         print 'Keeping {} templates'.format(len(all_templates))
         print ''
         print 'vvv Using Data vvv'
-        print_template_statistics([s.spectrogram for s in samples if s.spectrogram is not None])
+        print_template_statistics(samples)
         print ''
 
     X = None
@@ -794,8 +919,8 @@ def main():
         print '{:-<82}'.format('')
 
         filenames = [
-            './engineered_data_1.pkl',
-            './engineered_data_2.pkl'
+            './engineered_data.pkl',
+            './merged_data.pkl'
         ]
 
         with open(filenames[0], 'r') as f:
@@ -808,14 +933,12 @@ def main():
         print '\nLoad file {}'.format(filenames[1])
         print_loaded_data(data_2, idx_to_class)
 
-
         data_merged = {}
 
         # cross data_1 samples with data_2 templates
         _samples   = find_samples(data_1['ids'])
         load_all_spectrograms(_samples)
         _templates = find_templates(data_2['template_order'])
-        Tracer()()
         _template_ids_1 = [t.uid for t in _templates]
         X_1, y_1, ids_1 = extract_features(_samples, _templates, class_to_idx)
 
@@ -845,39 +968,20 @@ def main():
         print 'CHECK DATA -- DO NOT FORGET TO DUMP FILE!!!'
         print '{:-<82}'.format('')
         Tracer()()
-        #with open('./engineered_data.pkl', 'r') as f:
-        #    pickle.dump(data_merged, f)
     else:
         if options.features_build:
-            Tracer()()
             # build all features: template matching of all templates <-> all sgrams
             X, y, ids = extract_features(samples, all_templates, class_to_idx)
             used_templates = [t.uid for t in all_templates]
             Tracer()()
-            with open('./engineered_data.pkl', 'w') as f:
+            with open(options.features_build, 'w') as f:
                 pickle.dump({
                     'X': X, 'y': y, 'ids': ids, 'label_map': class_to_idx,
                     'template_order': used_templates
                 }, f)
-    #        X_train, y_train = extract_features(
-    #            'train', samples_train, templates_train, class_to_idx)
-    #
-    #        X_test, y_test = extract_features(
-    #            'test', samples_test, templates_train, class_to_idx)
 
-
-        #if options.features_build:
-        #    X, y = extract_features(all_sgrams, all_templates, class_to_idx)
-    #   #     if options.verbose or options.informative:
-    #   #         print 'extracted {} features'.format(len(X))
-        #    store_features(X, y)
-        elif options.features_load or options.classify:
-            #print 'UNSUPPORTED!!!!!'
-            #Tracer()()
-            #X_train, y_train = load_features('train', len(samples_train), len(templates_train))
-            #X_test, y_test = load_features('test', len(samples_test), len(templates_train))
-
-            filename = './merged_data.pkl'
+        elif options.features_load:
+            filename = options.features_load
             with open(filename, 'r') as f:
                 data = pickle.load(f)
                 X = copy.deepcopy(data['X'])
@@ -889,101 +993,92 @@ def main():
                 print ''
                 print_loaded_data(data, idx_to_class)
 
-            """
-            #X, y = load_features()
-            #X, y = load_features(samples, all_sgrams, all_templates)
-            """
-    Tracer()()
 
     if options.classify:
-        for i in range(10):
-            n_splits = 10
-            skf = StratifiedKFold(n_splits=n_splits)
-            results = [None] * n_splits
-            _i=0
+        cm = [[0] * len(set(data['y']))] * len(set(data['y']))
+        feature_importances = [-1] * len(data['template_order'])
+        template_uid_to_idx = {v:i for i,v in enumerate(data['template_order'])}
+        n_splits = 10
 
-            cm = [[0] * len(set(data['y']))] * len(set(data['y']))
+        for i in range(5):
+            print '\niteration {}'.format(i)
 
+            skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=None)
+            #skf = KFold(n_splits=n_splits, shuffle=True, random_state=0)
+            #results = [None] * n_splits
+            results = defaultdict(list)
+            results_i=0
+
+
+            #cm = [[0] * len(set(data['y']))] * len(set(data['y']))
+
+            #clf = RandomForestClassifier(n_jobs=4)
             clf = ExtraTreesClassifier(
                 #warm_start=True,
                 #oob_score=True,
-                n_estimators=1000,
-                max_features=None,
+                n_estimators=500,
+                max_features='sqrt',
                 min_samples_split=3,
-                bootstrap=True,
-                n_jobs=4
+                #bootstrap=True,
+                n_jobs=4,
+                random_state=None
             )
-
-            Tracer()()
 
             #loo = LeaveOneOut()
             #for train_indices, test_indices in loo.split(data['X']):
+            #Tracer()()
             for train_indices, test_indices in skf.split(data['X'], data['y']):
-                print 'fold {}...'.format(_i+1)
+                #Tracer()()
+                print '  fold {} train {} test {}...'.format(results_i+1, len(train_indices), len(test_indices))
 
-                X = copy.deepcopy(data['X'])
+                t1 = time.time()
+                X_train, X_test, y_train, y_test, template_uids = split_data(data, train_indices, test_indices)
+                print '    split time {}'.format(time.time() - t1)
 
-                X_train = [X[i] for i in train_indices]
-                y_train = [data['y'][i] for i in train_indices]
-
-                X_test = [X[i] for i in test_indices]
-                y_test = [data['y'][i] for i in test_indices]
-
-                ids_train = [data['ids'][i] for i in train_indices]
-                ids_test =  [data['ids'][i] for i in test_indices]
-
-                # remove template match results from feature vectors where the
-                # template does not belong to a training sample
-                for idx, uid in reversed(list(enumerate(used_templates))):
-                    print 'thing: {}'.format(idx)
-                    if uid.split('-')[0] not in ids_train:
-                        for x in X_train: del x[idx]
-                        for x in X_test: del x[idx]
-    #            for idx, template in reversed(list(enumerate(all_templates))):
-    #                if template.src_sample.uid not in ids_train:
-    #                    for x in X_train: del x[idx]
-    #                    for x in X_test:  del x[idx]
-
+                t1 = time.time()
                 clf.fit(X_train, y_train)
                 #oob_err = 1 - clf.oob_score_
                 #print 'oob err: {}'.format(oob_err)
                 predictions = clf.predict(X_test)
-                score = accuracy_score(y_true=y_test, y_pred=predictions)
-                results[_i] = score
-                _i += 1
-
+                accuracy = accuracy_score(y_true=y_test, y_pred=predictions)
                 precision, recall, fscore, support = precision_recall_fscore_support(
                         y_true = y_test, y_pred = predictions,
                         average='micro'
                         )
+                results['accuracy'].append(accuracy)
+                results['precision'].append(precision)
+                results['recall'].append(recall)
+                results['fscore'].append(fscore)
+                #results['support'].append(support)
+                results_i += 1
+                print '    clf pred time {}'.format(time.time() - t1)
+
+                #Tracer()()
+                print '    accuracy: {}'.format(accuracy)
+                #print 'precision: {}\nrecall: {}\n fscore: {}\n support: {}'.format(
+                #    precision, recall, fscore, support)
+                #Tracer()()
                 _cm = confusion_matrix(y_test, predictions)
-                print score
+                #breaks with non stratified kfold, since matrix dimensions are
+                # no longer equal
                 cm = map(add, cm, _cm)
 
-            print 'accuracy: {} std: {}'.format(np.mean(results), np.std(results))
-            print np.sort(clf.feature_importances_)
+                _feature_importances = clf.feature_importances_
+                for idx in xrange(len(template_uids)):
+                    i = template_uid_to_idx[template_uids[idx]]
+                    if feature_importances[i] == -1:
+                        feature_importances[i] = _feature_importances[idx]
+                    else:
+                        feature_importances[i] += _feature_importances[idx]
 
-            plt.figure()
-            plt.subplot()
-            plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-            plt.colorbar()
-            tm = np.arange(len(set(y_test)))
-            labels = [idx_to_class[x] for x in set(y_test)]
-            plt.xticks(tm, labels, rotation=90)
-            plt.yticks(tm, labels)
+            print '\n  {} fold cv results:'.format(n_splits)
+            for k,v in results.iteritems():
+                print '    {}: {} std: {}'.format(k, np.mean(v), np.std(v))
 
-            #plt.subplot()
-            #importances = clf.feature_importances_
-            #indices = np.argsort(importances)[::-1]
-            #std = np.std([tree.feature_importances_ for tree in clf.estimators_], axis=0)
-            #plt.title('Feature Importances')
-            #plt.bar(range(len(X[0])), importances[indices], color='r',
-            #    yerr=std[indices], align='center')
-            #plt.xticks(range(len(X[0])), indices)
-            #plt.xlim([-1, len(X[1])])
 
-            plt.show()
-        Tracer()()
+        plot_feature_importances(feature_importances, idx_to_class, data)
+        plot_cnf_matrix(cm, y_test, idx_to_class, normalize=True, show_values=True)
+        plt.show()
 
         #X_train, X_test, y_train, y_test, ids_train, ids_test = train_test_split(
         #    X, y, ids, test_size=0.2, random_state=0

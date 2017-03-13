@@ -483,7 +483,7 @@ def limit_samples(samples):
 
 def get_first_n_templates_per_class(repository, n):
     all_templates = []
-    selected_templates_per_class = defaultdict(int)
+    num_selected_templates_per_class = defaultdict(int)
     template_iterator_per_class = defaultdict(int)
     it_step = 100
 
@@ -491,13 +491,21 @@ def get_first_n_templates_per_class(repository, n):
 
     for label, samples in label_sample_d.iteritems():
 
-        while selected_templates_per_class[label] < n:
+        while num_selected_templates_per_class[label] < n:
             idx = template_iterator_per_class[label]
+
+            added = 0
 
             for sample in samples:
                 templates = sample.get_spectrogram().get_templates()[idx:idx+it_step]
                 all_templates.extend(templates)
-                selected_templates_per_class[label] += len(templates)
+                added += len(templates)
+
+                num_selected_templates_per_class[label] += len(templates)
+
+                if num_selected_templates_per_class[label] >= n: break
+
+            if added == 0: break
 
             template_iterator_per_class[label] += it_step
 
@@ -822,6 +830,10 @@ def main():
     print_template_statistics(repository.samples)
 
     all_templates = get_first_n_templates_per_class(repository, 3000)
+
+    templates_per_class = defaultdict(list)
+    for t in all_templates: templates_per_class[t.get_src_sample().get_label()].append(t)
+    for k, v in templates_per_class.iteritems(): print k, len(v)
 
     Tracer()()
 

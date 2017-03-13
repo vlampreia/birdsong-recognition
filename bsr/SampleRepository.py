@@ -48,7 +48,6 @@ class SampleRepository:
         self.samples = selected_samples
 
     def reject_by_template_count_per_class(self, at_least=0, at_most=0):
-        Tracer()()
         template_counts_per_class = defaultdict(int)
 
         for sample in self.samples:
@@ -56,7 +55,6 @@ class SampleRepository:
 
         if at_least != 0: self.samples = [s for s in self.samples if template_counts_per_class[s.get_label()] >= at_least]
         if at_most != 0:  self.samples = [s for s in self.samples if template_counts_per_class[s.get_label()] <= at_most]
-        Tracer()()
 
 
     def gather_samples(self):
@@ -68,7 +66,12 @@ class SampleRepository:
 
 
     def get_samples_per_label(self):
-        return {s.get_label(): s for s in self.samples}
+        samples_per_label = defaultdict(list)
+
+        for sample in self.samples:
+            samples_per_label[sample.get_label()].append(sample)
+
+        return samples_per_label
 
 
     def store_all(self):
@@ -276,6 +279,6 @@ class PersistentTemplate(AbstractTemplate):
 
 
     def get_src_sample(self):
-        return self.get_src_sample()
+        return self._template.get_src_sample()
 
 

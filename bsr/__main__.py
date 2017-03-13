@@ -1,10 +1,13 @@
 from bsrdata import Sample, Spectrogram, Template
 
+import logging
+
 from classifier import *
 from preprocessor import *
 from utils import *
 from xenocantoscraper import XenoCantoScraper
 
+from SampleRepository import *
 from operator import add
 
 from itertools import islice
@@ -42,8 +45,8 @@ def make_class_mapping(samples):
     mapping = {}
 
     for sample in samples:
-        if sample.label not in mapping:
-            mapping[sample.label] = idx
+        if sample.get_label() not in mapping:
+            mapping[sample.get_label()] = idx
             idx = idx + 1
 
     return mapping
@@ -104,7 +107,7 @@ def find_templates(ids):
 
 
 def build_all_spectrograms(samples):
-    spectrograms = []
+    num_build = 0
 
     for sample in samples:
         path = sample.get_pcm_path(DIR_SAMPLES)
@@ -122,37 +125,33 @@ def build_all_spectrograms(samples):
             print e
             continue
 
-        start = time.time()
         pxx, freqs, times = make_specgram(pcm, fs)
         sgram = Spectrogram(sample, pxx, freqs, times)
 
-        sample.spectrogram = sgram
-        spectrograms.append(sgram)
-
-    return spectrograms
-
-
-def load_all_spectrograms(samples, label_filter = None):
-    #spectrograms = []
-
-    num_spectrograms = 0
-
-    for sample in samples:
-        path = sample.get_spectrogram_path(DIR_SPECTROGRAMS)
-        if not os.path.exists(''.join([path, '.pkl'])): continue
-
-        if label_filter is not None and sample.label != label_filter:
-            continue
-
-        pxx, freqs, times = load_specgram(path)
-        sgram = Spectrogram(sample, pxx, freqs, times)
+        num_build += 1
 
         sample.spectrogram = sgram
-        num_spectrograms += 1
-        #spectrograms.append(sgram)
 
-    return num_spectrograms
-    #return spectrograms
+    return num_build
+
+
+#def load_all_spectrograms(samples, label_filter = None):
+#    num_spectrograms = 0
+#
+#    for sample in samples:
+#        path = sample.get_spectrogram_path(DIR_SPECTROGRAMS)
+#        if not os.path.exists(''.join([path, '.pkl'])): continue
+#
+#        if label_filter is not None and sample.get_label() != label_filter:
+#            continue
+#
+#        pxx, freqs, times = load_specgram(path)
+#        sgram = Spectrogram(sample, pxx, freqs, times)
+#
+#        sample.spectrogram = sgram
+#        num_spectrograms += 1
+#
+#    return num_spectrograms
 
 
 def store_all_spectrograms(samples):
@@ -174,27 +173,6 @@ def delete_stored_templates(samples):
             os.remove(os.path.join(template_dir, f))
 
 
-#def build_templates(samples, label_filter, all_templates):
-#    global g_options
-#
-#    for sample in samples:
-#        if label_filter is not None and sample.label not in label_filter:
-#            continue
-#
-#        if g_options.verbose:
-#            print 'Extracting templates for {} {}'.format(sample.uid, sample.label)
-#
-#        if sample.spectrogram is None:
-#            print 'Sample {} has no spectrogram...'.format(sample.uid)
-#            continue
-#
-#        templates = extract_templates(sample.spectrogram.pxx, g_options.templates_interactive)
-#        for idx, template in enumerate(templates):
-#            t = Template(sample.spectrogram, template, idx)
-#            all_templates.append(t)
-#            sample.spectrogram.templates.append(t)
-
-
 def build_all_templates(samples, label_filter = None):
     """
     Build all templates from each spectrogram from each sample.
@@ -208,41 +186,16 @@ def build_all_templates(samples, label_filter = None):
     global g_options
     all_templates = []
 
-#    num_proc = 4
-#    div = int(math.ceil(len(samples)/num_proc))
-#    procs = []
-#    proc_templates = []
-#
-#    for pidx in xrange(num_proc):
-#        proc_templates.append([])
-#        left = 0 if pidx == 0 else 1 + pidx * div
-#        right = (pidx+1) * div
-#        print 'proc {}: {} to {}'.format(pidx, left, right)
-#        procs.insert(
-#            pidx,
-#            mp.Process(target=build_templates, args=(samples[left:right], label_filter, proc_templates[pidx]))
-#        )
-#
-#    for pidx in xrange(num_proc):
-#        procs[pidx].start()
-#
-#    for pidx in xrange(num_proc):
-#        procs[pidx].join()
-#
-#    Tracer()()
-#
-#    return all_templates
-
     for sample in samples:
-        if label_filter is not None and sample.label not in label_filter:
+        if label_filter is not None and sample.get_label() not in label_filter:
             continue
 
         if g_options.verbose:
             print 'Extracting templates for {} {}'.format(
-                sample.uid, sample.label)
+                sample.get_uid(), sample.get_label())
 
         if sample.spectrogram is None:
-            print 'Sample {} has no spectrogram...'.format(sample.uid)
+            print 'Sample {} has no spectrogram...'.format(sample.get_uid())
             continue
 
         #clean = filter_specgram(sample.spectrogram.pxx)
@@ -260,8 +213,6 @@ def build_all_templates(samples, label_filter = None):
 
 
 def load_all_templates(samples):
-    #all_templates = []
-    #idx = 0
     num_templates = 0
 
     for sample in samples:
@@ -271,34 +222,30 @@ def load_all_templates(samples):
 
         for f in os.listdir(template_dir):
             if not os.path.splitext(f)[1] == '.png': continue
-            if not f.startswith(sample.uid): continue
-            #idx = os.path.splitext(f)[0].split('-')
-            #if not len(idx) == 2: continue
+            if not f.startswith(sample.get_uid()): continue
+
             im_t = -cv2.imread(os.path.join(template_dir, f), 0)
             uid = os.path.splitext(f)[0]
             idx = uid.split('-')[1]
             t = Template(sample, im_t, int(idx))
-            #idx += 1
 
             sample.spectrogram.templates.append(t)
             num_templates += 1
-            #all_templates.extend(t)
 
     return num_templates
-    #return all_templates
 
 
-def store_all_templates(samples):
-    for sample in samples:
-        if sample.spectrogram is None: continue
-
-        template_dir = sample.get_template_dir(DIR_SPECTROGRAMS)
-        if not os.path.exists(template_dir): os.makedirs(template_dir)
-
-        for template in sample.spectrogram.templates:
-            fname = ''.join([template.uid, '.png'])
-            path = os.path.join(template_dir, fname)
-            cv2.imwrite(path, -template.im)
+#def store_all_templates(samples):
+#    for sample in samples:
+#        if sample.spectrogram is None: continue
+#
+#        template_dir = sample.get_template_dir(DIR_SPECTROGRAMS)
+#        if not os.path.exists(template_dir): os.makedirs(template_dir)
+#
+#        for template in sample.spectrogram.templates:
+#            fname = ''.join([template.get_uid(), '.png'])
+#            path = os.path.join(template_dir, fname)
+#            cv2.imwrite(path, -template.im)
 
 
 def print_loaded_data(data, idx_to_class):
@@ -318,22 +265,21 @@ def print_loaded_data(data, idx_to_class):
 
 
 def print_template_statistics(samples):
-    spectrograms = [s.spectrogram for s in samples if s.spectrogram is not None]
-
     # (total sgrams, total, min/max/avg height, min/max/avg width)
     stats_per_class = {}
 
-    for specgram in spectrograms:
-        label = specgram.src_sample.label
+    for sample in samples:
+        specgram = sample.get_spectrogram()
+        label = specgram.get_label()
         if label not in stats_per_class:
             stats_per_class[label] = [0, 0, -1, -1, 0, -1, -1, 0]
 
         stats_per_class[label][0] = stats_per_class[label][0] + 1
 
-        for template in specgram.templates:
+        for template in specgram.get_templates():
             stats_per_class[label][1] = stats_per_class[label][1] + 1
-            len_x = len(template.im)
-            len_y = len(template.im[0])
+            len_x = len(template.get_im())
+            len_y = len(template.get_im()[0])
 
             if stats_per_class[label][2] == -1 or \
                 len_x < stats_per_class[label][2]:
@@ -373,59 +319,39 @@ def print_template_statistics(samples):
                 k[:32], v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])
 
 
-#def extract_features(spectrograms, templates, class_mapping):
 def extract_features(samples, templates, class_mapping):
     """
     Extracts feature vectors for each given sample.
     Computes cross-correlation map for all samples against each template.
     """
 
-    global g_options
-
-    #... uhhh, check this, and use 
-    #    X = [[None for x in range(len(templates))] for y in
-    #    range(len(samples))]
     X = [[None for x in range(len(templates))] for y in range(len(samples))]
-    #X = [[None] * len(templates)] * len(samples)
     y = [None for x in range(len(samples))]
-    #y = [None] * len(samples)
-#    X = np.memmap(x + 'X.memmap', dtype='float32', mode='w+', shape=(len(samples), len(templates)))
-#    y = np.memmap(x + 'y.memmap', dtype='float32', mode='w+', shape=(len(samples)))
-    ids = [None] * len(samples)
-#    X = np.zeros((len(spectrograms), len(templates)))
-#    y = np.zeros(len(spectrograms))
 
     t0 = time.time()
     total = len(templates)
     for idx, sample in enumerate(samples):
-        sgram = sample.spectrogram
+        sgram = sample.get_spectrogram()
         print '({}/{}) cross correlating {} {} ({}px) against {} templates'.format(
             idx+1, len(samples),
-            sgram.src_sample.uid, sgram.src_sample.label, len(sgram.times),
+            sample.get_uid(), sample.get_label(), len(sgram.times),
             len(templates))
         t1 = time.time()
         X_ccm = cross_correlate(sgram, templates)
         t2 = time.time()
         X[idx] = list(X_ccm)
-        y[idx] = class_mapping[sgram.src_sample.label]
-
-        ids[idx] = sample.uid
+        y[idx] = class_mapping[sample.get_label()]
 
         ts = t2-t1
         print 'EF -- elapsed: {} {} m,s'.format(ts/60, ts%60)
         print ''
 
+    ids = [s.get_uid() for s in samples]
+
     ts = time.time() - t0
     print 'total time {}m {}s'.format(ts/60, ts%60)
 
     return (X, y, ids)
-
-
-def load_features(x, n_samples, n_templates):
-    print 'NOT SUPPORTED, memmap no longer used'
-#    X = np.memmap(x + 'X.memmap', dtype='float32', mode='r', shape=(n_samples, n_templates))
-#    y = np.memmap(x + 'y.memmap', dtype='float32', mode='r', shape=(n_samples))
-#    return X, y
 
 
 def store_features(X, y):
@@ -439,8 +365,6 @@ def split_and_classify(X, y, test_size):
     )
 
     print '> classification test'
-
-    #TODO: RF per class?
 
     clf = RandomForestClassifier()
     r1 = clf.fit(X_train,  y_train)
@@ -529,22 +453,14 @@ def select_samples(samples, exception_list=[]):
     """
     selected_samples = []
     class_counts = defaultdict(int)
-    selected_counts = defaultdict(int)
 
     for sample in samples:
-        #if sample.spectrogram is not None:
-        class_counts[sample.label] += 1
+        class_counts[sample.get_label()] += 1
 
     for sample in samples:
-        if class_counts[sample.label] < 20: continue
-        if sample.uid in exception_list: continue
-       #selected_counts[sample.label] < 20 and \
-       #sample.spectrogram is not None:
-#        if class_counts[sample.label] > 1 and \
-#           sample.spectrogram is not None and \
-#           selected_counts[sample.label] < 3:
+        if class_counts[sample.get_label()] < 20: continue
+        if sample.get_uid() in exception_list: continue
         selected_samples.append(sample)
-        selected_counts[sample.label] += 1
 
     return selected_samples
 
@@ -557,12 +473,35 @@ def limit_samples(samples):
     selected_samples_per_class = defaultdict(int)
 
     for sample in samples:
-        if selected_samples_per_class[sample.label] < 20 and \
+        if selected_samples_per_class[sample.get_label()] < 20 and \
            sample.spectrogram is not None:
             selected_samples.append(sample)
-            selected_samples_per_class[sample.label] += 1
+            selected_samples_per_class[sample.get_label()] += 1
 
     return selected_samples
+
+
+def get_first_n_templates_per_class(repository, n):
+    all_templates = []
+    selected_templates_per_class = defaultdict(int)
+    template_iterator_per_class = defaultdict(int)
+    it_step = 100
+
+    label_sample_d = repository.get_samples_per_label()
+
+    for label, samples in label_sample_d.iteritems():
+
+        while selected_templates_per_class[label] < n:
+            idx = template_iterator_per_class[label]
+
+            for sample in samples:
+                templates = sample.get_spectrogram().get_templates()[idx:idx+it_step]
+                all_templates.extend(templates)
+                selected_templates_per_class[label] += len(templates)
+
+            template_iterator_per_class[label] += it_step
+
+    return all_templates
 
 
 def filter_samples(samples, exclude_labels):
@@ -576,16 +515,16 @@ def filter_samples(samples, exclude_labels):
 
     for sample in samples:
         if sample.spectrogram is None: continue
-        template_counts[sample.label] += len(sample.spectrogram.templates)
+        template_counts[sample.get_label()] += len(sample.spectrogram.templates)
     #selected_samples = [s for s in samples if template_counts[s.label] <= 3000 and template_counts[s.label] >= 2000]
-    selected_samples = [s for s in samples if template_counts[s.label] >= 2000]
+    selected_samples = [s for s in samples if template_counts[s.get_label()] >= 2000]
 
     samples_per_class = {}
     for sample in selected_samples:
         if sample.spectrogram is None: continue;
-        if sample.label not in samples_per_class:
-            samples_per_class[sample.label] = []
-        samples_per_class[sample.label].append(sample)
+        if sample.get_label() not in samples_per_class:
+            samples_per_class[sample.get_label()] = []
+        samples_per_class[sample.get_label()].append(sample)
 
     selected_samples = []
     num=0
@@ -627,29 +566,6 @@ def split_data(data, train_indices, test_indices):
     for i, v in enumerate(X_test):
         X_test_t[i] = v[template_ids]
 
-
-#    Tracer()()
-#    X = copy.deepcopy(data['X'])
-#
-#    X_train = [X[i] for i in train_indices]
-#    y_train = [data['y'][i] for i in train_indices]
-#
-#    X_test = [X[i] for i in test_indices]
-#    y_test = [data['y'][i] for i in test_indices]
-#
-#    ids_train = [data['ids'][i] for i in train_indices]
-#    ids_test =  [data['ids'][i] for i in test_indices]
-
-#    used_templates = []
-#
-#    for idx, uid in reversed(list(enumerate(data['template_order']))):
-#        if uid.split('-')[0] not in ids_train:
-#            for x in X_train: del x[idx]
-#            for x in X_test: del x[idx]
-#        else:
-#            used_templates.append(uid)
-#
-#    return X_train, X_test, y_train, y_test, used_templates#, ids_train, ids_test
     return X_train_t, X_test_t, y_train, y_test, used_templates
 
 
@@ -731,23 +647,48 @@ def plot_cnf_matrix(cnf, y, idx_to_class, plot_now=False, normalize=False, show_
     if plot_now: plt.show()
 
 
-def process_scrape_options(options, samples):
+def process_scrape_options(options, repository):
     if not options.scrape: return False
 
     interval = options.scrape_interval or -1
-    labels_filter = [s.uid for s in samples] if options.scrape_conserve else None
+    labels_filter = None
+    if options.scrape_conserve:
+        labels_filter = [s.get_uid() for s in repository.get_samples()]
 
     scraper = XenoCantoScraper(
         interval=interval,
         ratings_filter=['A'],
-        labels_filter
+        labels_filter=labels_filter
     )
 
     scraper.begin_scrape(DIR_SAMPLES)
 
     return True
 
-    
+
+def process_stats_options(options, repository):
+    if not options.stats: return False
+
+    print_sample_statistics(DIR_SAMPLES)
+    #repository.load_spectrograms()
+    #repository.load_templates()
+    print_template_statistics(repository.samples)
+
+    return True
+
+
+def retrieve_previous_data(path):
+    if path is None: return None
+    data = None
+
+    if not os.path.exists(path):
+        print 'Previous data path {} does not exist.'.format(path)
+        return None
+
+    with open(path, 'r') as f:
+        data = pickle.load(f)
+
+    return data
 
 
 def main():
@@ -798,107 +739,98 @@ def main():
     parser.add_option("-l", "--filter-label", dest="label_filter", action="store",
                       help="Process only samples of a givel label value")
 
-    parser.add_option('--features-file', dest='features_file', action='store',
-                      help='pkl file to load features from.')
-
     parser.add_option("--merge", dest="merge_results", action="store_true")
 
 
     (options, args) = parser.parse_args()
     g_options = options
 
+    logging.basicConfig(level=logging.INFO)
 
-    samples = gather_samples()
+    repository = SampleRepository(
+        spectrograms_dir=DIR_SPECTROGRAMS,
+        samples_dir=DIR_SAMPLES
+    )
 
-    if process_scrape_options(options, samples): exit()
+    repository.gather_samples()
 
+    if process_scrape_options(options, repository): exit()
+    if process_stats_options(options, repository): exit()
 
-    if (options.stats):
-        print_sample_statistics(DIR_SAMPLES)
+    previous_data = retrieve_previous_data(options.features_load) or None
 
-        samples = gather_samples()
-        sgrams = load_all_spectrograms(samples)
-        templates = load_all_templates(samples)
-        print_template_statistics(samples)
-        exit()
+    logging.info('{} samples'.format(len(repository.samples)))
 
-    previous_data = None
-    if options.features_file is not None:
-        if not os.path.exists(options.features_file):
-            print 'Path {} does not exist. Aborting.'.format(options.features_file)
-            exit()
-        with open(options.features_file, 'r') as f:
-            previous_data = pickle.load(f)
+    class_to_idx = previous_data['label_map'] \
+            if previous_data is not None \
+            else make_class_mapping(repository.samples)
 
-
-    samples = gather_samples()
-    if options.verbose or options.informative:
-        print '{} samples'.format(len(samples))
-
-    class_to_idx = make_class_mapping(samples)
     idx_to_class = {v: k for k, v in class_to_idx.iteritems()}
-    if options.verbose or options.informative:
-        print '{} classes'.format(len(class_to_idx))
+    logging.info('{} classes'.format(len(class_to_idx)))
 
     previous_ids = previous_data['ids'] if previous_data is not None else []
-    samples = select_samples(samples, exception_list=previous_data['ids'])
+    logging.info('rejecting ids: {}'.format(previous_ids))
+    repository.filter_labels(previous_ids, reject=True)
+    repository.reject_by_class_count(at_least=20)
+    #samples = select_samples(samples, exception_list=previous_ids)
 
-    all_sgrams = None
     if options.spectrograms_build:
-        all_sgrams = build_all_spectrograms(samples)
-        if options.verbose or options.informative:
-            print 'built {} spectrograms'.format(len(all_sgrams))
-
+        logging.error('UNSUPPORTED ACTION')
+        exit()
+        sgram_count = build_all_spectrograms(samples)
+        logging.info('built {} spectrograms'.format(sgram_count))
         store_all_spectrograms(samples)
-    elif options.spectrograms_load:
-        if options.verbose: print 'loading spectrograms..'
-        num_spectrograms = load_all_spectrograms(samples, options.label_filter)
-        if options.verbose or options.informative:
-            print 'loaded {} spectrograms'.format(num_spectrograms)
+#    elif options.spectrograms_load:
+#        if options.verbose: print 'loading spectrograms..'
+#        num_spectrograms = load_all_spectrograms(samples, options.label_filter)
+#        logging.info('loaded {} spectrograms'.format(num_spectrograms))
 
 
-    if options.spectrograms_load or options.spectrograms_build:
-        print_template_statistics(samples)
-        samples = limit_samples(samples)
-        print_template_statistics(samples)
+#    if options.spectrograms_load or options.spectrograms_build:
+#        print_template_statistics(samples)
+#        samples = limit_samples(samples)
+#        print_template_statistics(samples)
+    repository.keep_n_of_each_class(20)
 
     # ignore classes with only one spectrogram
-    if options.verbose:
-        print 'filtered down to {} samples'.format(len(samples))
+    logging.info('filtered down to {} samples'.format(len(repository.samples)))
+    print_template_statistics(repository.samples)
 
     if options.templates_build:
+        logging.error('UNSUPPORTED ACTION')
+        exit()
         Tracer()()
         delete_stored_templates(samples)
         all_templates = build_all_templates(samples, options.label_filter)
-        if options.verbose or options.informative:
-            print 'extracted {} templates'.format(len(all_templates))
-        if options.verbose:
-            print ''
-            print 'vvv after template build vvv'
-            print_template_statistics(samples)
-            print ''
+        logging.info('extracted {} templates'.format(len(all_templates)),
+            '',
+            'vvv after template build vvv')
+        print_template_statistics(samples)
 
         store_all_templates(samples)
-    elif options.templates_load or options.features_build:
-        if options.verbose:
-            print 'loading templates..'
-        num_templates = load_all_templates(samples)
-        if options.verbose or options.informative:
-            print 'loaded {} templates'.format(num_templates)
+#    elif options.templates_load or options.features_build:
+#        if options.verbose:
+#            print 'loading templates..'
+#        num_templates = load_all_templates(samples)
+#        if options.verbose or options.informative:
+#            print 'loaded {} templates'.format(num_templates)
 
 
     #samples = filter_samples(samples, ['Common Whitethroat', 'White-breasted Wood Wren', 'Pale-breasted Spinetail', 'Chestnut-breasted Wren', 'Corn Bunting', 'Ortolan Bunting', 'Common Chiffchaff'])
-    samples = filter_samples(samples, None)
-    print_template_statistics(samples)
+    #samples = filter_samples(samples, None)
+    repository.reject_by_template_count_per_class(at_least=2000)
+    print_template_statistics(repository.samples)
 
-    all_templates = []
-    templates_per_class = defaultdict(int)
+    all_templates = get_first_n_templates_per_class(repository, 3000)
 
-    for sample in samples:
-        if sample.spectrogram is not None:
-            if templates_per_class[sample.label] >= 3000: continue
-            all_templates.extend(sample.spectrogram.templates[:2500])
-            templates_per_class[sample.label] += min(2500,len(sample.spectrogram.templates))
+    Tracer()()
+
+
+#    for sample in repository.samples:
+#        if selected_templates_per_class[sample.get_label()] >= 3000: continue
+#        all_templates.extend(sample.get_spectrogram().get_templates()[:2500])
+#        #all_templates.extend(sample.spectrogram.templates[:2500])
+#        selected_templates_per_class[sample.get_label()] += min(2500,len(sample.spectrogram.templates))
 
 
     if len(all_templates) is 0:
@@ -939,14 +871,14 @@ def main():
         _samples   = find_samples(data_1['ids'])
         load_all_spectrograms(_samples)
         _templates = find_templates(data_2['template_order'])
-        _template_ids_1 = [t.uid for t in _templates]
+        _template_ids_1 = [t.get_uid() for t in _templates]
         X_1, y_1, ids_1 = extract_features(_samples, _templates, class_to_idx)
 
         # cross data_2 samples with data_1 templates
         _samples = find_samples(data_2['ids'])
         load_all_spectrograms(_samples)
         _templates = find_templates(data_1['template_order'])
-        _template_ids_2 = [t.uid for t in _templates]
+        _template_ids_2 = [t.get_uid() for t in _templates]
         X_2, y_2, ids_2 = extract_features(_samples, _templates, class_to_idx)
 
         X_1_c = copy.deepcopy(data_1['X'])
@@ -972,7 +904,7 @@ def main():
         if options.features_build:
             # build all features: template matching of all templates <-> all sgrams
             X, y, ids = extract_features(samples, all_templates, class_to_idx)
-            used_templates = [t.uid for t in all_templates]
+            used_templates = [t.get_uid() for t in all_templates]
             Tracer()()
             with open(options.features_build, 'w') as f:
                 pickle.dump({

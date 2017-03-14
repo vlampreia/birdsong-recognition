@@ -70,6 +70,32 @@ def gather_samples():
     return samples
 
 
+class FeatureData:
+    X = None
+    y = None
+    ids = None
+    label_map = None
+    template_order = None
+
+
+    def __init__(self, X=None, y=None, ids=None, label_map=None, template_order=None):
+        self.X              = X
+        self.y              = y
+        self.ids            = ids
+        self.label_map      = label_map
+        self.template_order = template_order
+
+
+    def from_legacy(self, data):
+        self.X              = data['X']
+        self.y              = data['y']
+        self.ids            = data['ids']
+        self.label_map      = data['label_map']
+        self.template_order = data['template_order']
+
+        return self
+
+
 def find_samples(ids):
     samples = [None] * len(ids)
     sample_paths = [p for p in list_types(DIR_SPECTROGRAMS, '.png') if 'templates' not in p]
@@ -249,19 +275,19 @@ def load_all_templates(samples):
 
 
 def print_loaded_data(data, idx_to_class):
-    used_labels = set([idx_to_class[l] for l in data['y']])
+    used_labels = set([idx_to_class[l] for l in data.y])
     templates_per_class = defaultdict(int)
-    for tuid in data['template_order']:
+    for tuid in data.template_order:
         suid = tuid.split('-')[0]
-        templates_per_class[data['y'][data['ids'].index(suid)]] += 1
+        templates_per_class[data.y[data.ids.index(suid)]] += 1
 
     fmt_str = '{:<32}  {:<5}  {:<5}'
     print fmt_str.format('label', 'sgrms', 'templates')
     print '{:_<82}'.format('')
     for k,v in templates_per_class.iteritems():
-        print fmt_str.format(idx_to_class[k], len([l for l in data['y'] if l == k]), v)
+        print fmt_str.format(idx_to_class[k], len([l for l in data.y if l == k]), v)
     print '{:-<82}'.format('')
-    print fmt_str.format('TOTAL', len(data['y']), len(data['template_order']))
+    print fmt_str.format('TOTAL', len(data.y), len(data.template_order))
 
 
 def print_template_statistics(samples):
@@ -546,9 +572,9 @@ def filter_samples(samples, exclude_labels):
 
 
 def split_data(data, train_indices, test_indices):
-    X = np.array(data['X'])
-    y = np.array(data['y'])
-    ids = np.array(data['ids'])
+    X = np.array(data.X)
+    y = np.array(data.y)
+    ids = np.array(data.ids)
 
     X_train = X[train_indices]
     y_train = y[train_indices]
@@ -561,7 +587,7 @@ def split_data(data, train_indices, test_indices):
 
     used_templates = []
     template_ids = []
-    for idx, uid in enumerate(data['template_order']):
+    for idx, uid in enumerate(data.template_order):
         if uid.split('-')[0] in ids_train:
             template_ids.append(idx)
             used_templates.append(uid)
@@ -588,9 +614,9 @@ def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
     agr_sum = 0
     agr_importances = []
 
-    for i, uid in enumerate(data['template_order']):
+    for i, uid in enumerate(data.template_order):
         sid = uid.split('-')[0]
-        label = idx_to_class[data['y'][data['ids'].index(sid)]]
+        label = idx_to_class[data.y[data.ids.index(sid)]]
 
         if label != prev_label:
             sid = sid + '\n' + label
@@ -678,25 +704,68 @@ def process_stats_options(options, repository):
     if not options.stats: return False
 
     print_sample_statistics(DIR_SAMPLES)
-    #repository.load_spectrograms()
-    #repository.load_templates()
     print_template_statistics(repository.samples)
 
     return True
 
 
-def retrieve_previous_data(path):
+def load_results(path):
     if path is None: return None
+    if not os.path.exists(path): return None
+
     data = None
-
-    if not os.path.exists(path):
-        print 'Previous data path {} does not exist.'.format(path)
-        return None
-
     with open(path, 'r') as f:
         data = pickle.load(f)
+    if type(data) == type({}):
+        logging.warning('loaded legacy data format, maybe you should store as new?')
+        _data = FeatureData().from_legacy(data)
+        data = _data
 
     return data
+
+
+def store_results_safe(results, path):
+    def _mv_bak(path):
+        new_path = path + '.bak'
+        if os.path.exists(new_path):
+            _mv_bak(new_path)
+        os.rename(path, new_path)
+
+    if os.path.exists(path):
+        _mv_bak(path)
+
+    with open(path, 'w') as f:
+        pickle.dump(results, path)
+
+
+def merge_results(result_a, result_b, repository):
+    if result_a.label_map != result_b.label_map:
+        print 'error, label mappings dont match, intervention required'
+        Tracer()()
+
+    class_to_idx = result_a.label_map
+    samples_1 = repository.get_samples_by_uid(result_a.ids)
+    samples_2 = repository.get_samples_by_uid(result_b.ids)
+    templates_1 = repository.get_templates_by_uid(result_a.template_order, samples_1)
+    templates_2 = repository.get_templates_by_uid(result_b.template_order, samples_2)
+
+    X_a, y_a, ids_a = extract_features(samples_1, templates_2, class_to_idx)
+    X_b, y_b, ids_b = extract_features(samples_2, templates_1, class_to_idx)
+
+    # take special notice to the flipped use of feature vectors due to
+    # template matching results concatentation
+
+    for i,x in enumerate(result_a.X):
+        X_a[i].extend(x)
+    for i,x in enumerate(X_b):
+        result_b.X[i].extend(x)
+
+    data = FeatureData()
+    data.X = X_a + result_b.X
+    data.y = result_a.y + result_b.y
+    data.ids = result_a.ids + result_b.ids
+    data.label_map = class_to_idx
+    data.template_order = result_a.template_order + result_b.template_order
 
 
 def main():
@@ -747,7 +816,7 @@ def main():
     parser.add_option("-l", "--filter-label", dest="label_filter", action="store",
                       help="Process only samples of a givel label value")
 
-    parser.add_option("--merge", dest="merge_results", action="store_true")
+    parser.add_option("--merge", dest="merge_results", action="store")
 
 
     (options, args) = parser.parse_args()
@@ -765,18 +834,18 @@ def main():
     if process_scrape_options(options, repository): exit()
     if process_stats_options(options, repository): exit()
 
-    previous_data = retrieve_previous_data(options.features_load) or None
+    previous_data = load_results(options.features_load) or None
 
     logging.info('{} samples'.format(len(repository.samples)))
 
-    class_to_idx = previous_data['label_map'] \
+    class_to_idx = previous_data.label_map \
             if previous_data is not None \
             else make_class_mapping(repository.samples)
 
     idx_to_class = {v: k for k, v in class_to_idx.iteritems()}
     logging.info('{} classes'.format(len(class_to_idx)))
 
-    previous_ids = previous_data['ids'] if previous_data is not None else []
+    previous_ids = previous_data.ids if previous_data is not None else []
     logging.info('rejecting ids: {}'.format(previous_ids))
     repository.filter_labels(previous_ids, reject=True)
     repository.reject_by_class_count(at_least=20)
@@ -835,8 +904,6 @@ def main():
     for t in all_templates: templates_per_class[t.get_src_sample().get_label()].append(t)
     for k, v in templates_per_class.iteritems(): print k, len(v)
 
-    Tracer()()
-
 
 #    for sample in repository.samples:
 #        if selected_templates_per_class[sample.get_label()] >= 3000: continue
@@ -845,113 +912,52 @@ def main():
 #        selected_templates_per_class[sample.get_label()] += min(2500,len(sample.spectrogram.templates))
 
 
-    if len(all_templates) is 0:
-        print 'Loaded no raw templates'
-    else:
-        print 'Keeping {} templates'.format(len(all_templates))
-        print ''
-        print 'vvv Using Data vvv'
-        print_template_statistics(samples)
-        print ''
+    logging.info('{} template(s) loaded'.format(len(all_templates)))
 
     X = None
     y = None
     ids = None
     if options.merge_results:
-        print '{:-<82}'.format('')
-        print 'ENTER MERGE MODE'
-        print '{:-<82}'.format('')
+        data_1 = load_results('./engineered_data.pkl')
+        data_2 = load_results('./merged_data.pkl')
+        data = merge_results(data_1, data_2, repository)
 
-        filenames = [
-            './engineered_data.pkl',
-            './merged_data.pkl'
-        ]
+        store_results_safe(results, './_merged_results.pkl')
+        Tracer()()
 
-        with open(filenames[0], 'r') as f:
-            data_1 = pickle.load(f)
-        with open(filenames[1], 'r') as f:
-            data_2 = pickle.load(f)
+    elif options.features_build:
+        X, y, ids = extract_features(samples, all_templates, class_to_idx)
+        used_templates = [t.get_uid() for t in all_templates]
 
-        print '\nLoad file {}'.format(filenames[0])
-        print_loaded_data(data_1, idx_to_class)
-        print '\nLoad file {}'.format(filenames[1])
-        print_loaded_data(data_2, idx_to_class)
-
-        data_merged = {}
-
-        # cross data_1 samples with data_2 templates
-        _samples   = find_samples(data_1['ids'])
-        load_all_spectrograms(_samples)
-        _templates = find_templates(data_2['template_order'])
-        _template_ids_1 = [t.get_uid() for t in _templates]
-        X_1, y_1, ids_1 = extract_features(_samples, _templates, class_to_idx)
-
-        # cross data_2 samples with data_1 templates
-        _samples = find_samples(data_2['ids'])
-        load_all_spectrograms(_samples)
-        _templates = find_templates(data_1['template_order'])
-        _template_ids_2 = [t.get_uid() for t in _templates]
-        X_2, y_2, ids_2 = extract_features(_samples, _templates, class_to_idx)
-
-        X_1_c = copy.deepcopy(data_1['X'])
-        for i,x in enumerate(X_1):
-            X_1_c[i].extend(x)
-        X_2_c = copy.deepcopy(data_2['X'])
-        for i,x in enumerate(X_2):
-            X_2_c[i].extend(x)
-
-        data_merged = {
-            'X': X_1_c + X_2_c,
-            'y': y_1 + y_2,
-            'ids': ids_1 + ids_2,
+        data = {
+            'X': X,
+            'y': y,
+            'ids': ids,
             'label_map': class_to_idx,
-            'template_order': _template_ids_1 + _template_ids_2
+            'template_order': used_templates
         }
 
-        print '{:-<82}'.format('')
-        print 'CHECK DATA -- DO NOT FORGET TO DUMP FILE!!!'
-        print '{:-<82}'.format('')
-        Tracer()()
-    else:
-        if options.features_build:
-            # build all features: template matching of all templates <-> all sgrams
-            X, y, ids = extract_features(samples, all_templates, class_to_idx)
-            used_templates = [t.get_uid() for t in all_templates]
-            Tracer()()
-            with open(options.features_build, 'w') as f:
-                pickle.dump({
-                    'X': X, 'y': y, 'ids': ids, 'label_map': class_to_idx,
-                    'template_order': used_templates
-                }, f)
-
-        elif options.features_load:
-            filename = options.features_load
-            with open(filename, 'r') as f:
-                data = pickle.load(f)
-                X = copy.deepcopy(data['X'])
-                y = copy.deepcopy(data['y'])
-                ids = copy.deepcopy(data['ids'])
-                used_templates = data['template_order']
-
-                print 'LOADED ENGINEERED DATA FILE {}'.format(filename)
-                print ''
-                print_loaded_data(data, idx_to_class)
+        store_results_safe(data, options.features_build)
+    elif options.features_load:
+        data = previous_data
 
 
     if options.classify:
-        cm = [[0] * len(set(data['y']))] * len(set(data['y']))
-        feature_importances = [-1] * len(data['template_order'])
-        template_uid_to_idx = {v:i for i,v in enumerate(data['template_order'])}
+        cm = [[0] * len(set(data.y))] * len(set(data.y))
+        feature_importances = [-1] * len(data.template_order)
+        template_uid_to_idx = {v:i for i,v in enumerate(data.template_order)}
         n_splits = 10
+        all_results = defaultdict(list)
+        n_shuffles = 5
 
-        for i in range(5):
-            print '\niteration {}'.format(i)
+        for i in range(n_shuffles):
+            print '\niteration {}'.format(i+1)
 
             skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=None)
             #skf = KFold(n_splits=n_splits, shuffle=True, random_state=0)
             #results = [None] * n_splits
             results = defaultdict(list)
-            results_i=0
+            split_n=0
 
 
             #cm = [[0] * len(set(data['y']))] * len(set(data['y']))
@@ -971,9 +977,9 @@ def main():
             #loo = LeaveOneOut()
             #for train_indices, test_indices in loo.split(data['X']):
             #Tracer()()
-            for train_indices, test_indices in skf.split(data['X'], data['y']):
+            for train_indices, test_indices in skf.split(data.X, data.y):
                 #Tracer()()
-                print '  fold {} train {} test {}...'.format(results_i+1, len(train_indices), len(test_indices))
+                print '  fold {} train {} test {}...'.format(split_n+1, len(train_indices), len(test_indices))
 
                 t1 = time.time()
                 X_train, X_test, y_train, y_test, template_uids = split_data(data, train_indices, test_indices)
@@ -987,18 +993,18 @@ def main():
                 accuracy = accuracy_score(y_true=y_test, y_pred=predictions)
                 precision, recall, fscore, support = precision_recall_fscore_support(
                         y_true = y_test, y_pred = predictions,
-                        average='micro'
+                        average='weighted'
                         )
                 results['accuracy'].append(accuracy)
                 results['precision'].append(precision)
                 results['recall'].append(recall)
                 results['fscore'].append(fscore)
                 #results['support'].append(support)
-                results_i += 1
+                split_n += 1
                 print '    clf pred time {}'.format(time.time() - t1)
 
                 #Tracer()()
-                print '    accuracy: {}'.format(accuracy)
+                print '    accuracy: {} precision: {} recall: {} fscore: {}'.format(accuracy, precision, recall, fscore, support)
                 #print 'precision: {}\nrecall: {}\n fscore: {}\n support: {}'.format(
                 #    precision, recall, fscore, support)
                 #Tracer()()
@@ -1018,7 +1024,12 @@ def main():
             print '\n  {} fold cv results:'.format(n_splits)
             for k,v in results.iteritems():
                 print '    {}: {} std: {}'.format(k, np.mean(v), np.std(v))
+                all_results[k].extend(v)
 
+
+        print '\n  {} shuffle iteration results:'.format(n_splits)
+        for k,v in all_results.iteritems():
+            print '    {}: {} std: {}'.format(k, np.mean(v), np.std(v))
 
         plot_feature_importances(feature_importances, idx_to_class, data)
         plot_cnf_matrix(cm, y_test, idx_to_class, normalize=True, show_values=True)

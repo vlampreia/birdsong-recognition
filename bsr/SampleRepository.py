@@ -74,6 +74,25 @@ class SampleRepository:
         return samples_per_label
 
 
+    def get_samples_by_uid(self, uids=[]):
+        if uids is None: return []
+
+        return [s for s in self.samples if s.get_uid() in uids]
+
+
+    def get_all_templates(self, samples=None):
+        if samples is not None:
+            return [s.get_templates for s in samples]
+
+        return [s.get_templates() for s in self.samples]
+
+
+    def get_templates_by_uid(self, uids=[], samples=None):
+        if uids is None: return []
+
+        return [t for t in self.get_all_templates(samples) if t.get_uid() in uids]
+
+
     def store_all(self):
         for sample in samples.values():
             sample.store_all()

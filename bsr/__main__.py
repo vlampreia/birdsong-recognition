@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from bsrdata import Sample, Spectrogram, Template
 
 import logging
@@ -39,6 +41,135 @@ DIR_SPECTROGRAMS = './spectrograms'
 DIR_SAMPLES = './samples'
 
 g_options = None
+
+
+
+class ClfEval:
+    clf = None
+
+    cnf = None
+
+    feature_importances = None
+
+    stats = None
+
+    n_shuffles=0
+    n_splits=0
+
+    data=None
+
+    random_state=None
+
+    reject_templates = None
+
+
+    def __init__(self, data, n_shuffles=1, n_splits=0, random_state=None):
+        self.n_shuffles = n_shuffles
+        self.n_splits = n_splits
+        self.data = data
+        self.random_state = random_state
+        self.reject_templates = []
+
+        self.stats = defaultdict(list)
+
+        self.cnf = [[0] * len(set(self.data.y))] * len(set(self.data.y))
+        self.feature_importances = [-1] * len(self.data.template_order)
+
+
+    def merge_results_(self, y_true, predictions):
+        accuracy = accuracy_score(y_true=y_true, y_pred=predictions)
+        precision, recall, fscore, support = precision_recall_fscore_support(
+            y_true = y_true, y_pred = predictions,
+            average='macro'
+        )
+
+        self.stats['accuracies'].append(accuracy)
+        self.stats['precisions'].append(precision)
+        self.stats['recalls'].append(recall)
+        self.stats['fscores'].append(fscore)
+
+        print('{:.4f} {:.4f} {:.4f} {:.4f}'.format(accuracy, precision, recall, fscore));
+
+        self.cnf = map(add, self.cnf, confusion_matrix(y_true, predictions))
+
+
+    def merge_importances_(self, importances, idxs):
+        for i,v in enumerate(importances):
+            #self.feature_importances[idxs[i]] += v
+            if (self.feature_importances[idxs[i]] == -1):
+                self.feature_importances[idxs[i]] = 0;
+            self.feature_importances[idxs[i]] += v
+#        self.feature_importances = map(
+#            add,
+#            zip(importances, self.feature_importances)
+#        )
+#            self.feature_importances = map(
+#                lambda (a,b): a+b \
+#                    if a != -1 \
+#                    else b, \
+#                zip(importances, self.feature_importances)
+#            )
+
+
+    def fit_evaluate_(self, X_train, X_test, y_train, y_test):
+        self.clf.fit(X_train, y_train)
+
+        preds = self.clf.predict(X_test)
+
+        self.merge_results_(y_test, preds)
+        self.merge_importances_(self.clf.feature_importances_)
+
+
+    def run(self):
+        self.feature_importances = [-1] * len(self.data.template_order)
+
+        for shuffle_idx in range(self.n_shuffles):
+            print('shuffle {} of {}'.format(shuffle_idx+1, self.n_shuffles))
+
+            if self.n_splits > 0:
+                kfold = StratifiedKFold(
+                    n_splits=self.n_splits,
+                    shuffle=True,
+                    random_state=self.random_state
+                )
+
+                split_idx = 0
+                for train_indices, test_indices in kfold.split(self.data.X, self.data.y):
+                    split_idx += 1
+                    print('split {} of {}, [{}/{}] '.format(
+                        split_idx, self.n_splits,
+                        len(train_indices), len(test_indices)
+                    ), end='')
+
+                    X_train, X_test, y_train, y_test, template_idxs = \
+                            split_data(self.data, train_indices, test_indices, self.reject_templates)
+
+                    self.clf.fit(X_train, y_train)
+                    preds = self.clf.predict(X_test)
+
+                    self.merge_results_(y_test, preds)
+                    self.merge_importances_(self.clf.feature_importances_, template_idxs)
+
+                    #self.fit_evaluate_(X_train, X_test, y_train, y_test)
+
+#                    logging.info('accuracy: {}'.format(
+#                        np.mean(self.accuracies[split_idx*]))
+#                    )
+            print('  res acc: {:.4f} {:.4f}  precision: {:.4f} {:.4f}  recall: {:.4f} {:.4f}  fscore: {:.4f} {:.4f}'.format(
+                np.mean(self.stats['accuracies'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['accuracies'][shuffle_idx:shuffle_idx+self.n_shuffles]),
+                np.mean(self.stats['precisions'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['precisions'][shuffle_idx:shuffle_idx+self.n_shuffles]),
+                np.mean(self.stats['recalls'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['recalls'][shuffle_idx:shuffle_idx+self.n_shuffles]),
+                np.mean(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles])
+            ))
+
+    def set_classifier(self, clf):
+        self.clf = clf
+
+
+    def print_stats(self):
+        for k,v in self.stats.iteritems():
+            print('{}: {} std. {}'.format(k, np.mean(v), np.std(v)))
+
 
 def make_class_mapping(samples):
     idx = 0
@@ -107,7 +238,7 @@ def find_samples(ids):
             label = os.path.split(os.path.split(path)[0])[1]
             samples[idx] = Sample(uid, label)
         else:
-            print 'WARNING did not load sample {}'.format(uid)
+            print( 'WARNING did not load sample {}'.format(uid))
 
     return samples
 
@@ -127,7 +258,7 @@ def find_templates(ids):
             t = Template(Sample(sample_uid, None), im_t, int(template_idx))
             templates[idx] = t
         else:
-            print 'WARNING did not load template {}'.format(uid)
+            print('WARNING did not load template {}'.format(uid))
 
     return templates
 
@@ -141,14 +272,14 @@ def build_all_spectrograms(samples):
 
         sgpath = sample.get_spectrogram_path(DIR_SPECTROGRAMS)
         if os.path.exists(''.join([sgpath, '.pkl'])):
-            print 'spectrogram exists: {}'.format(sgpath)
+            print('spectrogram exists: {}'.format(sgpath))
             continue
 
         try:
             pcm, fs = load_pcm(path)
         except IOError as e:
-            print 'error loading wav: {}'.format(path)
-            print e
+            print('error loading wav: {}'.format(path))
+            print(e)
             continue
 
         pxx, freqs, times = make_specgram(pcm, fs)
@@ -217,11 +348,11 @@ def build_all_templates(samples, label_filter = None):
             continue
 
         if g_options.verbose:
-            print 'Extracting templates for {} {}'.format(
-                sample.get_uid(), sample.get_label())
+            print('Extracting templates for {} {}'.format(
+                sample.get_uid(), sample.get_label()))
 
         if sample.spectrogram is None:
-            print 'Sample {} has no spectrogram...'.format(sample.get_uid())
+            print('Sample {} has no spectrogram...'.format(sample.get_uid()))
             continue
 
         #clean = filter_specgram(sample.spectrogram.pxx)
@@ -282,12 +413,12 @@ def print_loaded_data(data, idx_to_class):
         templates_per_class[data.y[data.ids.index(suid)]] += 1
 
     fmt_str = '{:<32}  {:<5}  {:<5}'
-    print fmt_str.format('label', 'sgrms', 'templates')
-    print '{:_<82}'.format('')
+    print(fmt_str.format('label', 'sgrms', 'templates'))
+    print('{:_<82}'.format(''))
     for k,v in templates_per_class.iteritems():
-        print fmt_str.format(idx_to_class[k], len([l for l in data.y if l == k]), v)
-    print '{:-<82}'.format('')
-    print fmt_str.format('TOTAL', len(data.y), len(data.template_order))
+        print(fmt_str.format(idx_to_class[k], len([l for l in data.y if l == k]), v))
+    print('{:-<82}'.format(''))
+    print(fmt_str.format('TOTAL', len(data.y), len(data.template_order)))
 
 
 def print_template_statistics(samples):
@@ -327,22 +458,22 @@ def print_template_statistics(samples):
 
             stats_per_class[label][7] = (len_y + stats_per_class[label][1] * stats_per_class[label][7]) / (stats_per_class[label][1] + 1)
 
-    print '{:<32} {:<5} {:<5}   {:<5} {:<5} {:<5}   {:<5} {:<5} {:<5}'.format(
+    print('{:<32} {:<5} {:<5}   {:<5} {:<5} {:<5}   {:<5} {:<5} {:<5}'.format(
         '', '', '', 'y_dim', '', '', 'x_dim', '', ''
-    )
+    ))
 
     fmt_str = '{:<32} {:<5} {:<5}   {:<5} {:<5} {:<5}   {:<5} {:<5} {:<5}'
-    print fmt_str.format(
+    print(fmt_str.format(
         'label', 'sgrms', 'count', 'min', 'max', 'avg', 'min', 'max', 'avg'
-    )
+    ))
 
-    print '{:_<82}'.format('')
+    print('{:_<82}'.format(''))
 
     for i in sorted(stats_per_class.items(), key=operator.itemgetter(1), reverse=True):
         k = i[0]
         v = i[1]
-        print fmt_str.format(
-                k[:32], v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])
+        print(fmt_str.format(
+                k[:32], v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]))
 
 
 def extract_features(samples, templates, class_mapping):
@@ -358,10 +489,10 @@ def extract_features(samples, templates, class_mapping):
     total = len(templates)
     for idx, sample in enumerate(samples):
         sgram = sample.get_spectrogram()
-        print '({}/{}) cross correlating {} {} ({}px) against {} templates'.format(
+        print('({}/{}) cross correlating {} {} ({}px) against {} templates'.format(
             idx+1, len(samples),
             sample.get_uid(), sample.get_label(), len(sgram.times),
-            len(templates))
+            len(templates)))
         t1 = time.time()
         X_ccm = cross_correlate(sgram, templates)
         t2 = time.time()
@@ -369,19 +500,19 @@ def extract_features(samples, templates, class_mapping):
         y[idx] = class_mapping[sample.get_label()]
 
         ts = t2-t1
-        print 'EF -- elapsed: {} {} m,s'.format(ts/60, ts%60)
-        print ''
+        print('EF -- elapsed: {} {} m,s'.format(ts/60, ts%60))
+        print('')
 
     ids = [s.get_uid() for s in samples]
 
     ts = time.time() - t0
-    print 'total time {}m {}s'.format(ts/60, ts%60)
+    print('total time {}m {}s'.format(ts/60, ts%60))
 
     return (X, y, ids)
 
 
 def store_features(X, y):
-    print 'store_features NOT IMPLEMENTED'
+    print('store_features NOT IMPLEMENTED')
     pass
 
 
@@ -390,7 +521,7 @@ def split_and_classify(X, y, test_size):
         X, y, test_size=test_size, random_state=0
     )
 
-    print '> classification test'
+    print('> classification test')
 
     clf = RandomForestClassifier()
     r1 = clf.fit(X_train,  y_train)
@@ -408,8 +539,8 @@ def cr(ccm_maxs, sgram, offset, templates):
         left = 0 if i == 0 else i*group_size
         right = (i+1) * group_size - 1 if i < divisions-1 else len(templates)-1
 
-        print '    processing group {}-{}'.format(
-            offset + left, offset + right)
+        print('    processing group {}-{}'.format(
+            offset + left, offset + right))
 
         for idx, template in enumerate(templates[left:right]):
             if len(sgram.pxx) < len(template.im) or \
@@ -425,9 +556,9 @@ def cr(ccm_maxs, sgram, offset, templates):
             ccm_maxs[offset + idx] = np.max(ccm)
 
     if len(errors) > 0:
-        print '    Errors:'
+        print('    Errors:')
         for e in errors:
-            print '    {}'.format(e[0])
+            print('    {}'.format(e[0]))
             #TODO: write to file or smth
 
 
@@ -441,7 +572,7 @@ def cross_correlate(sgram, templates):
     for pidx in xrange(num_proc):
         left = 0 if pidx == 0 else pidx*div
         right = (pidx+1)*div - 1 if pidx < num_proc-1 else len(templates) - 1
-        print 'proc {}: {} to {}'.format(pidx, left, right)
+        print('proc {}: {} to {}'.format(pidx, left, right))
         procs.insert(
             pidx,
             mp.Process(target=cr, args=(ccm_maxs, sgram, left, templates[left:right]))
@@ -450,7 +581,7 @@ def cross_correlate(sgram, templates):
     def _do_start(_startc):
         if _startc > 3:
             try_again = False
-            print 'ERROR COULD NOT START PROCESSES {} TIMES.'.format(_startc)
+            print('ERROR COULD NOT START PROCESSES {} TIMES.'.format(_startc))
             Tracer()()
             if not try_again: return
 
@@ -458,11 +589,11 @@ def cross_correlate(sgram, templates):
             try:
                 procs[pidx].start()
             except OSError as e:
-                print 'Error: {}'.format(e)
+                print('Error: {}'.format(e))
                 if pidx is 0:
                     _do_start(_startc + 1)
                 else:
-                    print 'WARNING: pidx != 0: {}'.format(pidx)
+                    print('WARNING: pidx != 0: {}'.format(pidx))
                     Tracer()()
 
     _do_start(0)
@@ -571,7 +702,7 @@ def filter_samples(samples, exclude_labels):
     return selected_samples
 
 
-def split_data(data, train_indices, test_indices):
+def split_data(data, train_indices, test_indices, reject_templates):
     X = np.array(data.X)
     y = np.array(data.y)
     ids = np.array(data.ids)
@@ -586,21 +717,22 @@ def split_data(data, train_indices, test_indices):
     ids_test  = ids[test_indices]
 
     used_templates = []
-    template_ids = []
+    template_idxs = []
     for idx, uid in enumerate(data.template_order):
+        if uid in reject_templates: continue
         if uid.split('-')[0] in ids_train:
-            template_ids.append(idx)
+            template_idxs.append(idx)
             used_templates.append(uid)
 
-    X_train_t = np.zeros((len(X_train), len(template_ids)))
-    X_test_t =  np.zeros((len(X_test),  len(template_ids)))
+    X_train_t = np.zeros((len(X_train), len(template_idxs)))
+    X_test_t =  np.zeros((len(X_test),  len(template_idxs)))
 
     for i, v in enumerate(X_train):
-        X_train_t[i] = v[template_ids]
+        X_train_t[i] = v[template_idxs]
     for i, v in enumerate(X_test):
-        X_test_t[i] = v[template_ids]
+        X_test_t[i] = v[template_idxs]
 
-    return X_train_t, X_test_t, y_train, y_test, used_templates
+    return X_train_t, X_test_t, y_train, y_test, template_idxs
 
 
 def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
@@ -620,10 +752,11 @@ def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
 
         if label != prev_label:
             sid = sid + '\n' + label
-            prev_label = label
+            #if prev_label != '':
             if prev_label != '':
                 agr_importances.append(agr_sum)
                 agr_sum = 0
+            prev_label = label
             agr_ticks.append(idx)
             agr_labels.append(label)
             idx += 1
@@ -633,9 +766,8 @@ def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
             labels.append(sid)
             ticks.append(i)
 
-        agr_sum += importances[i]
+        agr_sum += max(importances[i], 0.0)
 
-    Tracer()()
     fig, ax = plt.subplots(nrows=2)
     ax[0].imshow([agr_importances]*2, interpolation='none', cmap=plt.cm.Blues)
     ax[0].set_xticks(agr_ticks)
@@ -740,7 +872,7 @@ def store_results_safe(results, path):
 
 def merge_results(result_a, result_b, repository):
     if result_a.label_map != result_b.label_map:
-        print 'error, label mappings dont match, intervention required'
+        print('error, label mappings dont match, intervention required')
         Tracer()()
 
     class_to_idx = result_a.label_map
@@ -766,6 +898,95 @@ def merge_results(result_a, result_b, repository):
     data.ids = result_a.ids + result_b.ids
     data.label_map = class_to_idx
     data.template_order = result_a.template_order + result_b.template_order
+
+
+def merge_results(y_true, predictions, results, cnf):
+    accuracy = accuracy_score(y_true=y_true, y_pred=predictions)
+    precision, recall, fscore, support = precision_recall_fscore_support(
+            y_true = y_true, y_pred = predictions,
+            average='weighted'
+            )
+    results['accuracy'].append(accuracy)
+    results['precision'].append(precision)
+    results['recall'].append(recall)
+    results['fscore'].append(fscore)
+    #results['support'].append(support)
+
+    _cnf = confusion_matrix(y_true, predictions)
+    cnf = map(add, cnf, _cnf)
+
+
+def merge_importances(importances, new_importances):
+    map(
+        lambda (a,b): a+b \
+            if a != -1 \
+            else b, \
+        zip(importances, new_importances)
+    )
+
+
+def shuffle_split_and_classify(data, n_shuffles, n_splits):
+    all_cnf = [[0] * len(set(data.y))] * len(set(data.y))
+    all_feature_importances = [-1] * len(data.template_order)
+    template_uid_to_idx = {v:i for i,v in enumerate(data.template_order)}
+    all_results = defaultdict(list)
+
+    for i in range(n_shuffles):
+        print('\niteration {}'.format(i+1))
+
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=None)
+        results = defaultdict(list)
+
+        clf = ExtraTreesClassifier(
+            #warm_start=True,
+            #oob_score=True,
+            n_estimators=500,
+            max_features='sqrt',
+            min_samples_split=3,
+            #bootstrap=True,
+            n_jobs=4,
+            random_state=None
+        )
+
+        split_n=0
+        for train_indices, test_indices in skf.split(data.X, data.y):
+            print('  fold {} train {} test {}...'.format(split_n+1, len(train_indices), len(test_indices)))
+
+            t1 = time.time()
+
+            X_train, X_test, y_train, y_test, template_uids = split_data(
+                data, train_indices, test_indices)
+
+            print('    split time {}'.format(time.time() - t1))
+
+            t1 = time.time()
+            clf.fit(X_train, y_train)
+
+            predictions = clf.predict(X_test)
+            feature_importances = clf.feature_importances_
+
+            merge_results(y_test, predictions, results, all_cnf)
+            merge_importances(feature_importances, clf.feature_importances_)
+
+            print('    clf pred time {}'.format(time.time() - t1))
+            print('    accuracy: {} precision: {} recall: {} fscore: {}'.format(accuracy, precision, recall, fscore, support))
+
+            split_n += 1
+
+
+        print('\n  {} fold cv results:'.format(n_splits))
+        for k,v in results.iteritems():
+            print('    {}: {} std: {}'.format(k, np.mean(v), np.std(v)))
+            all_results[k].extend(v)
+
+
+    print('\n  {} shuffle iteration results:'.format(n_splits))
+    for k,v in all_results.iteritems():
+        print('    {}: {} std: {}'.format(k, np.mean(v), np.std(v)))
+
+    plot_feature_importances(all_feature_importances, idx_to_class, data)
+    plot_cnf_matrix(cm, y_test, idx_to_class, normalize=True, show_values=True)
+    plt.show()
 
 
 def main():
@@ -900,9 +1121,9 @@ def main():
 
     all_templates = get_first_n_templates_per_class(repository, 3000)
 
-    templates_per_class = defaultdict(list)
-    for t in all_templates: templates_per_class[t.get_src_sample().get_label()].append(t)
-    for k, v in templates_per_class.iteritems(): print k, len(v)
+#    templates_per_class = defaultdict(list)
+#    for t in all_templates: templates_per_class[t.get_src_sample().get_label()].append(t)
+#    for k, v in templates_per_class.iteritems(): print k, len(v)
 
 
 #    for sample in repository.samples:
@@ -943,126 +1164,35 @@ def main():
 
 
     if options.classify:
-        cm = [[0] * len(set(data.y))] * len(set(data.y))
-        feature_importances = [-1] * len(data.template_order)
-        template_uid_to_idx = {v:i for i,v in enumerate(data.template_order)}
-        n_splits = 10
-        all_results = defaultdict(list)
-        n_shuffles = 5
+        ce = ClfEval(data, 5, 10, 1)
+        clf = ExtraTreesClassifier(
+            #warm_start=True,
+            #oob_score=True,
+            n_estimators=500,
+            max_features='sqrt',
+            min_samples_split=3,
+            #bootstrap=True,
+            n_jobs=4,
+            random_state=1
+        )
+        ce.set_classifier(clf)
+        ce.run()
 
-        for i in range(n_shuffles):
-            print '\niteration {}'.format(i+1)
+        ce.print_stats()
 
-            skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=None)
-            #skf = KFold(n_splits=n_splits, shuffle=True, random_state=0)
-            #results = [None] * n_splits
-            results = defaultdict(list)
-            split_n=0
+        #plot_feature_importances(ce.feature_importances, idx_to_class, data)
+        #plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
+        #plt.show()
 
+        fimpc = copy.deepcopy(ce.feature_importances)
+        print('templates used in clf: {}'.format(len(ce.feature_importances)));
+        rej = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] == 0]
+        ce.reject_templates = rej
+        ce.run()
 
-            #cm = [[0] * len(set(data['y']))] * len(set(data['y']))
-
-            #clf = RandomForestClassifier(n_jobs=4)
-            clf = ExtraTreesClassifier(
-                #warm_start=True,
-                #oob_score=True,
-                n_estimators=500,
-                max_features='sqrt',
-                min_samples_split=3,
-                #bootstrap=True,
-                n_jobs=4,
-                random_state=None
-            )
-
-            #loo = LeaveOneOut()
-            #for train_indices, test_indices in loo.split(data['X']):
-            #Tracer()()
-            for train_indices, test_indices in skf.split(data.X, data.y):
-                #Tracer()()
-                print '  fold {} train {} test {}...'.format(split_n+1, len(train_indices), len(test_indices))
-
-                t1 = time.time()
-                X_train, X_test, y_train, y_test, template_uids = split_data(data, train_indices, test_indices)
-                print '    split time {}'.format(time.time() - t1)
-
-                t1 = time.time()
-                clf.fit(X_train, y_train)
-                #oob_err = 1 - clf.oob_score_
-                #print 'oob err: {}'.format(oob_err)
-                predictions = clf.predict(X_test)
-                accuracy = accuracy_score(y_true=y_test, y_pred=predictions)
-                precision, recall, fscore, support = precision_recall_fscore_support(
-                        y_true = y_test, y_pred = predictions,
-                        average='weighted'
-                        )
-                results['accuracy'].append(accuracy)
-                results['precision'].append(precision)
-                results['recall'].append(recall)
-                results['fscore'].append(fscore)
-                #results['support'].append(support)
-                split_n += 1
-                print '    clf pred time {}'.format(time.time() - t1)
-
-                #Tracer()()
-                print '    accuracy: {} precision: {} recall: {} fscore: {}'.format(accuracy, precision, recall, fscore, support)
-                #print 'precision: {}\nrecall: {}\n fscore: {}\n support: {}'.format(
-                #    precision, recall, fscore, support)
-                #Tracer()()
-                _cm = confusion_matrix(y_test, predictions)
-                #breaks with non stratified kfold, since matrix dimensions are
-                # no longer equal
-                cm = map(add, cm, _cm)
-
-                _feature_importances = clf.feature_importances_
-                for idx in xrange(len(template_uids)):
-                    i = template_uid_to_idx[template_uids[idx]]
-                    if feature_importances[i] == -1:
-                        feature_importances[i] = _feature_importances[idx]
-                    else:
-                        feature_importances[i] += _feature_importances[idx]
-
-            print '\n  {} fold cv results:'.format(n_splits)
-            for k,v in results.iteritems():
-                print '    {}: {} std: {}'.format(k, np.mean(v), np.std(v))
-                all_results[k].extend(v)
-
-
-        print '\n  {} shuffle iteration results:'.format(n_splits)
-        for k,v in all_results.iteritems():
-            print '    {}: {} std: {}'.format(k, np.mean(v), np.std(v))
-
-        plot_feature_importances(feature_importances, idx_to_class, data)
-        plot_cnf_matrix(cm, y_test, idx_to_class, normalize=True, show_values=True)
-        plt.show()
-
-        #X_train, X_test, y_train, y_test, ids_train, ids_test = train_test_split(
-        #    X, y, ids, test_size=0.2, random_state=0
-        #)
-
-        ## remove template match results from feature vectors where the template
-        ## does not belong to a training sample
-        #for idx, template in reversed(list(enumerate(all_templates))):
-        #    if template.src_sample.uid not in ids_train:
-        #        for x in X_train: del x[idx]
-        #        for x in X_test: del x[idx]
-
-        #print class_to_idx
-        #clf = RandomForestClassifier()
-        #r1 = clf.fit(X_train, y_train)
-        #print 'score {}'.format(clf.score(X_test, y_test))
-
-        #clf2 = ExtraTreesClassifier(n_estimators=500, max_features=4, min_samples_split=3)
-        #r2 = clf2.fit(X_train, y_train)
-        #print 'score2 {}'.format(clf2.score(X_test, y_test))
-
-        #precision, recall, fscore, support = score(y_test, [clf2.predict(x) for x in X_test])
-        #print 'precision: {}'.format(precision)
-        #print 'recall: {}'.format(recall)
-        #print 'fscore: {}'.format(fscore)
-        #print 'support: {}'.format(support)
+        print('templates used in clf now: {}'.format(len(ce.feature_importances)));
 
         Tracer()()
-        #split_and_classify(X, y, 0.2)
 
 
 if __name__ == "__main__":

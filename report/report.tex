@@ -1,0 +1,42 @@
+\documentclass[12pt]{third-rep}
+
+\usepackage{url}
+\usepackage{pslatex}
+\usepackage{listings}
+\usepackage{titlesec}
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries}{}{0pt}{\Large}
+
+\title{Automatic Birdsong Recognition}
+
+\author{Victor F. Lampreia Rodrigues}
+
+\supervisor{Dr. Andrea Schalk}
+
+\reportyear{2017}
+
+\abstractfile{abstract.tex}
+\thanksfile{thx.tex}
+
+\begin{document}
+
+\dotitleandabstract
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\include{cha_intro}
+\include{cha_acq_prep}
+\include{cha_preproc}
+\include{cha_features}
+\include{cha_clf_and_eval}
+
+\bibliography{refs}
+\bibliographystyle{alpha}
+
+\appendix
+\include{app_}
+
+\end{document}

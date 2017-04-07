@@ -735,7 +735,7 @@ def split_data(data, train_indices, test_indices, reject_templates):
     return X_train_t, X_test_t, y_train, y_test, template_idxs
 
 
-def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
+def plot_feature_importances(importances, template_ids, idx_to_class, data, plot_now=False):
     prev_sid = ''
     prev_label = ''
     labels = []
@@ -746,13 +746,13 @@ def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
     agr_sum = 0
     agr_importances = []
 
-    for i, uid in enumerate(data.template_order):
+    #for i, uid in enumerate(data.template_order):
+    for i, uid in enumerate(template_ids):
         sid = uid.split('-')[0]
         label = idx_to_class[data.y[data.ids.index(sid)]]
 
         if label != prev_label:
             sid = sid + '\n' + label
-            #if prev_label != '':
             if prev_label != '':
                 agr_importances.append(agr_sum)
                 agr_sum = 0
@@ -775,13 +775,14 @@ def plot_feature_importances(importances, idx_to_class, data, plot_now=False):
     ax[0].set_yticks([])
     ax[0].set_yticklabels([])
 
-    cax = ax[1].contourf([importances]*2, interpolation='none', cmap=plt.cm.Blues)
+    cax = ax[1].bar(range(0, len(importances)), importances)
+    #cax = ax[1].contourf([importances]*2, interpolation='none', cmap=plt.cm.Blues)
     ax[1].set_xticks(ticks)
     ax[1].set_xticklabels(labels, rotation=45)
-    ax[1].set_yticks([])
-    ax[1].set_yticklabels([])
-    fig.colorbar(cax, ax=ax[1])
-    fig.tight_layout()
+#   ax[1].set_yticks([])
+#   ax[1].set_yticklabels([])
+    #fig.colorbar(cax, ax=ax[1])
+    #fig.tight_layout()
 
     if plot_now: plt.show()
 
@@ -1164,7 +1165,7 @@ def main():
 
 
     if options.classify:
-        ce = ClfEval(data, 5, 10, 1)
+        ce = ClfEval(data, 1, 10, 1)
         clf = ExtraTreesClassifier(
             #warm_start=True,
             #oob_score=True,
@@ -1180,19 +1181,26 @@ def main():
 
         ce.print_stats()
 
-        #plot_feature_importances(ce.feature_importances, idx_to_class, data)
-        #plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
-        #plt.show()
+        Tracer()()
+        plot_feature_importances(ce.feature_importances, idx_to_class, data)
+        plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
+        plt.show()
 
-        fimpc = copy.deepcopy(ce.feature_importances)
-        print('templates used in clf: {}'.format(len(ce.feature_importances)));
-        rej = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] == 0]
-        ce.reject_templates = rej
-        ce.run()
+        #fimpc = copy.deepcopy(ce.feature_importances)
+        #print('templates used in clf: {}'.format(len(ce.feature_importances)));
+        #rej = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] == 0]
+        #keep = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] != 0]
+        #ce.reject_templates = rej
+        #ce.run()
 
         print('templates used in clf now: {}'.format(len(ce.feature_importances)));
 
+        #plot_feature_importances([x for x in ce.feature_importances if x != -1], keep, idx_to_class, data)
+
         Tracer()()
+
+        #plt.bar(range(0, [x for x in ce.feature_importances if x != -1]), [x for x in ce.feature_importances if x != -1])
+        #plt.show()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,70 @@
+\chapter{WORKING DATA}
+This project bases all mechanisms on one single birdsong representation, the
+source field recordings.
+This section describes the data used, how it is collected, and prepared for
+usage within the program.
+
+\section{Working Data Format}
+Birdsong is 
+
+\section{Xeno-Canto Database}
+Xeno-Canto (ref) provides a substantial number of field recordings of various
+bird species, both calls and songs.
+Recordings are available with varying levels of quality, ranging from extremely
+clear with minimal perceivable noise, to extremely noisy recordings.
+Recordings may have single or multiple instances of the same species, and/or
+different species.
+
+note on copyright
+
+\subsection{Automatic Sample Retrieval}
+Manual selection and download of recordings is expensive in terms of time.
+An automatic method is desireable, although there exists no public facing API\.
+We developed a web scraper specifically for automatic retrieval.
+
+The scraper allows the specification of:
+\begin{itemize}
+  \item Species to filter;
+  \item Recording quality to filter;
+  \item Retrieval interval for continuous operation.
+\end{itemize}
+
+\subsection{The Use of Metadata}
+Xeno-canto provides the following metadata with each recording:
+\begin{itemize}
+  \item Date and time
+  \item Recording location
+  \item Species recorded
+  \item Existence of other species
+\end{itemize}
+
+This program makes use only of the prominent species tagged in the recording.
+The location of the recording could be used to improve the accuracy of the
+program, as certain species are restricted to certain parts of the world.
+This greatly affects the probability of a certain species being identified in
+a recording, as long as location metadata is present.
+
+\section{Preparation}
+Recordings are resampled to 22000 khz to reduce the memory footprint and
+processing power required to operate on each recording.
+Resampling to 22000 khz was found to have no significant reduction in quality
+or information retained, despite the high frequency vocalizations in birdsong.
+
+All recordings are processed into spectrograms through a fast fourier transform
+(FFTS) method provided by the xxx python library.
+This representation provides a visualization of energy present in each frequency
+band in function of time.
+Each frequency is quantized into discrete bands according to the parameters set.
+Time is quantized into etc.
+The absolute energy is preserved, we don't lose any information, we gain it.
+\textbf{show spectrogram image under waveform of same section}
+
+The following parameters are used:
+\begin{itemize}
+  \item hamming window: ur mom
+\end{itemize}
+
+See Appendix for details on FFTS.
+
+Frequencies above x and below y are removed from the spectrograms as these do
+not contain signals belonging to any bird species \textbf{(cite)}.

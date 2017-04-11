@@ -1,0 +1,46 @@
+\section{Feature Importance}
+Without reduction, feature counts per species range from 2000 to 3000.
+Each new sample to be classified will involve template matching against all
+templates of all species.
+For the n selected this means n cross correlations, which takes approximately
+n time.
+Feature reduction is therefore an important aspect for performance improvement.
+It is also helpful in determining what kind of features are most helpful, which
+may be used to help eliminate features early on before they are used in any
+heavy computation.
+
+\subsection{Measuring Feature Importance}
+One method for measuring the impact of each feature is through the mean decrease
+in accuracy.
+With this method, the impact of removing each feature one-by-one is measured.
+This method may be sensitive to the random nature of the classifier, so multiple
+runs may be required to eliminate any variance (is this true?).
+This can be prohibitively expensive.
+
+\subsubsection{Feature importance in random forests}
+Because the nodes of trees in a random forest correlate directly with a specific
+feature, it is possible to directly measure or estimate the importance of each
+feature by determining the probability of a node in a tree being traversed over 
+the number of nodes in the forest.
+This is known as the mean decrease impurity, or gini impurity, and it can be
+measured directly after a forest has been trained, or estimated beforehand \bfseries{(is this true?)}.
+
+This project makes use of the .... measure.
+
+\subsection{Results}
+Measuring feature importances exposes x of y features to be completely useless
+for specifying or discriminating classes of species.
+Removing these features results in no change in accuracy.
+Performance increases are observed in both feature extraction
+\bfseries{(is it still extraction? build feature vector)} and classification.
+The greatest increase in performance was observed in the template matching stage
+with a mean decrease of x minutes.
+
+\bfseries{graph of feature importances}
+
+\bfseries{to do:}
+Further reductions were made to the feature set in effort to reduce the feature
+count as much as possible while retaining a consistent accuracy.
+etc etc was found.
+lots of graphs
+

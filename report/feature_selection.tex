@@ -1,0 +1,90 @@
+\section{Identifying Useful Features}
+
+Orthonologists use this and that.
+We're taking an image recognition based approach
+
+show spectrograms of various species to show differences
+
+Variations in amplitude along the song are not taken into account but may be a 
+useful feature to consider.
+
+Direct spectral information such as mean energy per frequency bin is not taken
+although this can be a useful statistic to help identify the species.
+
+\section{Template Selection}
+\subsection{Basic Elimination}
+Some effort is taken to reduce the number of templates extracted in the
+preprocessing stage to reduce the computational and storage overhead otherwise
+incurred.
+An increase in template count implies an increase in noise and inconsistencies
+in the semantics captured. \textbf{is semantics the right word?}
+
+\textbf{is RF good at ignoring noise? I think so.?}
+
+\textbf{speculative section on what makes a good template}
+
+\textbf{for extraction section: several extra templates are included around the template}
+
+The following criteria is used to select valid templates:
+\begin{itemize}
+\item dimensions within x
+\item uhh
+\end{itemize}
+These criteria was reached by empirical trial and error.
+
+\subsection{Guided Elimination}
+It is desireable to reduce the template count further by recognizing aspects which
+make for good templates. This subsection outlines some speculative options for
+selecting better templates, and reducing those which would have a low importance
+score after training and classification.
+
+\subsubsection{Image contrast}
+It can be argued that templates with low local contrast contain insufficient
+information to be meaningful in any way during template matching.
+Templates with a low contrast match against much of any image, resulting in an
+increase in noise.
+Implicitly \textbf{is implicitly the right word?} such templates have a high
+correlation with not only the species from which it was extracted but with all
+species.
+\textbf{show some images, maybe graphs of correlation}
+
+\subsubsection{Spatial inclusion}
+Due to the imperfect nature of the preprocessing methods used, gaps and
+inconsistencies in structure appear in the thresholded spectrogram.
+These inconsistencies are present also in repeated components in a bird song,
+at all levels of granularity.
+This causes multiple templates to be extracted for a single component in some
+instances, and single larger blocks to be extracted in others.
+
+In many of these cases, one template's bounding box intersects or is contained
+entirely within another template's bounding box.
+Merging these templates by extracting the bounding box of the union of the two
+or more templates may result in more consistent extractions.
+\textbf{show some images}
+
+Similarly, templates which are sufficiently close to eachother may be merged,
+but care must be taken not to form extremely large templates.
+
+\subsubsection{Variation in granularity}
+There exists a variance in granularity for the extracted templates, in which
+some sections of song are mostly connected to form a single template, and others
+are disconnected, leaving templates with single syllables \textbf{right word?}
+and templates with entire sections of song.
+This is a similar to the observation in \textbf{spatial inclusion}.
+
+\textbf{what to do about it}
+\textbf{is it a problem}
+
+
+\subsubsection{inter-template correlation}
+some templates may correlate with eachother, should they be merged?
+
+It can also be argued that templates with little to know intercorrelation may be
+independent anomalies such as noise in the signal or other sounds irrelevant to
+the subject species.
+
+\subsubsection{Species-specific template statistics}
+It may be possible to use information regarding average dimensionality and mean
+frequency information to determine the relevance likelyhood of a particular template.
+Such metrics require an existing set of validated templates, which may be gathered
+by filtering a non discriminated set of templates by their measures importances.

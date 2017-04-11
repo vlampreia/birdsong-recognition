@@ -10,6 +10,10 @@
 \usepackage{scrextend}
 \usepackage{subfig}
 \usepackage[export]{adjustbox}
+\usepackage{apacite}
+\bibliographystyle{apacite}
+\renewcommand\bibliographytypesize{\tiny}
+
 
 \setsvg{svgpath = img/}
 
@@ -29,7 +33,7 @@
 \author{Victor F. L. Rodrigues}
 \institute{School of Computer Science\\ The University of Manchester}
 \titlegraphic{\includesvg[height=15mm]{UniOfManchesterLogo}}
-\logo{\includesvg[height=10mm]{UniOfManchesterLogo}}
+\logo{\includesvg[height=4mm]{UniOfManchesterLogo}}
 
 \begin{document}
 
@@ -56,7 +60,7 @@
 
 \begin{frame}[fragile]
   \vspace{0.5cm}
-  {\bfseries\Large How birdwatchers do it}\\
+  {\bfseries\Large In birdwatching}\\
   \vspace{0.5cm}
   \begin{addmargin}{0.5cm}
     \begin{itemize}
@@ -72,6 +76,7 @@
         \item Multiple birds may be singing
         \item Some birds may mimic others
         \item Noisy environment
+        \item Too much variety!
       \end{itemize}
     \end{itemize}
   \end{addmargin}
@@ -83,7 +88,7 @@
 
 \begin{frame}[fragile]
   \vspace{0.5cm}
-  {\bfseries\Large How a computer might do it}\\
+  {\bfseries\Large In computing}\\
   \vspace{0.5cm}
   \begin{addmargin}{0.5cm}
     \begin{itemize}
@@ -96,6 +101,7 @@
         \item Identify multiple, or ignore background species
         \item Distinguish similar birdsongs
         \item Apply noise reduction methods
+        \item All across hundreds of recordings
       \end{itemize}
     \end{itemize}
   \end{addmargin}
@@ -104,21 +110,27 @@
 %-------------------------------------------------------------------------------
 
 \section{Processing}
-
+%PCM == pulse code modulation
 \begin{frame}[fragile]
   \vspace{0.5cm}
-  {\bfseries\Large The data}
-  \vspace{-0.15cm}
+  {\bfseries\Large Representing the data}
+  \vspace{-0.20cm}
   \begin{figure}
-    \includegraphics[clip, trim=0px 320px 0px 15mm, width=1.2\textwidth,center]{img/spec-wav}
+    \includegraphics[clip, trim=0px 320px 0px 20mm, width=1.2\textwidth,center]{img/spec-wav}
   \end{figure}
+
+  \begin{itemize}
+    \item A recording is loaded as Pulse Code Modulation (PCM)
+   \item We can compute a spectrogram using Short-Time Fourier Transform (STFT)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \vspace{0.5cm}
-  {\bfseries\Large The data}
+  {\bfseries\Large Representing the data}
+  \vspace{-0.20cm}
   \begin{figure}
-    \includegraphics[clip, trim=0px 0px 0px 15mm, width=1.2\textwidth,center]{img/spec-wav}
+    \includegraphics[clip, trim=0px 30px 0px 20mm, width=1.2\textwidth,center]{img/spec-wav}
   \end{figure}
 \end{frame}
 
@@ -143,7 +155,7 @@
       \begin{itemize}
         \item Median filtering
         \item Thesholding
-        \item Dilation \& Erosion\ldots
+        \item Dilation \& Erosion
         \item Selective removal of small and/or generic components
       \end{itemize}
     % after a few parameter tweaks we get something more like this...  
@@ -239,15 +251,18 @@
     \begin{figure}[!tbp]
       \centering
       \begin{minipage}[c]{0.3\textwidth}
-        \includegraphics[width=\textwidth]{img/specgram}
+        \includegraphics[width=\textwidth]{img/specgram}\\
+        {\tiny Raw spectrogram}
       \end{minipage}
       \hfill
       \begin{minipage}[c]{0.3\textwidth}
-        \includegraphics[width=\textwidth]{img/contours}
+        \includegraphics[width=\textwidth]{img/contours}\\
+        {\tiny Noise reduction + contours}
       \end{minipage}
       \hfill
       \begin{minipage}[c]{0.3\textwidth}
-        \includegraphics[width=\textwidth]{img/detected-features}
+        \includegraphics[width=\textwidth]{img/detected-features}\\
+        {\tiny Bounding box}
       \end{minipage}
     \end{figure}
 \end{frame}
@@ -265,15 +280,18 @@
     \begin{figure}[!tbp]
       \centering
       \begin{minipage}[c]{0.3\textwidth}
-        \includegraphics[width=\textwidth]{img/selected-feature}
+        \includegraphics[width=\textwidth]{img/selected-feature}\\
+        {\tiny Cropped feature}
       \end{minipage}
       \hfill
       \begin{minipage}[c]{0.3\textwidth}
-        \fbox{\includegraphics[width=\textwidth]{img/ccm}}
+        \fbox{\includegraphics[width=\textwidth]{img/ccm}}\\
+        {\tiny Cross-correlation map}
       \end{minipage}
       \hfill
       \begin{minipage}[c]{0.3\textwidth}
-        \fbox{\includegraphics[width=\textwidth]{img/threshold-ccm}}
+        \fbox{\includegraphics[width=\textwidth]{img/threshold-ccm}}\\
+        {\tiny Thresholded CCM}
       \end{minipage}
     \end{figure}
 \end{frame}
@@ -289,10 +307,10 @@
   \vspace{0.5cm}
   \begin{addmargin}{0.5cm}
     \begin{itemize}
-      \item Cross-correlation maps are used as similarity vectors
+      \item Max-values of cross-correlation mapping results in high dimensional feature vectors
       \item Component and segment detection provides composition statistics, as well as frequency distribution for each species
       \item Many classifiers can be used, but we'll use decision trees (for now)
-      \item Multiple, in fact: A random forest of 50--500 trees\ldots per class
+      \item Multiple, in fact: A random forest of 50--500 trees per class to reduce over-fitting
     \end{itemize}
   \end{addmargin}
 \end{frame}
@@ -304,137 +322,77 @@
   \vspace{0.5cm}
   \begin{addmargin}{0.5cm}
     \begin{itemize}
-      \item Template matching is performed, producing a similarity feature vector
-      \item Noise reduction is applied and component detection is performed on the target spectrogram, producing statistics
-      \item These are fed into each RF, and the maximal probability is accepted
+      \item Template matching is performed against known templates, producing a similarity feature vector
+      \item Statistics are taken from the pre-processed spectrogram
+      \item Features are concatenated and fed into each RF
+      \item The maximal probability is accepted
+      \item Alternatively a probability set is returned
     \end{itemize}
   \end{addmargin}
 \end{frame}
 
-\subsection{Accuracy and Performance}
+\subsection{Accuracy and Performance using AUC}
 \begin{frame}[fragile]
   \vspace{0.5cm}
   {\bfseries\Large Classifying accuracy}
   \vspace{0.5cm}
-  \begin{addmargin}{0.5cm}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
     \begin{itemize}
-      \item Receiver Operating Characteristic (ROC) is compiled from true-positive and false-positive rates
-      \item Accuracy is determined by the area under the ROC curve (AUC) per classifier
-      \item The goal is to maximize this area
-      \item Overall accuracy computed by averaging all classifier AUC results
+      \item Accuracy is determined by the area under the Receiver Operating Characteristic curve (AUC)
+      \item The cruve represents the resulting TP/FP rate for a given threshold
     \end{itemize}
-  \end{addmargin}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \vspace{-1cm}
+    \begin{figure}
+      \includegraphics[width=1.0\textwidth]{img/auroc}
+    \end{figure}
+  \end{column}
+  \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]
-  \vspace{0.5cm}
-  {\bfseries\Large Improving performance}
-  \vspace{0.5cm}
-  \begin{addmargin}{0.5cm}
-    \begin{itemize}
-      \item High feature count and template matching contribute to high computational costs
-      \item Discarding less important features should improve accuracy and performance
-      \item Template matching can be sped up by blurring templates and target image
-      \item We should exploit parallelization and optimizations provided by existing libraries
-    \end{itemize}
-  \end{addmargin}
-\end{frame}
+% \begin{frame}[fragile] \vspace{0.5cm} {\bfseries\Large Improving performance}
+% \vspace{0.5cm} \begin{addmargin}{0.5cm} \begin{itemize} \item High feature
+% count and template matching contribute to high computational costs \item
+% Discarding less important features should improve accuracy and performance
+% \item Template matching can be sped up by blurring templates and target image
+% \item We should exploit parallelization and optimizations provided by existing
+% libraries \end{itemize} \end{addmargin} \end{frame}
 
 
 %-------------------------------------------------------------------------------
 
 \section{}
 \begin{frame}[fragile]
-  general diagram showing entire workflow from preprocessing to accuracy classification
+  \scriptsize
+  \begin{figure}
+    \def\svgwidth{0.85\columnwidth}
+    \input{flow.pdf_tex}
+  \end{figure}
 \end{frame}
 
 \begin{frame}[fragile]
   \vspace{0.5cm}
   {\bfseries\Large Summary}\\
   \vspace{0.3cm}
-  %\begin{addmargin}{0.5cm}
     \begin{itemize}
-      \item Automatic birdsong recognition features similar problems to manual classification
-      \item Manual pre-processing is slow, automatic methods are necessary
-      \item Birdsong can be simple or complex. data must be engineered to extract meaningful information across all species
-      \item Classifier accuracy feedback will allow us to tune parameters
+      \item We want to classify several hundred species from field recordings
+      \item Noise can interfere with our feature extraction; automatic reduction is necessary
+      \item Birdsong can be complex and vary greatly within and across species and regions
+      \item Care must be taken to select important features and ignore generic information
+      \item Classifier accuracy must be analysed and fed back to tune processing parameters
       \item Immense amounts of data and CV processing can pose computational issues
     \end{itemize}
-  %\end{addmargin}
 \end{frame}
 
 \begin{frame}[fragile]
-  \vspace{0.5cm}
-  \begin{addmargin}{0.5cm}
-    Attributions/bib...
-  \end{addmargin}
+  \nocite{DBLP:conf/mlsp/BriggsHRELCHHBFINTFTNNHRMDVMDCHLM13}
+  \nocite{DBLP:conf/mlsp/Fodor13}
+  \nocite{DBLP:conf/clef/Lasseck15}
+  \nocite{DBLP:conf/clef/Lasseck15a}
+  \nocite{DBLP:david_nicholson-proc-scipy-2016}
+  \bibliography{bib}
 \end{frame}
-
-
-%-------------------------------------------------------------------------------
-
-% \begin{frame}[fragile] \vspace{0.5cm} {\bfseries\Large title}\\ \vspace{0.5cm}
-% \begin{addmargin}{0.5cm} ASDASFASFASFASFSF \begin{itemize} \item problem
-% statement \item traditional methods \item this is a multi-class, maybe
-% multi-label classification problem \item what does the data look like (show
-% specgram, don't explain too much) \item view as a spectrogram \item modern
-% approaches \end{itemize} \end{addmargin} \end{frame}
-% 
-% %-------------------------------------------------------------------------------
-% 
-% \begin{frame}[fragile]
-%   \vspace{0.5cm}
-%   {\bfseries\Large title}\\
-%   \vspace{0.5cm}
-%   \begin{addmargin}{0.5cm}
-%     \begin{itemize}
-%       \item back to spectrogram, show energy, show structure. show plain PCM and compare information richness
-%       \item maybe show examples of messy specgrams
-%       \item noise reduction
-%       \item can use simple methods, median filtering dilation etc
-%       \item doesn't have to be perfect
-%       \item must be AUTOMATIC, more samples -> more data
-%     \end{itemize}
-%   \end{addmargin}
-% \end{frame}
-% 
-% %-------------------------------------------------------------------------------
-% 
-% \begin{frame}[fragile]
-%   \vspace{0.5cm}
-%   {\bfseries\Large title}\\
-%   \vspace{0.5cm}
-%   \begin{addmargin}{0.5cm}
-%     \begin{itemize}
-%       \item now w/ clear audio, feature extraction
-%       \item look at structure, speculate on interesting features
-%       \item retrieve statistics -- distribution across freqs...
-%       \item contiguous blobs, contours, bounding box
-%       \item extract from unprocessed specgram, gauss blur, use as feature
-%       \item explain correlation map, use of tmplate matching with target specgram
-%       \item show threshold of this to demonstrate multiple matches
-%     \end{itemize}
-%   \end{addmargin}
-% \end{frame}
-% 
-% %-------------------------------------------------------------------------------
-% 
-% \begin{frame}[fragile]
-%   \vspace{0.5cm}
-%   {\bfseries\Large title}\\
-%   \vspace{0.5cm}
-%   \begin{addmargin}{0.5cm}
-%     \begin{itemize}
-%       \item classification
-%       \item lots of parameters, speculate automatic fitness of cleanup, feature extraction
-%       \item train tree
-%       \item train lots of trees, 50 or 500 -- random forest
-%       \item 1 forest per class (species)
-%       \item classifier training will determine best splits
-%       \item features that are used: template matching, ...
-%       \item for template matching we can reduce resolution and downsample to improve performance
-%     \end{itemize}
-%   \end{addmargin}
-% \end{frame}
 
 \end{document}

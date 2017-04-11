@@ -1,0 +1,43 @@
+\section{Spectrogram Preprocessing}
+
+show sgram with noise
+
+Even with prefiltering performed when extracting recordings from xenocanto,
+noisy samples are still common.
+Because a high number of samples is required for our approach, we developed an
+automatic noise reduction stage.
+
+global parameters for sweeping noise reductions are suboptimal, what may work
+for one recording might not work for another.
+
+yet this is what we do, works ok, specific values were found through trial and
+error.
+
+objective is to process spectrograms to find contiguous blobs with similar
+scope, that is, either phrases or individual vocalizations.
+
+Some noise reduction steps are semi-automatic, such as adaptive thresholding.
+
+a better approach would be to operate on a per-spectrogram basis, to find the
+optimal parameters for each.
+
+This is a non trivial problem.
+
+conceptually the noise reduction algorithm would perform some parameter search
+with a heuristic based on the dimensions and quantity of contiguous blobs, with
+the aim of reducing the number of small blobs which may resemble noise or disjoint
+parts of a single vocalization or segment.
+
+The target scope should be specifiable, so that either individual vocalizations
+or complete segments or songs could be extracted.
+
+In some cases it might not be possible to achieve total correct segmentation.
+
+Since different birds have different lengths for specific sounds or parts of song,
+the spectral dimensions can not be generalized.
+This means that each species will have different aims for quantity and dimensionality,
+which must be constructed either by manual input or some feedback mechanism.
+
+a feedback system can then be used to determine which type of segmentation works
+best by filtering to various sizes and measuring the accuracy obtained after
+classification.

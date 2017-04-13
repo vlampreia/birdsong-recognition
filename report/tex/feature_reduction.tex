@@ -9,7 +9,9 @@ It is also helpful in determining what kind of features are most helpful, which
 may be used to help eliminate features early on before they are used in any
 heavy computation.
 
-\subsection{Measuring Feature Importance}
+\subsection{In Random Forests}
+
+\subsubsection{Mean decrease accuracy}
 One method for measuring the impact of each feature is through the mean decrease
 in accuracy.
 With this method, the impact of removing each feature one-by-one is measured.
@@ -17,28 +19,30 @@ This method may be sensitive to the random nature of the classifier, so multiple
 runs may be required to eliminate any variance (is this true?).
 This can be prohibitively expensive.
 
-\subsubsection{Feature importance in random forests}
+\subsubsection{Mean decrease impurity}
 Because the nodes of trees in a random forest correlate directly with a specific
 feature, it is possible to directly measure or estimate the importance of each
 feature by determining the probability of a node in a tree being traversed over 
 the number of nodes in the forest.
 This is known as the mean decrease impurity, or gini impurity, and it can be
-measured directly after a forest has been trained, or estimated beforehand \bfseries{(is this true?)}.
+measured directly after a forest has been trained, or estimated beforehand 
+
+\textbf{(is this true?)}.
 
 This project makes use of the .... measure.
 
-\subsection{Results}
+\subsection{Results and Analysis}
 Measuring feature importances exposes x of y features to be completely useless
 for specifying or discriminating classes of species.
 Removing these features results in no change in accuracy.
 Performance increases are observed in both feature extraction
-\bfseries{(is it still extraction? build feature vector)} and classification.
+\textbf{(is it still extraction? build feature vector)} and classification.
 The greatest increase in performance was observed in the template matching stage
 with a mean decrease of x minutes.
 
-\bfseries{graph of feature importances}
+\textbf{graph of feature importances}
 
-\bfseries{to do:}
+\textbf{to do:}
 Further reductions were made to the feature set in effort to reduce the feature
 count as much as possible while retaining a consistent accuracy.
 etc etc was found.

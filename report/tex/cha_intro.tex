@@ -1,0 +1,67 @@
+\chapter{INTRODUCTION}
+
+\section{Motivation}
+Automatic birdsong recognition is far from solved outside of controlled
+environments or with heavy user input.
+A system which can recognize species from birdsong from a wide variety of
+species is an exciting application of signal processing, computer vision and
+machine learning technologies.
+Such software would be beneficial to the bird enthusiasts and environmental
+health associations, and others.
+
+\section{Goals}
+The primary aim of this project is to research and develop potential methods
+for automatic birdsong recognition, with little to no user interaction.
+The system is to recognize up to 50 distinct bird species from field recordings
+provided by arbitrary sources around the world.
+The recordings should not have any form of rigorous quality control, aside from
+the seletion of the least noisy recordings.
+
+limit to songs only
+
+\section{Potential Approaches}
+is this section needed?
+
+All approaches in this section deal with either the waveform image of a birdsong
+recording, a spectrogram of the recording, or both.
+
+\subsection{DTW / archetypes}
+previous student used waveform and DTW to match against an archetype waveform.
+
+\subsection{Image recognition}
+spectral shapes etc
+some have used image recognition to match templates representative of specific
+bird species to identify birds in a recording using it's spectrogram.
+
+\subsection{Spectral Analysis}
+The mean spectral frequency and energy information in spectrograms may give some
+clues as to which species of bird is vocalizing.
+
+\subsection{Pitch Tracking}
+forgot what this was called, was used for whalesong recognition.
+may not work well for birdsong recognition due to relative pitches etc?
+
+\section{Our Approach}
+The approach taken for this project is a combination of image recognition and
+spectral analysis through machine learning.
+The spectral analysis component was not completed, however section x touches on
+the subject with speculative notes.\\
+
+move bulk of subsections to appendices
+
+\subsection{Process Overview}
+we take the samples, we process them a bit, then for each sample, we do template
+matching, then we feed to classifier, then we get results. new samples are
+matched against the previous known templates and fed through classifier.
+
+\subsection{Architecture Overview}
+We developed the artefact as a single software package.
+All components and features described in this report are part of the program
+unless stated otherwise.
+
+\subsection{Implementation Technologies}
+All code was written in Python 2.7.
+Libraries used include:
+\begin{itemize}
+  \item open-CV 2.0
+\end{itemize}

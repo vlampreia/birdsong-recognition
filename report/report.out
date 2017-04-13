@@ -1,0 +1,43 @@
+\BOOKMARK [0][-]{chapter.1}{INTRODUCTION}{}% 1
+\BOOKMARK [1][-]{section.1.1}{Motivation}{chapter.1}% 2
+\BOOKMARK [1][-]{section.1.2}{Goals}{chapter.1}% 3
+\BOOKMARK [1][-]{section.1.3}{Potential Approaches}{chapter.1}% 4
+\BOOKMARK [2][-]{subsection.1.3.1}{DTW / archetypes}{section.1.3}% 5
+\BOOKMARK [2][-]{subsection.1.3.2}{Image recognition}{section.1.3}% 6
+\BOOKMARK [2][-]{subsection.1.3.3}{Spectral Analysis}{section.1.3}% 7
+\BOOKMARK [2][-]{subsection.1.3.4}{Pitch Tracking}{section.1.3}% 8
+\BOOKMARK [1][-]{section.1.4}{Our Approach}{chapter.1}% 9
+\BOOKMARK [2][-]{subsection.1.4.1}{Process Overview}{section.1.4}% 10
+\BOOKMARK [2][-]{subsection.1.4.2}{Architecture Overview}{section.1.4}% 11
+\BOOKMARK [2][-]{subsection.1.4.3}{Implementation Technologies}{section.1.4}% 12
+\BOOKMARK [0][-]{chapter.2}{WORKING DATA}{}% 13
+\BOOKMARK [1][-]{section.2.1}{Source Data}{chapter.2}% 14
+\BOOKMARK [2][-]{subsection.2.1.1}{Format}{section.2.1}% 15
+\BOOKMARK [2][-]{subsection.2.1.2}{Xeno-Canto Database}{section.2.1}% 16
+\BOOKMARK [1][-]{section.2.2}{Preparation}{chapter.2}% 17
+\BOOKMARK [1][-]{section.2.3}{Sample Selection}{chapter.2}% 18
+\BOOKMARK [0][-]{chapter.3}{FEATURE ENGINEERING AND SELECTION}{}% 19
+\BOOKMARK [1][-]{section.3.1}{Spectrogram Preprocessing}{chapter.3}% 20
+\BOOKMARK [1][-]{section.3.2}{Useful Feature Identification}{chapter.3}% 21
+\BOOKMARK [1][-]{section.3.3}{Template Selection}{chapter.3}% 22
+\BOOKMARK [2][-]{subsection.3.3.1}{Basic Elimination}{section.3.3}% 23
+\BOOKMARK [2][-]{subsection.3.3.2}{Guided Elimination}{section.3.3}% 24
+\BOOKMARK [1][-]{section.3.4}{Feature Engineering}{chapter.3}% 25
+\BOOKMARK [2][-]{subsection.3.4.1}{Cross-correlation Mapping}{section.3.4}% 26
+\BOOKMARK [2][-]{subsection.3.4.2}{Feature Vector Construction}{section.3.4}% 27
+\BOOKMARK [2][-]{subsection.3.4.3}{Computational Expense and Optimizations}{section.3.4}% 28
+\BOOKMARK [0][-]{chapter.4}{CLASSIFICATION AND EVALUATION}{}% 29
+\BOOKMARK [1][-]{section.4.1}{Classification}{chapter.4}% 30
+\BOOKMARK [2][-]{subsection.4.1.1}{Approaches to Classification}{section.4.1}% 31
+\BOOKMARK [2][-]{subsection.4.1.2}{Random Forest Classifier}{section.4.1}% 32
+\BOOKMARK [1][-]{section.4.2}{Accuracy Evaluation}{chapter.4}% 33
+\BOOKMARK [2][-]{subsection.4.2.1}{Validation Strategy}{section.4.2}% 34
+\BOOKMARK [2][-]{subsection.4.2.2}{Accuracy Metrics}{section.4.2}% 35
+\BOOKMARK [2][-]{subsection.4.2.3}{AUC curve}{section.4.2}% 36
+\BOOKMARK [2][-]{subsection.4.2.4}{Confusion Matrix}{section.4.2}% 37
+\BOOKMARK [1][-]{section.4.3}{Feature Importance}{chapter.4}% 38
+\BOOKMARK [2][-]{subsection.4.3.1}{In Random Forests}{section.4.3}% 39
+\BOOKMARK [2][-]{subsection.4.3.2}{Results and Analysis}{section.4.3}% 40
+\BOOKMARK [1][-]{section.4.4}{Classifier Tuning}{chapter.4}% 41
+\BOOKMARK [2][-]{subsection.4.4.1}{Gridsearch}{section.4.4}% 42
+\BOOKMARK [2][-]{subsection.4.4.2}{Parameter Analysis}{section.4.4}% 43

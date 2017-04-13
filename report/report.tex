@@ -4,6 +4,7 @@
 \usepackage{pslatex}
 \usepackage{listings}
 \usepackage{titlesec}
+\usepackage{hyperref}
 
 \titleformat{\chapter}[display]
   {\normalfont\bfseries}{}{0pt}{\Large}
@@ -16,7 +17,7 @@
 
 \reportyear{2017}
 
-\abstractfile{abstract.tex}
+\abstractfile{tex/abstract.tex}
 %\thanksfile{thx.tex}
 
 \begin{document}
@@ -27,20 +28,24 @@
 \listoffigures
 \listoftables
 
-\chapter{INTRODUCTION}
-\input{intro}
-\input{data_acq_prep}
-\input{sample_selection}
+\input{tex/cha_intro}
 
+\input{tex/cha_data}
+\input{tex/data_source}
+\input{tex/data_prep}
+\input{tex/sample_selection}
 
-\chapter{FEATURE ENGINEERING AND SELECTION}
-\input{sgram_preprocessing}
-\input{feature_selection}
-\input{feature_vector}
+\input{tex/cha_features}
+\input{tex/sgram_preprocessing}
+\input{tex/feature_id}
+\input{tex/feature_selection}
+\input{tex/feature_vector}
 
-\chapter{CLASSIFICATION AND EVALUATION}
-\input{classification}
-\input{feature_reduction}
+\input{tex/cha_clf_eval}
+\input{tex/classification}
+\input{tex/accuracy_eval}
+\input{tex/feature_reduction}
+\input{tex/tuning}
 
 
 \bibliography{refs}

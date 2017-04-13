@@ -1,0 +1,24 @@
+\section{Preparation}
+Recordings are resampled to 22000 khz to reduce the memory footprint and
+processing power required to operate on each recording.
+Resampling to 22000 khz was found to have no significant reduction in quality
+or information retained, despite the high frequency vocalizations in birdsong.
+
+All recordings are processed into spectrograms through a fast fourier transform
+(FFTS) method provided by the xxx python library.
+This representation provides a visualization of energy present in each frequency
+band in function of time.
+Each frequency is quantized into discrete bands according to the parameters set.
+Time is quantized into etc.
+The absolute energy is preserved, we don't lose any information, we gain it.
+\textbf{show spectrogram image under waveform of same section}
+
+The following parameters are used:
+\begin{itemize}
+  \item hamming window: ur mom
+\end{itemize}
+
+See Appendix for details on FFTS.
+
+Frequencies above x and below y are removed from the spectrograms as these do
+not contain signals belonging to any bird species \textbf{(cite)}.

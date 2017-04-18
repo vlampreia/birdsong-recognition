@@ -1,9 +1,19 @@
-\section{Preparation}
+\section{Preparation}\label{sec:prep}
+\subsection{Resampling}
 Recordings are resampled to 22000 khz to reduce the memory footprint and
 processing power required to operate on each recording.
-Resampling to 22000 khz was found to have no significant reduction in quality
+Resampling to 22050 khz was found to have no significant reduction in quality
 or information retained, despite the high frequency vocalizations in birdsong.
 
+The right channel of any stereo recordings is discarded.
+
+The source MP3 files are converted into 22kHz 16-bit WAV files.
+
+Resampling and conversion is done using ffmpeg and automated through a shell
+script.
+
+
+\subsection{Spectrogram Construction}
 All recordings are processed into spectrograms through a fast fourier transform
 (FFTS) method provided by the xxx python library.
 This representation provides a visualization of energy present in each frequency
@@ -15,10 +25,12 @@ The absolute energy is preserved, we don't lose any information, we gain it.
 
 The following parameters are used:
 \begin{itemize}
-  \item hamming window: ur mom
+  \item NFFT: 512
+  \item window: Hamming window of 512
+  \item n overlap: 75\%
 \end{itemize}
 
 See Appendix for details on FFTS.
 
-Frequencies above x and below y are removed from the spectrograms as these do
+Frequencies above 10000Hz and below 100Hz are removed from the spectrograms as these do
 not contain signals belonging to any bird species \textbf{(cite)}.

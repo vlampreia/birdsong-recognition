@@ -7,7 +7,12 @@ mention any metrics that we do not use but are standard, and explain
 why we do not use them.
 
 \subsection{Validation Strategy}
-10 times 10kfold
+In effort to reduce sensitivity to chance selection of random samples, all
+measurements are performed using stratified 10-fold cross validation.
+This gives us a 90/10 train/test split, and is repeated with a new random sample
+shuffle 10 times.
+
+Randomness can be seeded for repeatability.
 
 \subsection{Accuracy Metrics}
 mean accuracy, f-score, etc
@@ -18,5 +23,24 @@ we dont use this but if we can construct one then show how we do and what
 this tells us
 
 \subsection{Confusion Matrix}
-what it is, what it can show us
-what it actually shows us
+A confusion matrix plots the true-positive rate against the false-positive rate
+of each class.
+It illustrates the rate of confusion between a given class and all others.
+
+In this case it is instrumental to show the correlation between bird song of
+different species, and shows indications of their similarity of their
+vocalisations on the level of granularity defined by the templates extracted.
+
+Figure xyz shows the confusion matrix for the samples picked.
+
+... matrix here ...
+
+The confusion matrix shows good classification performance for most species.\\
+
+species A has the highest error-rate, being confused mostly for species B.
+This shows that their templates, and therefore their song, share some
+similarities.\\
+
+species C has an excellent score, having been confused with no other species.
+This shows that species C has very unique vocal characteristics amongst the
+picked samples.

@@ -1,11 +1,34 @@
-\section{Spectrogram Preprocessing}
+\section{Spectrogram Preprocessing}\label{sec:preproc}
+
+Before any features may be extracted, their boundaries must be found.
+This is a non-trivial problem due to undesireable noise and recording artefacts
+present in each spectrogram.
+The problem is considerably worsened by the inconsistency of these from sample
+to sample.
+
+The figure below shows an example of a noisy spectrogram.
+Notice how the background noise makes it difficult to find the exact boundary of
+some of the vocalisations.
 
 show sgram with noise
 
-Even with prefiltering performed when extracting recordings from xenocanto,
-noisy samples are still common.
+Even with the quality prefiltering done when downloading recordings from
+Xeno-canto, such noise levels remain common.
+
 Because a high number of samples is required for our approach, we developed an
 automatic noise reduction stage.
+Standard computer vision techinques for noise reduction were used, as well as
+techniques for discrete object identification.
+A filter is first applied to the spectrogram, which reduces the noise in the
+image by smoothing just enough until granular noise is reduced sufficiently (figure x).
+The image is then thresholded using an adaptive thresholding algorithm (figure x).
+We used adaptive thresholding due to the pixel intensity inconsistencies
+throughout some of the spectrogram images.
+Further noise reduction is then performed using erosion and dilation which
+removes small segments and joins pixel groups which are in close proximity to
+each other (figure x).
+
+--\\
 
 global parameters for sweeping noise reductions are suboptimal, what may work
 for one recording might not work for another.

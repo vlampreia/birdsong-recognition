@@ -1,7 +1,17 @@
 \section{Useful Feature Identification}
 
 Orthonologists use this and that.
+It is observed that birdsong varies not only between species but also between
+birds of the same species.
 We're taking an image recognition based approach
+
+It has been shown that birds learn their song as they age (ref), which may pose
+an issue to our classification algorithm if we don't have enough samples.
+On the other hand, it is plausable that given enough samples, we can estimate
+the age group of a bird in a given recording by how much it's song correlates
+to other known samples, without the need for labels indicating age.
+It is not known if this is an issue that affects this project or not, as our
+data source does not provide the age of the bird as metadata.
 
 show spectrograms of various species to show differences
 
@@ -11,3 +21,6 @@ useful feature to consider.
 Direct spectral information such as mean energy per frequency bin is not taken
 although this can be a useful statistic to help identify the species.
 
+A potentially useful feature is average syllable (continuous volcalisation)
+duration, however it can be argued that this information is implicitly included
+by template matching.

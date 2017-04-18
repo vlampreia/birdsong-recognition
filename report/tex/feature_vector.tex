@@ -11,9 +11,12 @@ required.
 
 \subsection{Cross-correlation Mapping}
 Cross-correlation mapping, also referred to as template matching, is
-a method for determining the similarity of an image within another,
-often larger image.
-It is essentially a form of image recognition.
+a method for computing the similarity of an image with another.
+More precisely, it computes the correlation of each pixel in the template image
+with those of the target image.
+The template may be of the same size or smaller than the target.
+The cross correlation map will indicate areas of high correlation with brighter
+pixels, which is essentially a form of image recognition.
 The intuition is that songs from birds of the same species will have
 extremely similar spectral shapes.
 
@@ -22,8 +25,8 @@ over the target image and measuring the pixel similarities.
 check this.
 
 The Open-CV library is used to perform template matching.
-Open-CV's implementation is highly optimized, and may be computed
-using a GPU. For details see appendix.
+Open-CV's implementation is highly optimized, and may be computed on a GPU.
+For details see appendix.
 
 \subsubsection{Results}
 The result of template matching is a cross-correlation mapping of the

@@ -1,5 +1,51 @@
-\section{Source Data}
+\section{Data Source: Xeno-Canto}
 
-\input{tex/data_format}
+%\subsection{Xeno-Canto Database}
+Xeno-Canto (ref) provides a substantial number of field recordings of various
+bird species, both calls and songs.
+Recordings are available with varying levels of quality, ranging from extremely
+clear with minimal perceivable noise, to extremely noisy recordings.
+They are of variable length, with an average duration of 5 minutes.
+Individual or multiple instances of the same species, and/or
+different species may be present in a single recording.\\
 
-\input{tex/database}
+note on copyright
+
+
+\subsection{Automatic Sample Retrieval}
+Manually selecting and downloading recordings is a time-consuming process.
+A public API does not exist for Xeno-canto, therefore we developed a web scraper
+specifically for automatic retrieval.
+
+The scraper allows the user to filter on species and recording quality before
+downloading a sample.
+Species filtering may be done by exlusion or exlusive inclusion.
+
+When repeated fetching is required, an interval may be set in order to reduce
+strain on Xeno-canto's servers.
+Once the interval has been set, the scraper will continuously download samples
+at the specified rate until it has been interrupted by the user.\\
+
+The webscraper is written in Python 2.7 using the XXXX package.
+
+\subsection{Metadata}
+Xeno-canto provides the following metadata with each recording:
+\begin{itemize}
+  \item Date and time
+  \item Recording location
+  \item Species recorded
+  \item Existence of other species
+\end{itemize}
+
+This program only makes use of the prominent species tagged in the recording.
+Although not used in our implementation, the location of the recording could be
+used to improve the accuracy of the classifier, as certain species are restricted
+to certain parts of the world.
+This greatly affects the probability of a certain species being identified in
+a recording, as long as location metadata is present.
+Special care has to be taken however to consider migration patterns of specific
+species.
+
+\subsection{Data Format}
+Recordings downloaded from Xeno-canto are provided as MP3 files.
+These may be composed of mono or stereo channels.

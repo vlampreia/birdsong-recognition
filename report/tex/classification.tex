@@ -1,13 +1,37 @@
 \section{Classification}
-briefly mention the data we are working with (feature vector).
-explain we need statistical method of categorizing each sample using our
-model.
+With the feature vectors constructed,a machine learning algorithm is required
+to classify the bird species through this model.
+This section details the choice of algorithm, it's performance in this task and
+how it may be improved.
 
 \subsection{Approaches to Classification}
+
 number of classifiers can be used
 skim through some strengths and weaknesses
 
 \subsection{Random Forest Classifier}
+A random forest classifier is an ensamble of trees.
+A node of a tree is split on an index of the feature vector.
+Each Tree uses a new random sampling of the features.
+
+The random 
+
 we pick the random forest.
 explain why we use this classifier
 explain how it fits with the data we are working with
+
+\subsection{Extremely Randomised Trees}
+Extremely Randomised Trees is similar to a traditional Random Forest, however
+however splitting is randomised, instead of being computed for optimal
+performance.
+This has the benefit of being faster, with the drawback of being more sensitive
+to noisy features.\\
+
+Using this classifier has seen no major accuracy or performance differences.
+
+\subsection{Parameters}
+show parameters available for RF
+show initial parameters chosen and their performance
+how did we pick these? (make something up)
+section (tuning) explores automatic parameter searching and the
+effects of varying parameters.

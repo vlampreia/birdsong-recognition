@@ -1,10 +1,23 @@
 \section{Classification}
-With the feature vectors constructed,a machine learning algorithm is required
-to classify the bird species through this model.
-This section details the choice of algorithm, it's performance in this task and
-how it may be improved.
+With feature vectors constructed, we select a machine learning algorithm to
+train and classify birdsong based on our model.
+This section details the choice of algorithm, it's variations, performance and
+tuning.
 
 \subsection{Approaches to Classification}
+obviously a classification task.
+We are working with limited sample set, but high number of features.
+The data is labelled, so we will select a supervised learning algorithm.
+we must select a classifier which performs well with this data.
+identifying the best classifier can be best done by cross validating each and
+selecting the best performer.
+For the purposes of testing our approach, a single algorithm was initially
+chosen.
+
+random forest is a good performer and is highly scalable (ref).
+We chose this algorithm.
+
+also might look at gradient boosted trees.
 
 number of classifiers can be used
 skim through some strengths and weaknesses
@@ -14,11 +27,17 @@ A random forest classifier is an ensamble of trees.
 A node of a tree is split on an index of the feature vector.
 Each Tree uses a new random sampling of the features.
 
-The random 
-
 we pick the random forest.
 explain why we use this classifier
 explain how it fits with the data we are working with
+
+This is a multi-class classifier, returning the probabilities of each class
+corresponding to the data given.
+An alternative approach is possible, in which the classification of each species
+is split into individual random forests, the final result of which is retrieved
+by taking the maximum of all probabilities.
+Using multiple binary classifiers allows other accuracy metrics to be used,
+facilitating the accuracy evaluation of single species.
 
 \subsection{Extremely Randomised Trees}
 Extremely Randomised Trees is similar to a traditional Random Forest, however
@@ -28,10 +47,12 @@ This has the benefit of being faster, with the drawback of being more sensitive
 to noisy features.\\
 
 Using this classifier has seen no major accuracy or performance differences.
+why do we use it, no reason??
 
 \subsection{Parameters}
 show parameters available for RF
 show initial parameters chosen and their performance
 how did we pick these? (make something up)
-section (tuning) explores automatic parameter searching and the
-effects of varying parameters.
+
+Section~\ref{sec:tuning} explores semi-automatic parameter tuning and touches on
+the issues of overfitting.

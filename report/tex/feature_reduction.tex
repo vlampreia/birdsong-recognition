@@ -1,13 +1,12 @@
 \section{Feature Importance}
-Without reduction, feature counts per species range from 2000 to 3000.
-Each new sample to be classified will involve template matching against all
-templates of all species.
-For the n selected this means n cross correlations, which takes approximately
-n time.
-Feature reduction is therefore an important aspect for performance improvement.
-It is also helpful in determining what kind of features are most helpful, which
-may be used to help eliminate features early on before they are used in any
-heavy computation.
+Because our feature vector is directly related to the templates of each species,
+it is possible to determine their role and effectiveness in classifying a
+recording by computing feature importances from our classifier.
+This allows us to reduce the number of templates involved in classifying a given
+sample, significantly cutting down the cost of template matching per species.
+Feature importances also help us analyse the preprocessing performance in detail,
+as well as correlate inter-species similarities in cases where there is a high
+level of confusion.
 
 \subsection{In Random Forests}
 
@@ -32,19 +31,37 @@ measured directly after a forest has been trained, or estimated beforehand
 This project makes use of the .... measure.
 
 \subsection{Results and Analysis}
-Measuring feature importances exposes x of y features to be completely useless
-for specifying or discriminating classes of species.
-Removing these features results in no change in accuracy.
-Performance increases are observed in both feature extraction
-\textbf{(is it still extraction? build feature vector)} and classification.
-The greatest increase in performance was observed in the template matching stage
-with a mean decrease of x minutes.
+There are 1209301293123 templates distributed across 20 spectrograms for each
+of the 50 species selected.
+When clsasifying a new sample, it's spectrogram must be cross-correlated with
+each of the templates.
+This operation is extremely expensive, in the order of 42 hours, or 25 seconds
+per template of average dimensions (125x125) with a target sample of average
+length (3 minutes). (see apndx 1 for detailed time analysis)
 
-\textbf{graph of feature importances}
+Measuring feature importances exposes and average of x out of 3000 samples to be
+completely irrelevant during training and classification.
+Removing these features shows no reduction in accuracy, and a significant speedup
+during template matching, reducing total classification time from 10000 hours to
+0.5 seconds.
+The aim is therefore to reduce the feature count as much as possible while
+retaining the highest possible accuracy by determining an appropriate importance
+cutoff.
+Removing features and reevaluating the classifier takes no significant time in
+contrast to template extraction and may therefore be done by iteratively removing
+and checking classifier accuracy, adjusting the importance cutoff accordingly.
+This reduction unfortunately requires a complete run which involves the
+cross-correlation of all templates, which negates any performance benefits unless
+the system is tested against new samples.
+Since we are using cross-validation to evaluate all samples, all templates are
+used eventually, even if their importances remain low across all folds.\\
 
-\textbf{to do:}
-Further reductions were made to the feature set in effort to reduce the feature
-count as much as possible while retaining a consistent accuracy.
-etc etc was found.
-lots of graphs
+\textbf{unless we can get importances from training only, then when we test
+we can use the reduced template set and speed all this up}
 
+\textbf{graph of feature importances}\\
+
+
+\textbf{paragraph on important and non important feature analysis. lots of 
+images, look at templates belonging to confused species, try to determine
+which are culprits, probably most of them}

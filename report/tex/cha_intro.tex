@@ -1,13 +1,26 @@
 \chapter{INTRODUCTION}
 
 \section{Motivation}
-Automatic birdsong recognition is far from solved outside of controlled
-environments or with heavy user input.
-A system which can recognize species from birdsong from a wide variety of
-species is an exciting application of signal processing, computer vision and
-machine learning technologies.
-Such software would be beneficial to the bird enthusiasts and environmental
-health associations, and others.
+Current manual and semi-automatic methods of bird species recognition are limited
+by the cost and challenge of analysing enormous amounts of field recordings.
+Identifying a species from thousands of other possibilities is a challenge itself
+considering not only the vast variety of birds but also the similarities
+present between certain species.
+For these reasons large-scale verification tasks are limited in scope, and results
+are often not immediate.
+A fully automatic mechanism for identifying bird species from song recordings is
+therefore highly valuable for ornithology.
+
+Prominent examples of the immediate usage of such observation technologies include
+population monitoring and migration tracking of species in the fields of
+biogeography and conservation efforts.
+
+The application of automatic birdsong recognition is also of interest to the
+amateur bird watcher.
+
+The problem itself is of great interest and may involve multiple approaches
+including digital signal processing, analysis, image recognition, machine learning,
+...
 
 \section{Goals}
 The primary aim of this project is to research and develop potential methods
@@ -20,7 +33,9 @@ Sample selection may be performed to ensure quality levels are kept at a
 reasonably normalised level, as many recordings are expected to contain
 excessive amounts of noise.
 
-For the purposes of this project, bird songs will be solely considered, and calls
+For the purposes of this project, only bird songs will be considered, and calls
 will not be used.
-This limits the complexity of the classification requirements as calls tend to
-differ significantly to songs.
+This limits the complexity of the classification requirements.
+No preseletion of species is to be done for the general validation tests, except
+for some additional test cases where species with very similar calls will be
+validated.

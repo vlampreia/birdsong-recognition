@@ -1,8 +1,30 @@
 \section{Our Approach}
-The approach taken for this project is inspired by similar sound recognition
-tasks.
-Such tasks often use the spectrographic representation of an audio sample and
-use image recognition to identify key elements in the structure.
+Our initial approach is inspired by similar sound recognition problems.
+Such problems include the recognition of voice, music, animals vocalisations
+including whale song, calls, and so on.
+It is observed that these problems, while similar in nature, differ in practice.
+This is mainly due to the nature of the sound being analysed, as well as
+domain knowledge of the structure.
+
+For example, the acoustics of human voice is well studied, and patterns are
+easily identified today.
+Specialised methods for analysing voice recordings exist, including intonation
+etc etc \textbf{add more}.
+we have a mapping, we know the words, we dont speak bird noises
+
+Music recognition is trivial in the case of identifying pure reproductions,
+the main challenge in this area being noise reduction and distortion compensation.
+Music can be easily identified using statistical methods to compare pitch
+variations along the duration of the recording.
+Bird song however contains many variations and transpositions within the same
+species which make it difficult to find an archetypal sequence of pitch
+variations.\\
+
+Some approaches to these problems are essentially spectrographic image recognition
+tasks, where elements common to specific labels are searched for within a target
+example spectrogram.
+The simplicity and success of such solutions has driven the direction of this
+project.
 
 Our approach uses a combination of computer vision and machine learning
 techniques to construct a fully automatic recognition system.

@@ -883,7 +883,7 @@ def store_results_safe(results, path):
         _mv_bak(path)
 
     with open(path, 'w') as f:
-        pickle.dump(results, path)
+        pickle.dump(results, f)
 
 
 def merge_results(result_a, result_b, repository):

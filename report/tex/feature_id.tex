@@ -1,9 +1,29 @@
 \section{Useful Feature Identification}
+This section discusses what information shown in a spectrogram can be used as
+useful features. ...
 
-Orthonologists use this and that.
+\subsection{Segment Identification}
+The structure of bird song is composed of discrete elements which have specific
+taxonomy.
+The following labelling and partitioning is common:
+song sequence, phrase, syllable, element \textbf{show sgram}
+
+\subsubsection{Song sequences}
+are ... groups of phrases or single phrase
+
+\subsubsection{Phrases}
+are...
+
+\subsubsection{Syllables}
+...
+
+\subsubsection{Elements}
+....
+
+
+\subsection{Consistencies Between Birds}
 It is observed that birdsong varies not only between species but also between
 birds of the same species.
-We're taking an image recognition based approach
 
 It has been shown that birds learn their song as they age (ref), which may pose
 an issue to our classification algorithm if we don't have enough samples.
@@ -15,12 +35,48 @@ data source does not provide the age of the bird as metadata.
 
 show spectrograms of various species to show differences
 
-Variations in amplitude along the song are not taken into account but may be a 
-useful feature to consider.
 
-Direct spectral information such as mean energy per frequency bin is not taken
-although this can be a useful statistic to help identify the species.
+\subsection{Fragment Extraction}
+Our image recognition approach makes direct use of the vocalisation structures
+present in bird songs.
+The intuition is that sampling song segments at a specific granularity captures
+the acoustic profile of a specific species, which can then be used to compare
+against spectrograms of other instances of bird song.
 
+say something about the content of these segments...? but what
+
+Section~\ref{sec:granularity} touches on the topic of granularity selection.
+
+
+
+\subsection{Potentially Useful Features}
+There are a number of other potentially useful features which have not been
+tested or measured directly in this project.
+These are not limited to an image recognition approach.
+
+\subsubsection{Variations in amplitude}
+Some species have characteristic amplitude variations throughout their song,
+or within phrases or syllables.
+This is captured implicitly through image recognition on these segments.
+The length of the variation is of course dependent on the level of granularity
+captured by the extraction method: if syllables are extracted, amplitude
+variations along phrases are not captured.
+
+\subsubsection{Statistical analysis}
+It is possible to extract information regarding the energy distribution in the
+spectrogram directly.
+For example, it is known that different species have different frequency bands
+in which they vocalize \textbf{ref}.
+It is therefore possible to measure the vocal bandwidth, mean or dominant
+frequency bands, to help distinguish birds by narrowing down the set of
+possible species.
+
+These measurements are not likely to isolate a single species by themselves,
+however they may be helpful in reducing the number of possible species and thus
+reducing the overall computational cost by reducing the number of image
+recognition tasks.
+
+\subsubsection{Segment lengths and repetition rates}
 A potentially useful feature is average syllable (continuous volcalisation)
 duration, however it can be argued that this information is implicitly included
 by template matching.

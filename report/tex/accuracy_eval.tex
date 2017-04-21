@@ -6,7 +6,7 @@ label classifier
 mention any metrics that we do not use but are standard, and explain
 why we do not use them.
 
-\subsection{Validation Strategy}
+\subsection{Validation Strategy and Sample Space}
 In effort to reduce sensitivity to chance selection of random samples, all
 measurements are performed using stratified 10-fold cross validation.
 This gives us a 90/10 train/test split, and is repeated with a new random sample
@@ -16,6 +16,23 @@ Randomness can be seeded for repeatability.
 
 For each fold, only the features from the samples selected for training are
 used.
+
+A total of 3 batches have been computed and merged, giving 12 species in total.
+Selection was performed using the mechanisms outlined in
+Section~\ref{sec:sample_select}.
+Table~\ref{tbl:used_data} shows the selection of species including spectrogram
+and template counts per species.
+Appendix~\ref{app:perf_select} discusses the related performance statistics.
+
+\begin{table}[!htb]
+  \caption{Selected species with spectrogram and template counts}
+  \label{tbl:used_data}
+  \centering
+  \begin{tabular}{l r r}
+    Species & Spectrograms & Templates \\ \hline
+    a & 1 & 2
+  \end{tabular}
+\end{table}
 
 \subsection{Accuracy Metrics}
 The accuracy is computed for each fold using four standard metrics.

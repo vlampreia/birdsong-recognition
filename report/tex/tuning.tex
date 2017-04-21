@@ -1,15 +1,76 @@
-\section{Parameter Tuning}\label{sec:tuning}
+\section{Tuning}\label{sec:tuning}
 we havent done this.
 section talks about the importance of tuning the classifier for
 optimal performance.
 touches on issues of overfitting.
+
+Learning Curve
+
+max features: maximum number of features per tree. auto select like sqrt takes 
+total number of features sqrt.
+higher numbers generally increase performance, but decrease diversity
+features are chosen at random
+small number of features reduces variance but increases bias of individual trees
+ratio of noise/good features effects choice of max features
+smaller maxfeatures means less chance of selecting good feature for split
+
+num estimators: max number of trees to build. higher == better == slower
+increasing this will not affect bias. test error is low due to variance reduction.
+more trees = less variance
+reduction in correlation of trees = less variance, achieved by random feature
+selection
+
+min sample leaf: size of leaf nodes, smaller = more sensitive to noise
+dunno
+affects tree depth?
+
+
+cv used during search
+
+max depth = none + minsamplssplit = 1 results in fully developed trees
+
+
+
 
 \subsection{Gridsearch}
 explain gridsearch and how to use it.
 explain how we use it if we do.
 show parameter ranges
 
-\subsection{Parameter Analysis}
+validation curve
+tune based on validation score
+will be biased towards validation dataset
+for better generalization estimation compute score on different set
+
+we can use this to check over/under fitting though
+check influence of single parameter on training and validation scores
+if both are low, clf is undefitting
+if training is high, valid is low, clf is overfitting
+low training, high validation not possible usually
+
 Analuse the results of parameter optimization
 also measure overfitting (how)
 show performance chages over changes in parameters
+
+coarse-to-fine search gridsearch
+
+plot it
+            n estimators=500,
+            max features='sqrt',
+            min samples split=3,
+            max depth
+            bootstrap?
+
+\subsection{Learning Rate}
+learning curve
+shows validation/training score for varying train sample count.
+shows how clf may benefit from additional samples if at all
+shows if clf suffers from variance or bias error
+if validation and training score converge to a low value with more training samples,
+we don't benefit. might have to change parameters or choose different clf which
+has lower bias
+
+if training score is higher than valid score, we benefit from adding training
+samples probably, increasing generalisation
+
+

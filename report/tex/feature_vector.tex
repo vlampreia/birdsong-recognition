@@ -6,8 +6,25 @@ of each template cross correlation operation done on the spectrogram.
 This vector will then be compared to those of other samples using a
 classifier.
 This section describes in detail the operation of template matching
-to build this feature vector, as well as some notes on the time
-required.
+used to build this feature vector, as well as some notes on the time required.
+
+\subsection{Batch Processing}
+Once initial reductions have been made through the selection process,
+further processing is batched in groups of four species, which are selected in
+random order without replacement.
+Each batch undergoes template matching, the results of which are stored on disk.
+Once a batch is completed it is merged with previous results by cross-template
+matching the new templates against the old spectrograms and the old templates
+against the new spectrograms.
+The new results are appended to the old feature vectors and stored on disk.
+
+This is an effective method for dividing work into managable chunks while storing
+intermediate results.
+Each batch takes approximately 12 hours to complete.
+Merging batches takes at least 12 hours, and is dependent on the amount of
+templates used in the previous data.
+Memory consumption is approximately 6GB per batch, and rises exponentially
+during batch merges.
 
 \subsection{Cross-correlation Mapping}
 Cross-correlation mapping, also referred to as template matching, is

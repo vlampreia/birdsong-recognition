@@ -1,4 +1,4 @@
-\section{Feature Engineering}
+\section{Feature Engineering}\label{sec:ccm}
 With the collection of extracted templates from each spectrogram,
 a model can now be constructed for a particular sample.
 This model is represented as a feature vector consisting of the maxima
@@ -17,40 +17,59 @@ with those of the target image.
 The template may be of the same size or smaller than the target.
 The cross correlation map will indicate areas of high correlation with brighter
 pixels, which is essentially a form of image recognition.
-The intuition is that songs from birds of the same species will have
-extremely similar spectral shapes.
+The intuition is that recordings of songs from birds of the same species will
+have very similar spectra.
 
 Cross-correlation mapping works by convolving the template image
 over the target image and measuring the pixel similarities.
-check this.
+\textbf{check this..}
+The result can be visualised as a heatmap where pixel intensity corresponds to
+the amount of correlation.
+An example of this is shown in figure (ref), where the template (ref) is matched
+against the spectrogram (ref).
 
 The Open-CV library is used to perform template matching.
-Open-CV's implementation is highly optimized, and may be computed on a GPU.
-For details see appendix.
-
-\subsubsection{Results}
-The result of template matching is a cross-correlation mapping of the
-template against the target spectrogram.
-show an example of a template ccm against a spectrogram.
-
-The data in the mapping can give us a rough estimate of how closely
-the template matches.
-Given this result, we store the global maxima of the mapping in a
-feature vector.
+Open-CV's implementation is highly optimized.
+Template matchign performance is highly important in this project as it is the
+most expensive operation when classifying recordings.
+Open-CV's template matching function may be executed on GPU, although this is
+not done in this project due to the lack of required hardware.
+Performance analysis is detailed in Section (ref).
 
 \subsection{Feature Vector Construction}
-When classifying a particular sample, the spectrogram is cross-correlated
-with each template accumulated so far in the database.
-For each cross-correlation, the maxima of the result is taken and stored
-at the index in the vector correspoinding to the template that was used.
-We then refer to this index later for further analysis.
+Each sample is represented as a feature vector.
+Our model takes into consideration only the maxima of each cross-correlation
+mapping.
+In this manner, each feature is directly associated with a specific template,
+which allows us to analyse the impact of each feature and the performance of the
+template extraction mechanism.
+The maxima was chosen as it has shown promising results in (ref gabor fodor).
+Template analysis is discussed in Section~\ref{sec:feature_imp}.
 
-\subsection{Computational Expense and Optimizations}
-Template matching is the most expensive operation in the program.
-Although the underlining algorithm is itself well optimized, further
-improvements can be made for marginal gains.
+\subsubsection{Optimizations}
+Due to the computational expense of performing template matching, some effort is
+taken to optimise performance in this area:
 
-\subsubsection{Time anal}
+\begin{itemize}
+  \item Dimensionality reduction is performed on templates and spectrograms by
+blurring and reducing their size (see Section~\ref{sec:extract}).
+
+  \item The template matching operation is done in a multithreaded manner.
+The workload is split into balanced partitions according to the number of
+available CPU cores.
+
+  \item Although not implemented in this project, template matching can be
+confined to a specific area of interest.
+This is conceivable if the spectral frequencies at which a template was extracted
+is stored.
+The template matching algorithm can then be limited by this frequency with an
+additional padding value.
+\end{itemize}
+
+Even with these performance optimizations, template matching still takes a
+considerable amount of time.
+
+\subsubsection{Time cost}
 Template matching takes approximately x minutes per template, given
 mean dimensions of mxn and ixj for spectrograms and templates respectively.
 Considering the quantity of templates stored in the database, the time
@@ -59,6 +78,5 @@ xx templates against yy spectrograms was measured at x days on a xyz machine.
 This stresses the requirement for optimization, which is the topic of
 section blah.
 
-\subsubsection{Implemented and proposed optimizations}
-Dimensionality reduction:
-Correlation area truncation:
+As template matching is multithreaded, the time is cut by approximately a
+quarter, from 1000 hours to 1 second.

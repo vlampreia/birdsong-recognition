@@ -1,66 +1,96 @@
-\section{Spectrogram Preprocessing}\label{sec:preproc}
+\subsection{Spectrogram Preprocessing}\label{sec:preproc}
 
-Before any features may be extracted, their boundaries must be found.
-This is a non-trivial problem due to undesireable noise and recording artefacts
-present in each spectrogram.
+Before any features can be extracted, their pixel boundaries must be found.
+This is a non-trivial problem due to noise and recording artefacts
+that may be present in each spectrogram.
 The problem is considerably worsened by the inconsistency of these from sample
 to sample.
 
-The figure below shows an example of a noisy spectrogram.
+Figure (ref) shows an example of a noisy spectrogram.
 Notice how the background noise makes it difficult to find the exact boundary of
 some of the vocalisations.
 
 show sgram with noise
 
-Even with the quality prefiltering done when downloading recordings from
-Xeno-canto, such noise levels remain common.
+Even after quality prefiltering done when downloading recordings from
+Xeno-canto, noise levels remain at undesireable levels.
 
+Removing noise and unwanted artefacts manually is precise, although tedious.
 Because a high number of samples is required for our approach, we developed an
-automatic noise reduction stage.
+automatic noise reduction stage, as doing so manually would be far too
+impractical at this scale.
 Standard computer vision techinques for noise reduction were used, as well as
 techniques for discrete object identification.
+
+\subsubsection{The mechanism}
 A filter is first applied to the spectrogram, which reduces the noise in the
-image by smoothing just enough until granular noise is reduced sufficiently (figure x).
-The image is then thresholded using an adaptive thresholding algorithm (figure x).
-We used adaptive thresholding due to the pixel intensity inconsistencies
-throughout some of the spectrogram images.
-Further noise reduction is then performed using erosion and dilation which
-removes small segments and joins pixel groups which are in close proximity to
-each other (figure x).
+image by smoothing just enough until granular noise is reduced sufficiently
+(figure x).
+This is accomplished using a Gaussian filter with a 5x5 kernel and sigma of 0.
+\textbf{wtf, sigma 0?}
+Median filtering was also tested. \textbf{so what happened?}
 
---\\
+The image is then thresholded using a thresholding algorithm (figure x).
+Otsu's binarization thresholding technique was used to select an optimal
+threshold value.
+Because of pixel intensity inconsistencies throughout individual spectrograms,
+specifically in areas where noise is prominent, an adaptive thresholding
+algorithm was also tested.
+This did not appear to provide generally better results.
 
-global parameters for sweeping noise reductions are suboptimal, what may work
-for one recording might not work for another.
+Further noise reduction is then performed using dilation and erosion (figure x),
+which removes small segments and joins pixel groups which are in close proximity
+to each other.
+Notice that the order of operations is flipped here since we are working with
+an inverted spectrogram.
+Dilation and erosion is then performed a second time for larger segments,
+A kernel size of 3x3 and 7x7 were used for small and large segments, respectively.
 
-yet this is what we do, works ok, specific values were found through trial and
-error.
+Most remaining holes are then filled using a closing morphology algorithm,
+using an ellipse of size 3x3 (figure x).
 
-objective is to process spectrograms to find contiguous blobs with similar
-scope, that is, either phrases or individual vocalizations.
+\textbf{show preprocessing stagees on a good example spectrogram, like fodor}
 
-Some noise reduction steps are semi-automatic, such as adaptive thresholding.
+\subsubsection{Granularity considerations}
+It is important to consider and evaluate the granularity to aim for when
+isolating sections of song.
+It is not clear if large sections of song would perform better than smaller,
+individual vocalisations.
+An evaluation should therefore be performed to determine the best granularity.
 
-a better approach would be to operate on a per-spectrogram basis, to find the
-optimal parameters for each.
+Trialing different granularities bears the weight of template matching for all
+new templates, which is extremely time consuming.
 
-This is a non trivial problem.
+Further, achieving consistent granularity across all spectrograms is not a trivial
+task, and is certainly not possible if a single parameter set is used for
+all spectrograms.
 
-conceptually the noise reduction algorithm would perform some parameter search
-with a heuristic based on the dimensions and quantity of contiguous blobs, with
-the aim of reducing the number of small blobs which may resemble noise or disjoint
-parts of a single vocalization or segment.
+A loose aim is therefore taken to extract the smallest possible non-singular
+vocalisations.
+This of course does not always work, but the developed mechanism gives good
+results.
 
-The target scope should be specifiable, so that either individual vocalizations
-or complete segments or songs could be extracted.
+\subsubsection{Quality consistency}
+It is difficult to arrive at a single set of optimal parameters that work
+well across all spectrograms.
+An adaptive method is therefore suggested (but not implemented):
+Preprocessing parameters may be specified on a per-recording basis if prior
+knowledge is gathered for expected vocalisation/section counts, template
+dimensions, and frequency range.
+Since there is no known structured source of data for this, it is necessary to
+manually specify these on a per-species basis.
+Alternatively a fully automatic method is conceivable by feeding back the
+classification results with each granularity setting.
+This however would be incredibly time consuming on standard hardware, and may
+be sensitive to other factors in the classification pipeline.
 
-In some cases it might not be possible to achieve total correct segmentation.
+Consistent quality becomes less of a concern as the number of samples used for
+training increases.
+It can be shown that as the sample count increases, the number of valid templates
+tends to increase.
+The number of noise also increases, however these do not intercorrelate as valid
+templates do, and are handled well by less sensitive classifiers such as
+random forests (ref Improving Random Forests Marko Robnik-Sikonja).
 
-Since different birds have different lengths for specific sounds or parts of song,
-the spectral dimensions can not be generalized.
-This means that each species will have different aims for quantity and dimensionality,
-which must be constructed either by manual input or some feedback mechanism.
-
-a feedback system can then be used to determine which type of segmentation works
-best by filtering to various sizes and measuring the accuracy obtained after
-classification.
+Quality is therefore moderated after preprocessing in the selection stage as
+described in Section~\ref{sec:template_select}.

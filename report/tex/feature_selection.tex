@@ -1,25 +1,74 @@
-\section{Template Selection}
-\subsection{Basic Elimination}
-Some effort is taken to reduce the number of templates extracted in the
-preprocessing stage to reduce the computational and storage overhead otherwise
-incurred.
-An increase in template count implies an increase in noise and inconsistencies
-in the semantics captured. \textbf{is semantics the right word?}
+\section{Template Extraction}
+The approach we have taken to identify bird species from recordings is in
+essence an image recognition task.
+For this we use standard template matching techniques to match sections of
+bird song in spectrograms against full song spectrograms.
+This section details the procedures developed to clean up the spectrogram images
+for section identification and extraction, and how these are filtered so as to
+extract only those which are indicative of the relative species.
+
+\input{tex/sgram_preprocessing}
+
+\subsection{Basic Selection and Extraction}\label{sec:template_select}
+Some effort is taken to reduce the number of templates extracted in this stage
+to reduce the memory and therefore computation cost of template matching, as well
+as to reduce the number of irrelevant or incorrectly formed features.
+Incorrectly formed templates can consist of noise, partial and incomplete
+sections of valid song partitions which may form due to imperfect preprocessing,
+generic sections which do not strongly correlate to any one species,
+and unique events which do not appear in any other recording, possibly due to
+other species or external noises.
 
 \textbf{is RF good at ignoring noise? I think so.?}
 
 \textbf{speculative section on what makes a good template}
 
-\textbf{for extraction section: several extra templates are included around the template}
+\subsubsection{Selection mechanism}
+Complete elimination of all undesireable features is impossible without also
+removing desireable features.
+A balance must therefore be struck, in both preprocessing and selection stages.
+Performing selection manually is extremely time consuming given the quantity
+of pixel sections.
+Selection is therefore done automatically by considering the dimensionality and
+pixel values of each template.\\
 
-The following criteria is used to select valid templates:
-\begin{itemize}
-\item dimensions within x
-\item uhh
+
+Templates with the following properties are automatically rejected:
+\begin{itemize}[noitemsep]
+  \item \textbf{Area smaller than 50 pixels:} Templates with small dimensions
+    are too small to be of any significance and are most likely noise or
+    artefacts from preprocessing;
+
+  \item \textbf{Area larger than 10000 pixels:} Templates with extremely large
+    dimensions are most likely artefacts from preprocessing, high intensity
+    noise or continuous external noises.
+    It is possible for sections of song to be merged together into a single
+    pixel region due to preprocessing errors.
+
+  \item \textbf{Minimum pixel intensity greater than the average for the
+    spectrogram:} Not sure why we do this
 \end{itemize}
-These criteria was reached by empirical trial and error.
 
-\subsection{Guided Elimination}
+
+\subsubsection{Extraction mechanism}\label{sec:extract}
+Once selection is performed for a particular pixel region, it's bounding box is
+expanded by 10 pixels in each direction, and that region is extracted from the
+original, unprocessed spectrogram.
+This forms a single template.
+The template is then blurred using Gaussian filtering with a sigma of 1.5.
+
+The reason for blurring is to reduce the dimensionality of the template, which
+brings performance boosts to template matching (described in
+Section~\ref{sec:ccm}) since the template may now be reduced in size.
+
+Blurring the template also improves it's generality, which makes matches more
+likely.
+Special consideration must be taken in order to ensure templates are not overly
+generalised, as this will cause excess ambiguity amongst templates.
+
+
+
+\subsection{Guided Template Elimination}
 It is desireable to reduce the template count further by recognizing aspects which
 make for good templates. This subsection outlines some speculative options for
 selecting better templates, and reducing those which would have a low importance

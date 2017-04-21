@@ -164,7 +164,9 @@ def filter_specgram(im, interactive = False):
     th = cv2.erode(th, np.ones((7, 7)))
     th = cv2.dilate(th, np.ones((7, 7)))
 
-    filled = cv2.morphologyEx(th, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)))
+    filled = cv2.morphologyEx(
+            th, cv2.MORPH_CLOSE,
+            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)))
 
 #    if interactive:
 #        #cv2.namedWindow('blur')

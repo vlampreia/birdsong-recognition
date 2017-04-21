@@ -142,13 +142,23 @@ class ClfEval:
                     ), end='')
 
                     X_train, X_test, y_train, y_test, template_idxs = \
-                            split_data(self.data, train_indices, test_indices, self.reject_templates)
+                            split_data(
+                                self.data,
+                                train_indices,
+                                test_indices,
+                                self.reject_templates
+                            )
 
                     self.clf.fit(X_train, y_train)
+                    imp1 = self.clf.feature_importances_
                     preds = self.clf.predict(X_test)
+                    imp2 = self.clf.feature_importances_
+                    logger.info('MEASURE IMPORTANCES NOW')
+                    Tracer()()
 
                     self.merge_results_(y_test, preds)
-                    self.merge_importances_(self.clf.feature_importances_, template_idxs)
+                    self.merge_importances_(self.clf.feature_importances_,
+                            template_idxs)
 
                     #self.fit_evaluate_(X_train, X_test, y_train, y_test)
 
@@ -491,7 +501,7 @@ def extract_features(samples, templates, class_mapping):
         sgram = sample.get_spectrogram()
         print('({}/{}) cross correlating {} {} ({}px) against {} templates'.format(
             idx+1, len(samples),
-            sample.get_uid(), sample.get_label(), len(sgram.times),
+            sample.get_uid(), sample.get_label(), len(sgram.get_times()),
             len(templates)))
         t1 = time.time()
         X_ccm = cross_correlate(sgram, templates)
@@ -543,14 +553,14 @@ def cr(ccm_maxs, sgram, offset, templates):
             offset + left, offset + right))
 
         for idx, template in enumerate(templates[left:right]):
-            if len(sgram.pxx) < len(template.im) or \
-               len(sgram.pxx[0]) < len(template.im[0]):
-                errors.append((template.idx, 'template dim > sgram dim'))
+            if len(sgram.get_pxx()) < len(template.get_im()) or \
+               len(sgram.get_pxx()[0]) < len(template.get_im()[0]):
+                errors.append((template.get_idx(), 'template dim > sgram dim'))
                 continue
 
             ccm = cv2.matchTemplate(
-                sgram.pxx,
-                template.im,
+                sgram.get_pxx(),
+                template.get_im(),
                 cv2.TM_CCOEFF_NORMED
             )
             ccm_maxs[offset + idx] = np.max(ccm)
@@ -735,7 +745,12 @@ def split_data(data, train_indices, test_indices, reject_templates):
     return X_train_t, X_test_t, y_train, y_test, template_idxs
 
 
-def plot_feature_importances(importances, template_ids, idx_to_class, data, plot_now=False):
+def plot_feature_importances(
+    importances,
+    template_ids,
+    idx_to_class,
+    data, plot_now=False
+):
     prev_sid = ''
     prev_label = ''
     labels = []
@@ -1020,6 +1035,9 @@ def main():
     parser.add_option("--show-templates", dest="templates_interactive", action="store_true",
                       help="Show template extraction results")
 
+    parser.add_option("-d", dest="data_load",
+                      action="store")
+
     parser.add_option("-f", "--load-features", dest="features_load",
                       action="store",
                       help="Load features from file")
@@ -1056,7 +1074,7 @@ def main():
     if process_scrape_options(options, repository): exit()
     if process_stats_options(options, repository): exit()
 
-    previous_data = load_results(options.features_load) or None
+    previous_data = load_results(options.data_load) or None
 
     logging.info('{} samples'.format(len(repository.samples)))
 
@@ -1069,8 +1087,16 @@ def main():
 
     previous_ids = previous_data.ids if previous_data is not None else []
     logging.info('rejecting ids: {}'.format(previous_ids))
-    repository.filter_labels(previous_ids, reject=True)
+    repository.filter_uids(previous_ids, reject=True)
+    logging.info('remove previous ids: filtered down to {} samples'.format(len(repository.samples)))
+
+    previous_labels = set([idx_to_class[y] for y in previous_data.y])
+    logging.info('rejecting labels: {}'.format(previous_labels))
+    repository.filter_labels(previous_labels, reject=True)
+    logging.info('filter labels: filtered down to {} samples'.format(len(repository.samples)))
+
     repository.reject_by_class_count(at_least=20)
+    logging.info('remove low bound: filtered down to {} samples'.format(len(repository.samples)))
     #samples = select_samples(samples, exception_list=previous_ids)
 
     if options.spectrograms_build:
@@ -1120,7 +1146,6 @@ def main():
     repository.reject_by_template_count_per_class(at_least=2000)
     print_template_statistics(repository.samples)
 
-    all_templates = get_first_n_templates_per_class(repository, 3000)
 
 #    templates_per_class = defaultdict(list)
 #    for t in all_templates: templates_per_class[t.get_src_sample().get_label()].append(t)
@@ -1134,7 +1159,6 @@ def main():
 #        selected_templates_per_class[sample.get_label()] += min(2500,len(sample.spectrogram.templates))
 
 
-    logging.info('{} template(s) loaded'.format(len(all_templates)))
 
     X = None
     y = None
@@ -1148,7 +1172,16 @@ def main():
         Tracer()()
 
     elif options.features_build:
-        X, y, ids = extract_features(samples, all_templates, class_to_idx)
+        repository.filter_labels([
+            'Eurasian Reed Warbler',
+            'Garden Warbler',
+            'Western Meadowlark',
+            'Eurasian Blackcap'
+        ], reject=False)
+        all_templates = get_first_n_templates_per_class(repository, 3000)
+        logging.info('{} template(s) loaded'.format(len(all_templates)))
+        X, y, ids = extract_features(
+                repository.samples, all_templates, class_to_idx)
         used_templates = [t.get_uid() for t in all_templates]
 
         data = {
@@ -1167,6 +1200,7 @@ def main():
     if options.classify:
         ce = ClfEval(data, 1, 10, 1)
         clf = ExtraTreesClassifier(
+        #clf = RandomForestClassifier(
             #warm_start=True,
             #oob_score=True,
             n_estimators=500,
@@ -1182,7 +1216,12 @@ def main():
         ce.print_stats()
 
         Tracer()()
-        plot_feature_importances(ce.feature_importances, idx_to_class, data)
+        plot_feature_importances(
+            ce.feature_importances,
+            data.template_order,
+            idx_to_class,
+            data
+        )
         plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
         plt.show()
 

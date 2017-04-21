@@ -1,13 +1,13 @@
 \section{Data Source: Xeno-Canto}
 
-%\subsection{Xeno-Canto Database}
 Xeno-Canto (ref) provides a substantial number of field recordings of various
 bird species, both calls and songs.
 Recordings are available with varying levels of quality, ranging from extremely
 clear with minimal perceivable noise, to extremely noisy recordings.
 They are of variable length, with an average duration of 5 minutes.
 Individual or multiple instances of the same species, and/or
-different species may be present in a single recording.\\
+different species may be present in a single recording.
+Recordings are available as MP3 files of varying quality.
 
 note on copyright
 
@@ -30,7 +30,7 @@ The webscraper is written in Python 2.7 using the XXXX package.
 
 \subsection{Metadata}
 Xeno-canto provides the following metadata with each recording:
-\begin{itemize}
+\begin{itemize}[noitemsep]
   \item Date and time
   \item Recording location
   \item Species recorded
@@ -45,7 +45,3 @@ This greatly affects the probability of a certain species being identified in
 a recording, as long as location metadata is present.
 Special care has to be taken however to consider migration patterns of specific
 species.
-
-\subsection{Data Format}
-Recordings downloaded from Xeno-canto are provided as MP3 files.
-These may be composed of mono or stereo channels.

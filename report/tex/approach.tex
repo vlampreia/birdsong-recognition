@@ -1,0 +1,64 @@
+\section{Our Approach}
+The approach taken for this project is inspired by similar sound recognition
+tasks.
+Such tasks often use the spectrographic representation of an audio sample and
+use image recognition to identify key elements in the structure.
+
+Our approach uses a combination of computer vision and machine learning
+techniques to construct a fully automatic recognition system.
+Standard image processing methods are used to process spectrograms and extract
+sections of song which may be used to identify a particular species, much like
+how an orthonologist visually inspects the song spectra.
+These sections are then matched against new samples to be classified through a
+multi-class machine learning algorithm.
+
+move bulk of subsections to appendices
+
+\subsection{Process Overview}
+The project is divided into four descrete parts.
+These follow the logical flow of data:
+\begin{enumerate}
+  \item \textbf{Collection:}
+    Data is sourced from field recordings done in uncontrolled environments.
+    The variety provides a good estimate of real-world performance and
+    introduces many quality related issues.
+
+  \item \textbf{Preparation and selection:}
+    Recordings are filtered and selected to maintain reasonable quality levels.
+    Spectrograms are then derived from the recordings.
+    This is now the representation that is used throughout the program until
+    the feature vector is constructed.
+
+  \item \textbf{Preprocessing and feature extraction:}
+    Noise is reduced as much as possible to identify key regions of interest
+    within the spectrogram image.
+    These are extracted as templates and cross-correlated against other
+    recording spectrograms to form a feature vector.
+
+  \item \textbf{Classification and evaluation:}
+    The resulting data is then fed to a classifier and evaluated using techniques
+    designed to reduce statistical bias.
+\end{enumerate}
+
+Each of these procedures are described in detail in their respective sections.
+A few of these sections discuss possible alternatives or improvements to the
+developed mechanisms.
+
+A regular focus of the project is performance statistics, which is done for each
+stage of the program to some granularity.
+A report on this is available in appendix xyz.
+
+\subsection{Architecture Overview}
+\textbf{diagram of key sections}
+
+Due to the experimental nature of the project, a rigorous architecture has not
+been designed ahead of time.
+The codebase evolved through several iterations 
+
+
+\subsection{Implementation Technologies}
+All code is written in Python 2.7.
+Libraries used include:
+\begin{itemize}
+  \item open-CV 2.0
+\end{itemize}

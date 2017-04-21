@@ -1,4 +1,4 @@
-\section{Feature Importance}
+\section{Feature Importance}\label{sec:feature_imp}
 Because our feature vector is directly related to the templates of each species,
 it is possible to determine their role and effectiveness in classifying a
 recording by computing feature importances from our classifier.
@@ -23,14 +23,17 @@ Because the nodes of trees in a random forest correlate directly with a specific
 feature, it is possible to directly measure or estimate the importance of each
 feature by determining the probability of a node in a tree being traversed over 
 the number of nodes in the forest.
-This is known as the mean decrease impurity, or gini impurity, and it can be
-measured directly after a forest has been trained, or estimated beforehand 
-
-\textbf{(is this true?)}.
-
-This project makes use of the .... measure.
+This is known as the mean decrease impurity, or gini importance, which is what
+is used in Sckikit's random forest classifier implementation.
 
 \subsection{Results and Analysis}
+
+Measuring feature importances exposes an average of x out of 3000 samples as
+completely irrelevant during training and classification.
+Removing these features shows no reduction in accuracy, and a significant speedup
+during template matching is gained, reducing total classification time from 10000
+hours to 0.5 seconds.
+
 There are 1209301293123 templates distributed across 20 spectrograms for each
 of the 50 species selected.
 When clsasifying a new sample, it's spectrogram must be cross-correlated with
@@ -39,22 +42,23 @@ This operation is extremely expensive, in the order of 42 hours, or 25 seconds
 per template of average dimensions (125x125) with a target sample of average
 length (3 minutes). (see apndx 1 for detailed time analysis)
 
-Measuring feature importances exposes and average of x out of 3000 samples to be
-completely irrelevant during training and classification.
-Removing these features shows no reduction in accuracy, and a significant speedup
-during template matching, reducing total classification time from 10000 hours to
-0.5 seconds.
 The aim is therefore to reduce the feature count as much as possible while
 retaining the highest possible accuracy by determining an appropriate importance
 cutoff.
 Removing features and reevaluating the classifier takes no significant time in
 contrast to template extraction and may therefore be done by iteratively removing
 and checking classifier accuracy, adjusting the importance cutoff accordingly.
-This reduction unfortunately requires a complete run which involves the
-cross-correlation of all templates, which negates any performance benefits unless
-the system is tested against new samples.
+Measuring feature importance unfortunately requires a complete run which involves
+the cross-correlation of all templates, which negates any performance benefits
+for recordings which aren't new to the system.
 Since we are using cross-validation to evaluate all samples, all templates are
 used eventually, even if their importances remain low across all folds.\\
+
+Feature reduction is very helpful during feature extraction, when merging the
+results of two batches.
+Templates with importance scores equalling or close to zero can be safely removed
+from the set before merging, saving a considerable amount of time.
+Time saved is estimated to be 232103 minutes on average.
 
 \textbf{unless we can get importances from training only, then when we test
 we can use the reduced template set and speed all this up}

@@ -18,8 +18,49 @@ For each fold, only the features from the samples selected for training are
 used.
 
 \subsection{Accuracy Metrics}
-mean accuracy, f-score, etc
+The accuracy is computed for each fold using four standard metrics.
+Each accuracy result is stored and then averaged at the end of the 10-fold
+cross validation.
+The four metrics used are:
+\begin{itemize}
+  \item \textbf{Accuracy:}
+    The ability of the classifier to correctly label samples.
+    It is defined as $\frac{TP+TN}{P+N}$;
+
+  \item \textbf{Precision:}
+    The ability of the classifier to label 
+    It is defined as $\frac{TP}{TP+FP}$;
+
+  \item \textbf{Recall:}
+    The ability of the classifier to classify all positive samples correctly.
+    It is defined as $\frac{TP}{P}$;
+
+  \item \textbf{F-Beta score:}
+    Weighted harmonic mean, or balance, of the precision and recall, where
+    higher values indicate better performance.
+    It is defined as $\frac{2TP}{2TP+FP+FN}$;
+\end{itemize}
+
+Sklearn's precision\_recall\_fscore\_support function was used to compute these
+metrics.
+
+Because this is a multi-class classification task, each metric must be computed
+on a per-label basis, treating the data as a set of binary classification tasks.
+To compute general metric values for the entire classification task, the values
+must be averaged.
+In this case macro averaging is used, in which the mean of each is taken with
+equal weighting.
+Macro averaging is appropriate because we hold equal importance to the
+classification of each bird species.
+
+\textbf{see about multilabel w/o averaging in sklearn docs}
+
+The results are promising.
+With the chosed dataset the classifier achieves a mean accuracy of 85\%.
+
+
 results
+link appendix to formulae for these metrics
 
 \subsection{AUC curve}
 we dont use this but if we can construct one then show how we do and what
@@ -28,17 +69,24 @@ we probably need to split classification into individual binary classifications.
 This should be detailed in the classification section.
 
 \subsection{Confusion Matrix}
-A confusion matrix plots the true-positive rate against the false-positive rate
-of each class.
-It illustrates the rate of confusion between a given class and all others.
+A confusion matrix plots the rate at which each label is predicted as any other
+label, where the rows represent the true label, and columns represent the
+classifier's predictions.
 
+We construct a confusion matrix to evaluate the performance of the classifier
+and the features used to discriminate between species.
 In this case it is instrumental to show the correlation between bird song of
 different species, and shows indications of their similarity of their
 vocalisations on the level of granularity defined by the templates extracted.
 
-Figure xyz shows the confusion matrix for the samples picked.
+Figure~\ref{fig:cnf12} shows the resulting confusion matrix from classifying the
+selected data, averaged over the 10 folds.
 
-... matrix here ...
+\begin{figure}[!htb]
+  \caption{Normalized Confusion Matrix}\label{fig:cnf12}
+  \centering
+  \includegraphics[width=1.0\textwidth]{cnf_matrix_12}
+\end{figure}
 
 The confusion matrix shows good classification performance for most species.\\
 

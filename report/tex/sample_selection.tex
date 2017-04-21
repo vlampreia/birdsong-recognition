@@ -5,7 +5,7 @@ Over the course of several days, 2211 total distinct samples were downloaded and
 processed.
 189 individual species were catalogued, with approximately half of these having
 more than 10 individual samples.
-The top 12 species, and their sample counts are shown in Table~\ref{tab:top12}.
+The top 10 species, and their sample counts are shown in Table~\ref{tab:top10}.
 The average length of each recording is 5 minutes.
 
 Due to resource limitations not all samples are used in the evaluation of the
@@ -20,20 +20,25 @@ Selection is performed using the following criteria:
   \item Reject species with less than 2000 templates
   \item Keep first 3000 templates of each species
 \end{itemize}
-To reduce bias samples and templates may be picked at random
-We did not have time to implement a method for tracking the random sampling.
+To reduce bias samples and templates may be picked at random, however
+we did not have time to implement a method for tracking the random sampling.
 
-Further processing is then batched in groups of four species, which are slected
-random order from the remaining collection.
-Once a batch is completed it is merged with previous results by
-cross-extracting features.
-This is a simple method for dividing work into managable chunks while storing
+Further processing is batched in groups of four species, which are selected in
+random order without replacement.
+Once a batch is completed it is merged with previous results by cross-template
+matching the new templates against the old spectrograms and the old templates
+against the new spectrograms.
+The new results are appended to the old feature vectors.
+
+This is an effective method for dividing work into managable chunks while storing
 intermediate results.
 Each batch takes approximately 12 hours to complete.
 Merging batches takes at least 12 hours, and is dependent on the amount of
 templates used in the previous data.
 Memory consumption is approximately 6GB per batch, and rises exponentially
-during batch merges.\\
+during batch merges.
+
+In total 3 batches were computed and merged, with 12 species in total.
 
 Move parts of this section about batching to performance section,
 perhaps move all this to a performance section. sample selection can remain.
@@ -41,7 +46,8 @@ add ref to performance sectino when explaining why we limit template and
 sample counts on upper bounds.
 
 
-\begin{table}[h]%[!htb]
+\begin{table}[!htb]%[!htb]
+  \caption{Top 10 species by sample count}\label{tab:top10}
   \centering
     \begin{tabular}{r l}
       Samples & Species \\ \hline
@@ -55,11 +61,7 @@ sample counts on upper bounds.
       46  & Common Whitethroat\\
       45  & Eurasian Blue Tit\\
       41  & River Warbler\\
-      40  & Great Reed Warbler\\
-      39  & Rufous-browed Peppershri\\
-      38  & Eurasian Reed Warbler
     \end{tabular}
-  \caption{Top 12 species by sample count}\label{tab:top12}
 \end{table}
 
 % audio samples (wav): 2211

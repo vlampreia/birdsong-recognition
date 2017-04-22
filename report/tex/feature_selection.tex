@@ -1,28 +1,47 @@
 \section{Template Extraction}
-The approach we have taken to identify bird species from recordings is in
-essence an image recognition task.
-For this we use standard template matching techniques to match sections of
-bird song in spectrograms against full song spectrograms.
-This section details the procedures developed to clean up the spectrogram images
-for section identification and extraction, and how these are filtered so as to
-extract only those which are indicative of the relative species.
+Before we can extract template images for cross-correlation, they must first be
+identified in the source spectrograms.
+For this to be viable at any level of consistency, spectrograms must undergo
+noise reduction and segmentation.
+This section details the mechanisms developed for preprocessing spectrogram
+images and filtering segments so that only relevant templates are included for
+extraction.
 
+Each spectrogram is processed in sequence using functionality provided by the
+Python OpenCV library, and immediately stored on disk.
+Parallelisation is possible here, but the computational cost of this stage is
+not large enough to justify sparing development time on this aspect at the time.
 
 \input{tex/sgram_preprocessing}
 
 \subsection{Basic Selection and Extraction}\label{sec:template_select}
-Some effort is taken to reduce the number of templates extracted in this stage
-to reduce the memory and therefore computation cost of template matching, as well
-as to reduce the number of irrelevant or incorrectly formed features.
-Incorrectly formed templates can consist of noise, partial and incomplete
-sections of valid song partitions which may form due to imperfect preprocessing,
-generic sections which do not strongly correlate to any one species,
-and unique events which do not appear in any other recording, possibly due to
-other species or external noises.
+With optimal results the segments represent parts of song at the desired
+granularity, from elements to phrases.
+This is unfortunately not the case.
+Noise may persist after preprocessing, and new deformations may appear, such as
+incorrectly joined or incomplete segments.
 
-\textbf{is RF good at ignoring noise? I think so.?}
+Some effort is taken to reduce the number of undesireable templates.
+In addition to noise, undesireable templates include extremely specific or
+extremely generalised templates.
 
-\textbf{speculative section on what makes a good template}
+For example, if a sound is featured in a single instance of bird song, but not
+in any other recording of songs of that species, then it is an extreme outlier,
+which may occur due to a bird's individual expression or external sources.
+It is non trivial to detect outliers during feature extraction, but because
+random forests are generally insensitive to this type of outlier, we do not
+treat these in this stage.
+
+On the other hand, generalised templates are easier to detect.
+Such templates will have a very faint structure (low contrast), or a complete
+lack of structure.
+These may be analysed directly and ignored, as they are likely to correlate,
+although very weakly, to the majority of spectrograms irrespective of the
+species.
+
+Although these rejections bring a theoretical boost to classifier accuracy and
+performance, they mainly benefit performance by reducing the number of
+cross-correlations computed.
 
 \subsubsection{Selection mechanism}
 Complete elimination of all undesireable features is impossible without also
@@ -47,11 +66,15 @@ Templates with the following properties are automatically rejected:
     pixel region due to preprocessing errors.
 
   \item \textbf{Minimum pixel intensity greater than the average for the
-    spectrogram:} Not sure why we do this
+    spectrogram:} attempt at reducing "boring" templates
+    but it doesnt make sense
 \end{itemize}
 
 
 \subsubsection{Extraction mechanism}\label{sec:extract}
+
+A bounding box is computed for the contours of each segment, which is then used
+to extract a template from the original spectrogram image.
 Once selection is performed for a particular pixel region, it's bounding box is
 expanded by 10 pixels in each direction, and that region is extracted from the
 original, unprocessed spectrogram.

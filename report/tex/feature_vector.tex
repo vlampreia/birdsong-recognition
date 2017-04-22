@@ -20,11 +20,12 @@ The new results are appended to the old feature vectors and stored on disk.
 
 This is an effective method for dividing work into managable chunks while storing
 intermediate results.
-Each batch takes approximately 12 hours to complete.
-Merging batches takes at least 12 hours, and is dependent on the amount of
+Each batch takes approximately 22 hours to complete.
+This is based on statistics taken from a single batch with 12200 templates.
+Merging batches takes at least 44 hours, and is dependent on the amount of
 templates used in the previous data.
-Memory consumption is approximately 6GB per batch, and rises exponentially
-during batch merges.
+Memory consumption is approximately 11GB per batch including overhead from
+the repository data store, and rises during batch merges.
 
 \subsection{Cross-correlation Mapping}
 Cross-correlation mapping, also referred to as template matching, is
@@ -53,15 +54,21 @@ Open-CV's template matching function may be executed on GPU, although this is
 not done in this project due to the lack of required hardware.
 Performance analysis is detailed in Section (ref).
 
-\subsection{Feature Vector Construction}
-Each sample is represented as a feature vector.
-Our model takes into consideration only the maxima of each cross-correlation
-mapping.
-In this manner, each feature is directly associated with a specific template,
-which allows us to analyse the impact of each feature and the performance of the
-template extraction mechanism.
-The maxima was chosen as it has shown promising results in (ref gabor fodor).
-Template analysis is discussed in Section~\ref{sec:feature_imp}.
+
+we do normalised cross correlation mappinbg
+
+\begin{figure}[t!]
+  \centering
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{Cross-correlation map of template (a) against spectrogram (b)}
+\end{figure}
 
 \subsubsection{Optimizations}
 Due to the computational expense of performing template matching, some effort is
@@ -97,3 +104,15 @@ section blah.
 
 As template matching is multithreaded, the time is cut by approximately a
 quarter, from 1000 hours to 1 second.
+
+
+\subsection{Feature Vector Construction}
+Each sample is represented as a feature vector.
+Our model takes into consideration only the maxima of each cross-correlation
+mapping.
+In this manner, each feature is directly associated with a specific template,
+which allows us to analyse the impact of each feature and the performance of the
+template extraction mechanism.
+The maxima was chosen as it has shown promising results in (ref gabor fodor).
+Template analysis is discussed in Section~\ref{sec:feature_imp}.
+

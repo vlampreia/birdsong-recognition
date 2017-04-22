@@ -21,6 +21,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import KFold
 from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import confusion_matrix
+import resource
 
 import copy
 
@@ -565,6 +566,7 @@ def cr(ccm_maxs, sgram, offset, templates):
             )
             ccm_maxs[offset + idx] = np.max(ccm)
 
+    print('{}'.format(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
     if len(errors) > 0:
         print('    Errors:')
         for e in errors:

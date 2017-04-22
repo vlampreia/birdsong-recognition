@@ -3,15 +3,20 @@
 Before any features can be extracted, their pixel boundaries must be found.
 This is a non-trivial problem due to noise and recording artefacts
 that may be present in each spectrogram.
-The problem is considerably worsened by the inconsistency of these from sample
+The complexity of the problem is risen by the inconsistency of these from sample
 to sample.
 
-Figure (ref) shows an example of a noisy spectrogram.
+Figure~\ref{fig:sgram_noise} shows an example of a noisy spectrogram.
 Notice how background noise makes it difficult to find the exact boundary of
 some of the vocalisations.
-\textbf{define noise, both background and unwanted signal}
+\textbf{define noise, both background and unwanted signal also rewrite the notice}
 
-show sgram with noise
+\begin{figure}[h]
+  \centering
+
+  \caption{Considerably noisy spectrogram of a segment of xbird song.}
+  \label{fig:sgram_noise}
+\end{figure}
 
 Even after quality prefiltering done when downloading recordings from
 Xeno-canto, noise levels remain at undesireable levels.
@@ -26,12 +31,13 @@ techniques for discrete object identification.
 \subsubsection{The mechanism}
 A filter is first applied to the spectrogram, which reduces the noise in the
 image by smoothing just enough until granular noise is reduced sufficiently
-(figure x).
+(Figure~\ref{fig:preproc_vis_filter}).
 This is accomplished using a Gaussian filter with a 5x5 kernel and sigma of 0.
 \textbf{wtf, sigma 0?}
 Median filtering was also tested. \textbf{so what happened?}
 
-The image is then thresholded using a thresholding algorithm (figure x).
+The image is then thresholded using a thresholding algorithm
+(Figure~\ref{fig:preproc_vis_thresh}).
 Otsu's binarization thresholding technique was used to select an optimal
 threshold value.
 Because of pixel intensity inconsistencies throughout individual spectrograms,
@@ -39,18 +45,55 @@ specifically in areas where noise is prominent, an adaptive thresholding
 algorithm was also tested.
 This did not appear to provide generally better results.
 
-Further noise reduction is then performed using dilation and erosion (figure x),
+Further noise reduction is then performed using dilation and erosion
+(Figure~\ref{fig:preproc_vis_dilation1}),
 which removes small segments and joins pixel groups which are in close proximity
 to each other.
 Notice that the order of operations is flipped here since we are working with
 an inverted spectrogram.
-Dilation and erosion is then performed a second time for larger segments,
+Dilation and erosion is then performed a second time for larger segments
+(Figure~\ref{fig:preproc_vis_dilation2}),
 A kernel size of 3x3 and 7x7 were used for small and large segments, respectively.
 
 Most remaining holes are then filled using a closing morphology algorithm,
-using an ellipse of size 3x3 (figure x).
+using an ellipse of size 3x3 (Figure~\ref{fig:preproc_vis_closing}).
 
-\textbf{show preprocessing stagees on a good example spectrogram, like fodor}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.55\textwidth}
+
+    \caption{Gaussian filter, $k=5x5, \sigma=0$}
+    \label{fig:preproc_vis_filter}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.55\textwidth}
+
+    \caption{Otsu's threshold}
+    \label{fig:preproc_vis_thresh}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.55\textwidth}
+
+    \caption{Dilation followed by erosion, $k=3x3$}
+    \label{fig:preproc_vis_dilation1}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.55\textwidth}
+
+    \caption{Dilation followed by erosion, $k=7x7$}
+    \label{fig:preproc_vis_dilation2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.55\textwidth}
+
+    \caption{Closing, 3x3 ellipse}
+    \label{fig:preproc_vis_closing}
+  \end{subfigure}
+  \caption{Preprocessing stages in order.}
+  \label{fig:preproc_vis}
+\end{figure}
+
+Following these procedures the spectrogram is transformed into a binary image
+consisting of discrete pixel segments.
+This representation simplifies the extraction procedure as described in
+Section~\ref{sec:extract}.
+
 
 \subsubsection{Granularity considerations}\label{sec:granularity}
 It is important to consider and evaluate the granularity to aim for when
@@ -71,7 +114,7 @@ vocalisations.
 This of course does not always work, but the developed mechanism gives good
 results.
 
-\subsubsection{Quality consistency}
+\subsubsection{Quality and consistency}
 It is difficult to arrive at a single set of optimal parameters that work
 well across all spectrograms.
 An adaptive method is therefore suggested (but not implemented):

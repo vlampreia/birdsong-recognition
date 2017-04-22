@@ -2,81 +2,131 @@
 This section discusses what information shown in a spectrogram can be used as
 useful features. ...
 
-\subsection{Segment Identification}
-The structure of bird song is composed of discrete elements which have specific
-taxonomy.
-The following labelling and partitioning is common:
-song sequence, phrase, syllable, element \textbf{show sgram}
+\subsection{Song Segmentation}
+Bird song structure is well defined in terms of segmentation.
+Segment labelling is in a naturally descending order of grouping, from
+large sequences to basic singular elements:
+\begin{itemize}
+  \item \textbf{song sequence:}
+    An entire song is a conplete end-to-end sequence of multiple or a single
+    phrase.
+    The same phrase is may be repeated exactly or with variation within a
+    song. (ref)
+  \item \textbf{phrase:}
+    A phrase consists of a series of usually equal syllables.
+    Phrases at the end of a song are often not composed of equal syllables. (ref)
+  \item \textbf{syllable:}
+    Syllables may be simple or complex vocalisations.
+    Complex syllables can be further partitioned into individual elements. (ref)
+  \item \textbf{element:}
+    Elements form the most basic of vocalisations, for instance, sweeps or tones. (ref)
+\end{itemize}
 
-\subsubsection{Song sequences}
-are ... groups of phrases or single phrase
+The partitioning of a song can be identified by the duration of the intervals
+of silence between sounds.
 
-\subsubsection{Phrases}
-are...
+ref: Catchpole C.K., Slater P.J.B. - Bird Song biological themes and variations - (1995)
 
-\subsubsection{Syllables}
-...
+\textbf{show sgram}
 
-\subsubsection{Elements}
-....
+\subsection{Species Distinction in Spectrograms}
+It is common knowledge that bird song is genereally consistent within a species,
+differing between species.
+However, there exist some inconsistencies which may become problematic if our
+system does not have enough data on the various species.
 
+For example, bird song may vary between birds of the same species by individual
+or region. 9ref)
+This is partially due to the fact that there can exist multiple variations of a
+specie's song.
+The other factor is the imperfect reproduction of song which, like other animals
+vocalising, is to be expected.
 
-\subsection{Consistencies Between Birds}
-It is observed that birdsong varies not only between species but also between
-birds of the same species.
+It has also been observed that birds undergo a learning stage for producing the
+song of their species.
+This implies that recordings of younger birds will differ to some possibly
+significant extent.
+This is an interesting subject in itself: it is plausable that an automatic
+system may be constructed which identifies not only the species of bird but also
+an estimate of its age by similar cross-correlation methods.
 
-It has been shown that birds learn their song as they age (ref), which may pose
-an issue to our classification algorithm if we don't have enough samples.
-On the other hand, it is plausable that given enough samples, we can estimate
-the age group of a bird in a given recording by how much it's song correlates
-to other known samples, without the need for labels indicating age.
-It is not known if this is an issue that affects this project or not, as our
-data source does not provide the age of the bird as metadata.
+\begin{figure}[t!]
+  \centering
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
 
-show spectrograms of various species to show differences
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
 
+    \caption{}
+  \end{subfigure}
+  \caption{A spectrogram section extracted from a bird 1 recording}
+\end{figure}
 
-\subsection{Fragment Extraction}
-Our image recognition approach makes direct use of the vocalisation structures
-present in bird songs.
-The intuition is that sampling song segments at a specific granularity captures
-the acoustic profile of a specific species, which can then be used to compare
-against spectrograms of other instances of bird song.
+\begin{figure}
+  \centering
 
-say something about the content of these segments...? but what
+  \caption{A spectrogram section extracted from a bird 2 recording}
+\end{figure}
 
-Section~\ref{sec:granularity} touches on the topic of granularity selection.
+Birds are able to produce a large varienty of sounds.
+These vary from simple pure tones to complex harmonics with amplitude and
+frequency modulations. (ref AcousticsandphysicalmodelsofbirdsoundsSeppoFagerlund)
 
+Our image recognition approach makes direct use of the structures present
+in bird songs.
+The intuition is that spectrograms contain all the information necessary to
+distinguish a bird song from another, and that these may be segmented and
+catalogued such that they form the basis of truth for an automatic statistical
+classification system.
+Such a system is essentially the automatic equivalent of manual spectrogram 
+analysis performed by skilled ornithologists, and somewhat an analogue of natural
+pattern recognition done when observing sounds in the field.
 
+Section~\ref{sec:granularity} discusses the issue of selecting an appropriate
+granularity to use for cross-correlation.
 
-\subsection{Potentially Useful Features}
-There are a number of other potentially useful features which have not been
-tested or measured directly in this project.
-These are not limited to an image recognition approach.
+\subsection{Potential Alternative and Additional Features}
+There are a number of potentially useful features which have not been tested or
+measured directly in this project.
+These are not limited to image recognition approaches, however some are
+implicitly included in our approach.
 
 \subsubsection{Variations in amplitude}
-Some species have characteristic amplitude variations throughout their song,
-or within phrases or syllables.
-This is captured implicitly through image recognition on these segments.
-The length of the variation is of course dependent on the level of granularity
-captured by the extraction method: if syllables are extracted, amplitude
-variations along phrases are not captured.
+Amplitude variations are present in many bird vocalisations.
+These have been seen to be dynamic and dependant on the environment and social
+context. (ref http://dx.doi.org/10.1590/S0001-37652004000200017)
+It is therefore likely that this feature is not significantly important for
+species recognition.
+
+This feature is however included in the cross-correlation approach since
+amplitude is represented in spectrograms, although mostly inconsistent due to
+both the dynamic nature of the amplitude variations, and the granularity of the
+extracted segments.
 
 \subsubsection{Statistical analysis}
 It is possible to extract information regarding the energy distribution in the
 spectrogram directly.
-For example, it is known that different species have different frequency bands
-in which they vocalize \textbf{ref}.
-It is therefore possible to measure the vocal bandwidth, mean or dominant
-frequency bands, to help distinguish birds by narrowing down the set of
-possible species.
+Such information may be useful as the difference in song results in observable
+differences in fundamental frequencies and bandwidth.
+Additionally, it is possible that certain harmonics are characteristic to a
+limited number of unique species.
 
-These measurements are not likely to isolate a single species by themselves,
-however they may be helpful in reducing the number of possible species and thus
-reducing the overall computational cost by reducing the number of image
-recognition tasks.
+Although not likely to be useful for direct classification of species due to the
+existence of similarities between some species, these features may be helpful in
+narrowing down the set of possible species, which would save significant time by
+reducing the number of cross-correlations needed to exhaustively search for
+matching species.
 
-\subsubsection{Segment lengths and repetition rates}
-A potentially useful feature is average syllable (continuous volcalisation)
-duration, however it can be argued that this information is implicitly included
-by template matching.
+\subsubsection{Segment lengths and repetition frequencies}
+Segment statistics such as minimum, maximum and mean duration may be useful to
+help identify bird species.
+The silence between segments, as well as the repetition rate may also be a
+unique or indicative characteristic.
+
+These features are implicitly included through image recognition, but only at
+the level of granularity afforded by the template extraction mechanism.
+The direct inclusion of extensive segment statistics has been shown to boost
+the classification accuracy to some significance (ref fodor?).

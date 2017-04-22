@@ -4,8 +4,9 @@ useful features. ...
 
 \subsection{Song Segmentation}
 Bird song structure is well defined in terms of segmentation.
-Segment labelling is in a naturally descending order of grouping, from
-large sequences to basic singular elements:
+Segment labelling is in a naturally descending order of granularity, from
+large sequences to basic singular elements, and are identified by their length
+and duration of silence between sounds:
 \begin{itemize}
   \item \textbf{song sequence:}
     An entire song is a conplete end-to-end sequence of multiple or a single
@@ -22,14 +23,11 @@ large sequences to basic singular elements:
     Elements form the most basic of vocalisations, for instance, sweeps or tones. (ref)
 \end{itemize}
 
-The partitioning of a song can be identified by the duration of the intervals
-of silence between sounds.
-
 ref: Catchpole C.K., Slater P.J.B. - Bird Song biological themes and variations - (1995)
 
 \textbf{show sgram}
 
-\subsection{Species Distinction in Spectrograms}
+\subsection{Distinctive Features in Spectrograms}
 It is common knowledge that bird song is genereally consistent within a species,
 differing between species.
 However, there exist some inconsistencies which may become problematic if our
@@ -38,9 +36,9 @@ system does not have enough data on the various species.
 For example, bird song may vary between birds of the same species by individual
 or region. 9ref)
 This is partially due to the fact that there can exist multiple variations of a
-specie's song.
+species' song.
 The other factor is the imperfect reproduction of song which, like other animals
-vocalising, is to be expected.
+vocalising, is an expected individualising characteristic.
 
 It has also been observed that birds undergo a learning stage for producing the
 song of their species.

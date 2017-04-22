@@ -17,7 +17,7 @@ not large enough to justify sparing development time on this aspect at the time.
 \subsection{Basic Selection and Extraction}\label{sec:template_select}
 With optimal results the segments represent parts of song at the desired
 granularity, from elements to phrases.
-This is unfortunately not the case.
+This is often not the case however.
 Noise may persist after preprocessing, and new deformations may appear, such as
 incorrectly joined or incomplete segments.
 
@@ -32,7 +32,7 @@ It is non trivial to detect outliers during feature extraction, but because
 random forests are generally insensitive to this type of outlier, we do not
 treat these in this stage.
 
-On the other hand, generalised templates are easier to detect.
+Generalised, or weak templates are easier to detect.
 Such templates will have a very faint structure (low contrast), or a complete
 lack of structure.
 These may be analysed directly and ignored, as they are likely to correlate,
@@ -43,15 +43,20 @@ Although these rejections bring a theoretical boost to classifier accuracy and
 performance, they mainly benefit performance by reducing the number of
 cross-correlations computed.
 
+\begin{figure}[h]
+  \centering
+  \caption{Spectrogram of a birdx featuring extremely small, large, and weak
+  templates}
+\end{figure}
+
 \subsubsection{Selection mechanism}
 Complete elimination of all undesireable features is impossible without also
 removing desireable features.
 A balance must therefore be struck, in both preprocessing and selection stages.
-Performing selection manually is extremely time consuming given the quantity
-of pixel sections.
+Performing selection manually is infeasable given the quantity
+of pixel segments.
 Selection is therefore done automatically by considering the dimensionality and
 pixel values of each template.\\
-
 
 Templates with the following properties are automatically rejected:
 \begin{itemize}[noitemsep]
@@ -65,9 +70,11 @@ Templates with the following properties are automatically rejected:
     It is possible for sections of song to be merged together into a single
     pixel region due to preprocessing errors.
 
-  \item \textbf{Minimum pixel intensity greater than the average for the
-    spectrogram:} attempt at reducing "boring" templates
-    but it doesnt make sense
+  \item \textbf{Maximum template intensity lower than average intensity of the
+    spectrogram:}
+    Templates with significantly low intenstity or contrast are too general to
+    become useful features.
+    This filter eliminates some of these templates.
 \end{itemize}
 
 
@@ -79,18 +86,31 @@ Once selection is performed for a particular pixel region, it's bounding box is
 expanded by 10 pixels in each direction, and that region is extracted from the
 original, unprocessed spectrogram.
 This forms a single template.
-The template is then blurred using Gaussian filtering with a sigma of 1.5.
+The template is then blurred using a Gaussian filter with a sigma of 1.5
+(Figure~\ref{fig:extract_blur}).
 
-The reason for blurring is to reduce the dimensionality of the template, which
-brings performance boosts to template matching (described in
-Section~\ref{sec:ccm}) since the template may now be reduced in size.
-
+Blurring the template allows us to reduce its size, which brings performance
+boosts to template matching.
 Blurring the template also improves it's generality, which makes matches more
 likely.
-Special consideration must be taken in order to ensure templates are not overly
-generalised, as this will cause excess ambiguity amongst templates.
+Care is taken to ensure that templates do not become overly generic, resulting
+in general ambiguity.
+The same operation is made to the spectrograms subject to cross-correlation
+mapping in order to ensure consistency.
 
-
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[h]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{A template before (a) and after (b) gaussian filtering.}
+  \label{fig:extract_blur}
+\end{figure}
 
 \subsection{Guided Template Elimination}
 It is desireable to reduce the template count further by recognizing aspects which
@@ -98,32 +118,36 @@ make for good templates. This subsection outlines some speculative options for
 selecting better templates, and reducing those which would have a low importance
 score after training and classification.
 
-\subsubsection{Image contrast}
-It can be argued that templates with low local contrast contain insufficient
-information to be meaningful in any way during template matching.
-Templates with a low contrast match against much of any image, resulting in an
-increase in noise.
-Implicitly \textbf{is implicitly the right word?} such templates have a high
-correlation with not only the species from which it was extracted but with all
-species.
-\textbf{show some images, maybe graphs of correlation}
-
 \subsubsection{Spatial inclusion}
-Due to the imperfect nature of the preprocessing methods used, gaps and
-inconsistencies in structure appear in the thresholded spectrogram.
-These inconsistencies are present also in repeated components in a bird song,
-at all levels of granularity.
-This causes multiple templates to be extracted for a single component in some
-instances, and single larger blocks to be extracted in others.
+Imperfections in the preprocessing mechanism leads to errorneous pixel segments.
+Incorrect gaps, joins and other inconsistencies in structure persist or
+materialise.
+If ignored, these will be extracted along with valid templates.
+As long as these are infrequent, the additional templates will factor more as
+a performance penalty than an accuracy reduction.
 
 In many of these cases, one template's bounding box intersects or is contained
-entirely within another template's bounding box.
-Merging these templates by extracting the bounding box of the union of the two
-or more templates may result in more consistent extractions.
-\textbf{show some images}
+entirely within another template's bounding box as shown in
+Figure~\ref{fig:segment_intersect_a}.
+These errors can be corrected by taking the bounding box of their unions.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[h]{0.5\textwidth}
+    \centering
+    \caption{}\label{fig:segment_intersect_a}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{Example of errorneous segmentations correctable (a) and incorrectable (b)
+  by merging their bounding boxes}
+  \label{fig:segment_intersect}
+\end{figure}
 
 Similarly, templates which are sufficiently close to eachother may be merged,
-but care must be taken not to form extremely large templates.
+but without special care, this may quickly result in excessively large groupings.
 
 \subsubsection{Variation in granularity}
 There exists a variance in granularity for the extracted templates, in which

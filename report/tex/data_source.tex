@@ -1,31 +1,17 @@
 \section{Data Source: Xeno-Canto}
 
-Xeno-Canto (ref) provides a substantial number of field recordings of various
-bird species, both calls and songs.
-Recordings are available with varying levels of quality, ranging from extremely
-clear with minimal perceivable noise, to extremely noisy recordings.
-They are of variable length, with an average duration of 5 minutes.
-Individual or multiple instances of the same species, and/or
-different species may be present in a single recording.
-Recordings are available as MP3 files of varying quality.
+Xeno-Canto (ref) provides a substantial number of user uploaded field recordings
+of various bird species, both calls and songs.
+Recordings may originate from any part of the world, may vary extremely in
+terms of quality, and any number of species may be present in a single
+recording.
 
-note on copyright
+Recordings are of varying duration, ranging from 1 to 20 minutes each.
+The content may be densely packed, with multiple birds singing simultaneously,
+or sparse with long durations of silence.
 
-\subsection{Automatic Sample Retrieval}
-Manually selecting and downloading recordings is a time-consuming process.
-A public API does not exist for Xeno-canto, therefore we developed a web scraper
-specifically for automatic retrieval.
-
-The scraper allows the user to filter on species and recording quality before
-downloading a sample.
-Species filtering may be done by exlusion or exlusive inclusion.
-
-When repeated fetching is required, an interval may be set in order to reduce
-strain on Xeno-canto's servers.
-Once the interval has been set, the scraper will continuously download samples
-at the specified rate until it has been interrupted by the user.\\
-
-The webscraper is written in Python 2.7 using the XXXX package.
+Xeno-canto provides all audio as dynamic MP3.
+These are normalised as described in Section~\ref{sec:prep}
 
 \subsection{Metadata}
 Xeno-canto provides the following metadata with each recording:
@@ -38,9 +24,26 @@ Xeno-canto provides the following metadata with each recording:
 
 This program only makes use of the prominent species tagged in the recording.
 Although not used in our implementation, the location of the recording could be
-used to improve the accuracy of the classifier, as certain species are restricted
+used to improve the accuracy of the classifier, as some species are restricted
 to certain parts of the world.
-This greatly affects the probability of a certain species being identified in
-a recording, as long as location metadata is present.
-Special care has to be taken however to consider migration patterns of specific
-species.
+Including this information in the feature set is very likely to provide a
+good accuracy by itself, but without much precision.
+It can be used however to narrow down the set of possible species, so long as
+special care is taken to account for migration patterns.
+
+
+\subsection{Automatic Sample Retrieval}
+Manually selecting and downloading recordings is a time-consuming process.
+A public API does not exist for Xeno-canto, therefore we developed a web scraper
+specifically for automatic retrieval.
+
+The scraper allows the user to filter samples on species and on recording quality
+before downloading a sample by examining the metadata present in the HMTL.
+Filtering may be done by exclusion or selection.
+
+When repeated fetching is required, an interval may be set in order to reduce
+strain on Xeno-canto's servers.
+Once the interval has been set, the scraper will continuously download samples
+at the specified rate until it has been interrupted by the user.\\
+
+The webscraper is written in Python 2.7 using the |lxml| package.

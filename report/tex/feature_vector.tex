@@ -1,12 +1,15 @@
 \section{Feature Engineering}\label{sec:ccm}
-With the collection of extracted templates from each spectrogram,
-a model can now be constructed for a particular sample.
-This model is represented as a feature vector consisting of the maxima
-of each template cross correlation operation done on the spectrogram.
-This vector will then be compared to those of other samples using a
-classifier.
-This section describes in detail the operation of template matching
-used to build this feature vector, as well as some notes on the time required.
+With a collection of extracted templates from each spectrogram, feature vectors
+can be constructed to distinguish between various bird species.
+This is done through cross-correlation mapping, an image recognition algorithm.
+A feature vector is derived from the results of cross-correlating all
+templates against samples of known species.
+These feature vectors are then used to train a machine learning algorithm to
+classify new recordings from their spectrograms.
+
+This section describes the mechanisms used to perform cross-correlation mapping
+for feature vector construction and a short analysis of the computational
+expense involved.
 
 \subsection{Batch Processing}
 Once initial reductions have been made through the selection process,
@@ -93,7 +96,7 @@ additional padding value.
 Even with these performance optimizations, template matching still takes a
 considerable amount of time.
 
-\subsubsection{Time cost}
+\subsubsection{Computation time}
 Template matching takes approximately x minutes per template, given
 mean dimensions of mxn and ixj for spectrograms and templates respectively.
 Considering the quantity of templates stored in the database, the time

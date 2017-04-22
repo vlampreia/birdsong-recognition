@@ -11,36 +11,42 @@ are often not immediate.
 A fully automatic mechanism for identifying bird species from song recordings is
 therefore highly valuable for ornithology.
 
-Prominent examples of the immediate usage of such observation technologies include
+Examples of the immediate usage of such observation technologies include
 population monitoring and migration tracking of species in the fields of
 biogeography and conservation efforts.
 
 The application of automatic birdsong recognition is also of interest to the
-amateur bird watcher.
+amateur bird watcher or the generally curious.
 
-The problem itself is of great interest and may involve multiple approaches
-including digital signal processing, analysis, image recognition, machine learning,
-...
+The problem itself touches on many facets of computer science and engineering,
+including digital signal processing and analysis, image recognition,
+machine learning, and performance optimization.
 
 \section{Goals}
 The primary aim of this project is to research and develop potential methods
-for automatic birdsong recognition, with little to no user interaction.
-The program should recognize up to 50 distinct bird species from field recordings
-provided by arbitrary sources around the world.
-The recordings should not have any form of rigorous quality control such as
-recordings performed under controlled environments.
-Sample selection may be performed to ensure quality levels are kept at a
-reasonably normalised level, as many recordings are expected to contain
-excessive amounts of noise.
+for automatic birdsong recognition, requiring little to no user interaction.
+The program should be able to identify the species of the most prominent bird
+performing in a song recording.
 
-For the purposes of this project, only bird songs will be considered, and calls
-will not be used.
-This limits the complexity of the classification requirements.
-No preseletion of species is to be done for the general validation tests, except
-for some additional test cases where species with very similar calls will be
-validated.
+The recordings used originate from arbitrary locations and sources around the
+world.
+They shall not undergo any form of manual selection or processing.
+In similar vein, they should also not be subjected to rigorous quality control
+aside from what classifications may be provided by sources.
+This is to ensure that validation represents real-world performance.
+
+For the purposes of this project, some limitations are imposed to simplify some
+problem areas.
+Firstly, A general level of quality is ensured by selecting only higher quality recordings
+as defined by the data source.
+This is a reasonable restriction which reduces the number of recordings required.
+Secondly, the number of species the system should know about is limited to 50
+randomly picked labels.
+Thirdly, only bird songs are considered.
 
 \section{Bird Songs vs Calls}
 Bird songs differ from calls in complexity, length and context.
 
 song is usually but not always performed by males.
+
+this shouldnt be a section

@@ -23,42 +23,24 @@ The new results are appended to the old feature vectors and stored on disk.
 
 This is an effective method for dividing work into managable chunks while storing
 intermediate results.
-Each batch takes approximately 22 hours to complete.
-This is based on statistics taken from a single batch with 12200 templates.
-Merging batches takes at least 44 hours, and is dependent on the amount of
-templates used in the previous data.
-Memory consumption is approximately 11GB per batch including overhead from
-the repository data store, and rises during batch merges.
+The cost analysis in the following section justifies the need for batching.
 
-\subsection{Cross-correlation Mapping}
-Cross-correlation mapping, also referred to as template matching, is
-a method for computing the similarity of an image with another.
-More precisely, it computes the correlation of each pixel in the template image
-with those of the target image.
-The template may be of the same size or smaller than the target.
-The cross correlation map will indicate areas of high correlation with brighter
-pixels, which is essentially a form of image recognition.
-The intuition is that recordings of songs from birds of the same species will
-have very similar spectra.
+\subsection{Template Matching}
+Template matching is a method for computing the similarity of an image within
+another.
+We use a normalised cross-correlation method for template matching.
+This mode was chosen over squared-difference and cosine-coefficient because it
+has been used with good results in similar spectrogram template matching tasks
+(ref) ... (ref).
+Normalisation is used to reduce the effect of background noise in the
+spectrogram images.
 
-Cross-correlation mapping works by convolving the template image
-over the target image and measuring the pixel similarities.
-\textbf{check this..}
-The result can be visualised as a heatmap where pixel intensity corresponds to
-the amount of correlation.
-An example of this is shown in figure (ref), where the template (ref) is matched
-against the spectrogram (ref).
+The result of cross-correlation is a 2-dimensional vector of equal dimensions to
+the target image, where values are normalised from 0 to 1 (Figure~\ref{fig:ccm}).
+Greater values indicate a higher level of correlation for the template in that
+area.
+This can be thought of and visualised as a heatmap of the template's correlation.
 
-The Open-CV library is used to perform template matching.
-Open-CV's implementation is highly optimized.
-Template matchign performance is highly important in this project as it is the
-most expensive operation when classifying recordings.
-Open-CV's template matching function may be executed on GPU, although this is
-not done in this project due to the lack of required hardware.
-Performance analysis is detailed in Section (ref).
-
-
-we do normalised cross correlation mappinbg
 
 \begin{figure}[t!]
   \centering
@@ -70,44 +52,84 @@ we do normalised cross correlation mappinbg
     \centering
     \caption{}
   \end{subfigure}
-  \caption{Cross-correlation map of template (a) against spectrogram (b)}
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{Visualisation of a cross-correlation mapping (c) of template (a) against
+  spectrogram (b)}
+  \label{fig:ccm}
 \end{figure}
 
-\subsubsection{Optimizations}
-Due to the computational expense of performing template matching, some effort is
-taken to optimise performance in this area:
+\subsubsection{Implementation and cost}
+We use Open-CV's |matchTemplate| function with the normalised CCM method.
+It's implementation uses a Fourer analysis approach for improved performance over
+the traditional raw statistical methods.
+This works by first applying a FFT to the template and target image before
+performing the cross-correlation.
+\textbf{cant find ref, look at code?}
 
-\begin{itemize}
-  \item Dimensionality reduction is performed on templates and spectrograms by
-blurring and reducing their size (see Section~\ref{sec:extract}).
+Even with such optimizations, template matching takes a considerable amount of
+time.
+Template matching takes on average x minutes per template, given
+mean size of m and n pixels for spectrograms and templates respectively.
+Considering the quantity of templates being analysed, the time required quickly
+amounts to days.
 
-  \item The template matching operation is done in a multithreaded manner.
-The workload is split into balanced partitions according to the number of
-available CPU cores.
+To gain insight into how the requirements respond to the size of a
+spectrogram, a feature extraction run was performed for 80 spectrograms of
+varying sizes, with 12204 templates.
+Spectrograms and templates were selected at random following the same selection
+and filtering procedures described in previous sections.
+Total time to completion was approximately 22 hours on the machine listed in
+Appendix~\ref{app:machine}.
 
-  \item Although not implemented in this project, template matching can be
-confined to a specific area of interest.
-This is conceivable if the spectral frequencies at which a template was extracted
-is stored.
-The template matching algorithm can then be limited by this frequency with an
-additional padding value.
+\begin{figure}[t!]
+  \centering
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1.0\textwidth]{ccm_time_sgram}
+    \caption{}
+  \end{subfigure}%
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1.0\textwidth]{ccm_mem_sgram}
+    \caption{}
+  \end{subfigure}
+  \caption{Time (a) and resident memory (b) usages as pixel count increases for
+  cross-correlation against 12204 templates}
+\end{figure}
+
+Further optimisations have been implemented.
+In particular, dimensionality reduction is performed on templates and
+spectrograms by blurring and reducing their size as seen in
+Section~\ref{sec:extract}.
+
+Also, template matching is multithreaded.
+Spectrograms are split into even chunks equalling the number of usable CPUs on
+the machine.
+
+Additional optimizations could, but have not been implemented:
+\begin{itemize}[noitemsep]
+  \item Template matching can be confined to the general area at which the template
+    was extracted.
+    This is possible if the frequency bands, or image coordinates at which a
+    template was extracted is stored for this purpose.
+    If implemented, the search area for template matching should be increased by some
+    value to account for natural or artificial deviations.
+
+  \item Open-CV's template matching function supports on-GPU calculations.
+    Doing so would result in considerable gains in speed, however this requires
+    an NVIDIA CUDA device (http://docs.opencv.org/2.4/modules/gpu/doc/introduction.html).
+
+  \item Open-CV uses FFT.
+    Fast Normalised Cross Correlation (FNCC) is a faster alternative to FFT based
+    methods of template matching (TemplateMatchingusingFastNormalizedCrossCorrelationKaiBriechleandUweDHanebeck).
+    Replacing calls to an implementation which uses FNCC would result in some 
+    performance gains, however an existing implementation has not been found,
+    and writing one from scratch is expensive without a guarantee of noticeable
+    impact.
 \end{itemize}
-
-Even with these performance optimizations, template matching still takes a
-considerable amount of time.
-
-\subsubsection{Computation time}
-Template matching takes approximately x minutes per template, given
-mean dimensions of mxn and ixj for spectrograms and templates respectively.
-Considering the quantity of templates stored in the database, the time
-required quickly compounds into the order of days.
-xx templates against yy spectrograms was measured at x days on a xyz machine.
-This stresses the requirement for optimization, which is the topic of
-section blah.
-
-As template matching is multithreaded, the time is cut by approximately a
-quarter, from 1000 hours to 1 second.
-
 
 \subsection{Feature Vector Construction}
 Each sample is represented as a feature vector.

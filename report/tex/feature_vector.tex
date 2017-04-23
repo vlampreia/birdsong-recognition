@@ -41,7 +41,6 @@ Greater values indicate a higher level of correlation for the template in that
 area.
 This can be thought of and visualised as a heatmap of the template's correlation.
 
-
 \begin{figure}[t!]
   \centering
   \begin{subfigure}[t]{0.5\textwidth}
@@ -60,6 +59,9 @@ This can be thought of and visualised as a heatmap of the template's correlation
   spectrogram (b)}
   \label{fig:ccm}
 \end{figure}
+
+Section~\ref{sec:feature_imp} discusses the mechanism for and analysis of feature
+importance.
 
 \subsubsection{Implementation and cost}
 We use Open-CV's |matchTemplate| function with the normalised CCM method.
@@ -82,9 +84,9 @@ varying sizes, with 12204 templates.
 Spectrograms and templates were selected at random following the same selection
 and filtering procedures described in previous sections.
 Total time to completion was approximately 22 hours on the machine listed in
-Appendix~\ref{app:machine}.
+Appendix~\ref{app:machine}.\\
 
-\begin{figure}[t!]
+\begin{figure}[h!]
   \centering
   \begin{subfigure}[t]{0.5\textwidth}
     \centering
@@ -105,9 +107,11 @@ In particular, dimensionality reduction is performed on templates and
 spectrograms by blurring and reducing their size as seen in
 Section~\ref{sec:extract}.
 
-Also, template matching is multithreaded.
+In addition, template matching is multithreaded using Python's |multiprocessing|
+module.
 Spectrograms are split into even chunks equalling the number of usable CPUs on
-the machine.
+the machine, joining results upon completion.
+This cuts the cost down to approximately $1/4$ of the original time.\\
 
 Additional optimizations could, but have not been implemented:
 \begin{itemize}[noitemsep]
@@ -132,12 +136,17 @@ Additional optimizations could, but have not been implemented:
 \end{itemize}
 
 \subsection{Feature Vector Construction}
-Each sample is represented as a feature vector.
-Our model takes into consideration only the maxima of each cross-correlation
-mapping.
-In this manner, each feature is directly associated with a specific template,
-which allows us to analyse the impact of each feature and the performance of the
-template extraction mechanism.
-The maxima was chosen as it has shown promising results in (ref gabor fodor).
-Template analysis is discussed in Section~\ref{sec:feature_imp}.
+The template matching results are used to construct a feature vector for each
+recording.
+The feature vector of each sample therefore encodes the extent at which it's
+recording contains similar characteristics to each species' song.
+Feature vectors compose the training and test data for machine learning in
+Chapter~\ref{cha:clf}.
 
+The length of each feature vector is constant across all species and is equal to
+the number of extracted templates.
+The values of each element in the vector are derived from the template matching
+results by taking the maximum value from the cross-correlation mapping.
+The maxima intuitively gives us the highest matching probability for a template,
+but discards information of other possible matches.
+This extraction has shown promising results in (ref fodor).

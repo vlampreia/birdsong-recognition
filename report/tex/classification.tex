@@ -5,22 +5,47 @@ This section details the choice of algorithm, it's variations, and performance.
 Parameter tuning is discussed is Section~\ref{sec:tuning}
 
 \subsection{Approaches to Classification}
-obviously a classification task.
-We are working with limited sample set, but high number of features.
-The data is labelled, so we will select a supervised learning algorithm.
-we must select a classifier which performs well with this data.
-identifying the best classifier can be best done by cross validating each and
-selecting the best performer.
-For the purposes of testing our approach, a single algorithm was initially
-chosen.
+We are approaching this as a multi-class machine learning task, that is, the
+classification of a sample as a single label given a set of possibile labels.
+A mutli-label approach may also be taken, to identify multiple labels from a
+given sample, although this is potentially more complex and has not been
+pursued given that most recordings appear to have a single dominant vocalising
+bird, and any other sources are notably in the background.
 
-random forest is a good performer and is highly scalable (ref).
-We chose this algorithm.
+There exist many acceptable multi-class machine learning algorithms.
+These may have a discrete or probabilistic output, which is useful to gauge the
+confidence level of the classifier.
+A multi-class algorithm may also be constructed from an ensemble of several
+probabilistic binary classifiers, the final classification of which is computed
+by extracting the maximum score of each.
+This allows for more algorithms to be tested.
 
-also might look at gradient boosted trees.
+The initial decision of which classifier to use usually depends on the nature
+of the data to be classified.
+In this case, we are working with a small sample set, but with a very high number
+of features.
+Samples are labeled, therefore a supervised learning algorithm is appropriate.
+Good computational performance is desireable considering our high feature
+dimensionality.
+In addition, it is very useful to be able to efficiently analyse the impact of
+each feature, which is in this case directly measurable as feature importance.
 
-number of classifiers can be used
-skim through some strengths and weaknesses
+Once an initial algorithm has been chosen, it may be compared to others through
+multi-run cross-validation of their accuracies
+(ref Choosing between two learning algorithmsbased on calibrated testsRemco R. Bouckaert).\\
+
+The random forest algorithm is well suited for the given task.
+It is relatively performant, is not particularly sensitive to bias or noise,
+and it is possible to extract individual feature importances directly without
+having to develop computationally expensive mechanisms. (ref)
+Random forests also exhibit good scalability because it is an ensamble of
+independent trees. (ref)
+
+It does not allow for online learning however since trees have to be recomputed, 
+and so the addition of extra training samples, features and thus classes can
+become expensive for larger additions.
+This is somewhat countered by the short time required to train an entire forest.
+
 
 \subsection{Random Forest Classifier}
 A random forest classifier is an ensamble of trees.

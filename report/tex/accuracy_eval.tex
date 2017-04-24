@@ -1,4 +1,4 @@
-\section{Accuracy Evaluation}
+\section{Accuracy Evaluation}\label{sec:acc_eval}
 
 a mention on differences in measuring accuracy for single-label vs multi
 label classifier
@@ -13,8 +13,6 @@ measurements are performed using stratified 10-fold cross validation.
 This gives us a 90/10 train/test split, and is repeated with a new random sample
 shuffle 10 times.
 
-Randomness can be seeded for repeatability.
-
 For each fold, only the features from the samples selected for training are
 used.
 
@@ -23,15 +21,25 @@ Selection was performed using the mechanisms outlined in
 Section~\ref{sec:sample_select}.
 Table~\ref{tbl:used_data} shows the selection of species including spectrogram
 and template counts per species.
-Appendix~\ref{app:perf_select} discusses the related performance statistics.
 
 \begin{table}[!htb]
   \caption{Selected species with spectrogram and template counts}
   \label{tbl:used_data}
   \centering
   \begin{tabular}{l r r}
-    Species & Spectrograms & Templates \\ \hline
-    a & 1 & 2
+    Species Label & Spectrograms & Templates \\ \hline
+    Common Blackbird           & 20 & 6132\\
+    Great Reed Warbler         & 20 & 5111\\
+    Common Rosefinch           & 20 & 3191\\
+    Common Cuckoo              & 20 & 2909\\
+    Common Chiffchaff          & 20 & 2886\\
+    European Greenfinch        & 20 & 2759\\
+    Pale-breasted Spinetail    & 20 & 2501\\
+    Ortolan Bunting            & 20 & 2362\\
+    Common Reed Bunting        & 20 & 2233\\
+    Chestnut-breasted Wren     & 20 & 2203\\
+    Corn Bunting               & 20 & 2082\\
+    Rufous-browed Peppershrike & 20 & 1404
   \end{tabular}
 \end{table}
 
@@ -59,23 +67,45 @@ The four metrics used are:
     It is defined as $\frac{2TP}{2TP+FP+FN}$;
 \end{itemize}
 
-Sklearn's precision\_recall\_fscore\_support function was used to compute these
+Sklearn's |precision_recall_fscore_support| function was used to compute these
 metrics.
 
 Because this is a multi-class classification task, each metric must be computed
 on a per-label basis, treating the data as a set of binary classification tasks.
-To compute general metric values for the entire classification task, the values
-must be averaged.
+To compute scores for the entire classification task, the values must are averaged.
 In this case macro averaging is used, in which the mean of each is taken with
 equal weighting.
-Macro averaging is appropriate because we hold equal importance to the
-classification of each bird species.
+We use macro averaging, in which the mean of the scores are computed with equal
+weighting, for each one of the metrics.
+Macro averaging is appropriate considering we use stratified k-fold, and each
+species is considered equally important to all the others.
 
-\textbf{see about multilabel w/o averaging in sklearn docs}
+\textbf{see about possible multilabel w/o averaging}
 
-The results are promising.
-With the chosed dataset the classifier achieves a mean accuracy of 85\%.
+Results are promising, good performance has been achieved using the initial
+parameters, and improvements are observed after tuning as is shown in
+Table~\ref{tbl:acc_before_after}.
 
+\begin{table}
+  \centering
+  \caption{Comparison of accuracies using default and tuned parameters}
+  \label{tbl:acc_before_after}
+  \begin{threeparttable}
+    \begin{tabular}{l r r}
+      & \multicolumn{2}{c}{Metric Scores} \\
+      Metric    & Default Params. & Tuned Params. \\ \hline
+      Accuracy  & 79.5 (7.3) & 0 \\
+      F1 Score  & 77.9 (8.1) & 0 \\
+      Recall    & 79.5 (7.4) & 0 \\
+      Precision & 82.3 (8.5) & 0
+    \end{tabular}
+    \begin{tablenotes}
+      \footnotesize
+      \item[*] Values are in percentages.
+      \item[*] Standard deviations are shown in parentheses.
+    \end{tablenotes}
+  \end{threeparttable}
+\end{table}
 
 results
 link appendix to formulae for these metrics

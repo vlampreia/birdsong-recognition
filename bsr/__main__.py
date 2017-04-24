@@ -151,11 +151,11 @@ class ClfEval:
                             )
 
                     self.clf.fit(X_train, y_train)
-                    imp1 = self.clf.feature_importances_
+                    #imp1 = copy.deepcopy(self.clf.feature_importances_)
                     preds = self.clf.predict(X_test)
-                    imp2 = self.clf.feature_importances_
-                    logger.info('MEASURE IMPORTANCES NOW')
-                    Tracer()()
+                    #imp2 = copy.deepcopy(self.clf.feature_importances_)
+                    #logging.info('MEASURE IMPORTANCES NOW')
+                    #Tracer()()
 
                     self.merge_results_(y_test, preds)
                     self.merge_importances_(self.clf.feature_importances_,
@@ -1076,7 +1076,7 @@ def main():
     if process_scrape_options(options, repository): exit()
     if process_stats_options(options, repository): exit()
 
-    previous_data = load_results(options.data_load) or None
+    previous_data = load_results(options.features_load) or None
 
     logging.info('{} samples'.format(len(repository.samples)))
 
@@ -1200,17 +1200,17 @@ def main():
 
 
     if options.classify:
-        ce = ClfEval(data, 1, 10, 1)
-        clf = ExtraTreesClassifier(
-        #clf = RandomForestClassifier(
-            #warm_start=True,
-            #oob_score=True,
-            n_estimators=500,
-            max_features='sqrt',
-            min_samples_split=3,
-            #bootstrap=True,
-            n_jobs=4,
-            random_state=1
+        ce = ClfEval(data, 10, 10, None)
+        #clf = ExtraTreesClassifier(
+        clf = RandomForestClassifier(
+#            #warm_start=True,
+#            #oob_score=True,
+#            n_estimators=500,
+#            max_features='sqrt',
+#            min_samples_split=3,
+#            #bootstrap=True,
+#            n_jobs=4,
+#            random_state=1
         )
         ce.set_classifier(clf)
         ce.run()
@@ -1218,12 +1218,12 @@ def main():
         ce.print_stats()
 
         Tracer()()
-        plot_feature_importances(
-            ce.feature_importances,
-            data.template_order,
-            idx_to_class,
-            data
-        )
+        #plot_feature_importances(
+        #    ce.feature_importances,
+        #    data.template_order,
+        #    idx_to_class,
+        #    data
+        #)
         plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
         plt.show()
 

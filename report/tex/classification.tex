@@ -8,52 +8,61 @@ Parameter tuning is discussed is Section~\ref{sec:tuning}
 We are approaching this as a multi-class machine learning task, that is, the
 classification of a sample as a single label given a set of possibile labels.
 A mutli-label approach may also be taken, to identify multiple labels from a
-given sample, although this is potentially more complex and has not been
-pursued given that most recordings appear to have a single dominant vocalising
-bird, and any other sources are notably in the background.
+given sample, although this is raises the complexity of the problem somewhat,
+and given that most recordings appear to have a single dominant vocalising
+bird, this has not been pursued.
 
-There exist many acceptable multi-class machine learning algorithms.
-These may have a discrete or probabilistic output, which is useful to gauge the
-confidence level of the classifier.
-A multi-class algorithm may also be constructed from an ensemble of several
-probabilistic binary classifiers, the final classification of which is computed
-by extracting the maximum score of each.
-This allows for more algorithms to be tested.
+There exist many suitable multi-class machine learning algorithms.
+It is desireable to obtain a probabilistic output, which gives the probabilities
+for each label.
+This is useful to gauge the confidence level of the classifier increasing the
+transparency of our classifications.
 
-The initial decision of which classifier to use usually depends on the nature
-of the data to be classified.
-In this case, we are working with a small sample set, but with a very high number
-of features.
-Samples are labeled, therefore a supervised learning algorithm is appropriate.
-Good computational performance is desireable considering our high feature
+A multi-class classifier may also be constructed from an ensemble of several
+binary classifiers by combining the results of each.
+Doing so may allow  us to use a wider variety of verification metrics.\\
+
+The initial decision of which classifier to use depends mostly on the nature
+of the data being classified.
+In our case, we are working with a small sample set, but with a very high 
 dimensionality.
-In addition, it is very useful to be able to efficiently analyse the impact of
-each feature, which is in this case directly measurable as feature importance.
+Samples are labeled, therefore a supervised learning algorithm is appropriate.
+Good computational performance is desireable considering the high feature count.
+In addition, it is useful to have an efficient means of analysing the impact of
+individual templates, in our case measurable directly through feature importance.
 
 Once an initial algorithm has been chosen, it may be compared to others through
-multi-run cross-validation of their accuracies
-(ref Choosing between two learning algorithmsbased on calibrated testsRemco R. Bouckaert).\\
-
-The random forest algorithm is well suited for the given task.
-It is relatively performant, is not particularly sensitive to bias or noise,
-and it is possible to extract individual feature importances directly without
-having to develop computationally expensive mechanisms. (ref)
-Random forests also exhibit good scalability because it is an ensamble of
-independent trees. (ref)
-
-It does not allow for online learning however since trees have to be recomputed, 
-and so the addition of extra training samples, features and thus classes can
-become expensive for larger additions.
-This is somewhat countered by the short time required to train an entire forest.
+multi-run cross-validation, comparing accuracy results.
+(ref Choosing between two learning algorithmsbased on calibrated testsRemco R. Bouckaert).
 
 
 \subsection{Random Forest Classifier}
-A random forest classifier is an ensamble of trees.
-A node of a tree is split on an index of the feature vector.
-Each Tree uses a new random sampling of the features.
+A random forest is an ensemble of decision tree classifiers.
+Each tree is developed using randomly sampled training data.
 
-we pick the random forest.
-explain why we use this classifier
+The random forest algorithm is well suited for the given task.
+It is relatively performant, not particularly sensitive to bias or noise,
+and it is possible to extract individual feature importances directly without
+having to develop computationally expensive mechanisms. (ref)
+Random forests also exhibit good scalability because it is an ensemble of
+independent trees. (ref)
+
+It does not allow for online learning however since trees have to be recomputed, 
+and so the addition of extra training samples, features and thus labels may
+become expensive for larger additions.
+This is countered somewhat by the short time required to train an entire forest.
+
+We may also use an ensemble of random forest classifiers with probabilistic
+binary output.
+In this configuration each forest is responsible for classifying a single
+species, considering only the features of that species and returning the
+probability of a given sample belonging to a specific species.
+This allows for less expensive updates, as we can add and modify species without
+needing to rebuild all of the forests.
+Although this method no longer considers all features at once when making a
+classification, it has been shown to exhibit good performance (ref gabor?).
+
+
 explain how it fits with the data we are working with
 
 This is a multi-class classifier, returning the probabilities of each class
@@ -77,9 +86,61 @@ why do we use it, no reason??
 ert thresholds are random, best one is picked, reduces variance, increases bias
 
 \subsection{Parameter Selection}
-show parameters available for RF
-show initial parameters chosen and their performance
-how did we pick these? (make something up)
+The most impactful parameters for random forest performance are the quantity of
+trees and the number of features at each split.
+Random forests are generally trained so that trees are fully grown to minimise
+bias, and the number of trees is increased as much as necessary to minimise variance.
+Altering the remaining parameters mostly results is tree pruning, which may be
+desireable if overfitting occurs.
 
-Section~\ref{sec:tuning} explores semi-automatic parameter tuning and touches on
-the issues of overfitting.
+\begin{itemize}
+  \item \textbf{Max features:}
+    Defines the maximum number of features that a tree may use at each split.
+    Increasing this value generally increases performance at the cost of
+    diversity.
+    Decreasing this value reduces variance at the increase of bias in individual
+    trees.
+    The ratio of good features to noise affects the choice of this parameter,
+    the less features are selectable, the less chance of picking a good feature
+    amongst the set.
+
+  \item \textbf{Number of estimators:}
+    Defines the maximum number of trees to build.
+    Higher values are generally always better, being detrimental only to speed.
+    Increasing the number of trees decreases variance, becoming less
+    correlated as features are randomly selected.
+
+    A random forest will eventually converge with the increase in tree count,
+    from which the gains begin to diminish (ref breiman 2001).
+
+  \item \textbf{Min samples per leaf node:}
+    Defines the size of the leaf nodes.
+    Smaller sizes leads to an increase in sensitivity to noise.
+    Directly affects the depth of the trees.
+
+  \item \textbf{Max depth:}
+    Defines the maximum depth at which a tree may be built.
+    If this value is set to |none| with the minimum samples to split set to 1,
+    then trees will always be fully developed.
+
+  \item \textbf{Min samples split:}
+    Defines the minimum number of sample observations per node required before
+    splitting on a feature.
+\end{itemize}
+
+The following parameters are set by default and used to gauge the effectiveness
+of tuning:
+\begin{itemize}
+  \item Estimators: 500
+  \item Max features: square root of number of features
+  \item Min samples to split: 3
+\end{itemize}
+
+For comparison, the following parameters have found to be optimal through the tuning mechanism
+discussed in Section~\ref{sec:tuning}, and is used throughout evaluation in
+Sections~\ref{sec:acc_eval} and \ref{sec:feature_imp}:
+\begin{itemize}
+  \item Estimators: 500
+  \item Max features: square root of number of features
+  \item Min samples to split: 3
+\end{itemize}

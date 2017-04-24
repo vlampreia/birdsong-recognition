@@ -1,8 +1,10 @@
-FEATURE IMPORTANCES ARE COMPUTED DURING TRAINING! SEE OPTIMIZATIONS
 \section{Feature Importance}\label{sec:feature_imp}
-Because our feature vector is directly related to the templates of each species,
-it is possible to determine their role and effectiveness in classifying a
-recording by computing feature importances from our classifier.
+
+FEATURE IMPORTANCES ARE COMPUTED DURING TRAINING! SEE OPTIMIZATIONS
+
+Because our feature vector is directly correlated with the templates of each species,
+it is possible to determine their impact and quality by computing feature
+importances from our classifier.
 This allows us to reduce the number of templates involved in classifying a given
 sample, significantly cutting down the cost of template matching per species.
 Feature importances also help us analyse the preprocessing performance in detail,
@@ -10,6 +12,9 @@ as well as correlate inter-species similarities in cases where there is a high
 level of confusion.
 
 \subsection{In Random Forests}
+
+The two most common methods for retrieving feature importance from a random
+are detailed in this section.
 
 \subsubsection{Mean decrease accuracy}
 One method for measuring the impact of each feature is through the mean decrease
@@ -28,20 +33,20 @@ This is known as the mean decrease impurity, or gini importance, which is what
 is used in Sckikit's random forest classifier implementation.
 
 \subsection{Results and Analysis}
-
-Measuring feature importances exposes an average of x out of 3000 samples as
-completely irrelevant during training and classification.
+Measuring feature importances exposes 50\% (x out of y) templates as 
+completely irrelevant for classification within our dataset
+(Figure~\ref{fig:fimp}).
 Removing these features shows no reduction in accuracy, and a significant speedup
-during template matching is gained, reducing total classification time from 10000
-hours to 0.5 seconds.
+during template matching is gained, with an estimated reduction of x minutes per
+spectrogram, from y to z with an average of j per template given average
+dimensions as shown in Section~\ref{sec:ccm}.
 
-There are 1209301293123 templates distributed across 20 spectrograms for each
-of the 50 species selected.
-When clsasifying a new sample, it's spectrogram must be cross-correlated with
+There exist 35773 templates distributed across 20 spectrograms for each
+of the 12 species selected.
+When classifying a new sample, it's spectrogram must be cross-correlated with
 each of the templates.
-This operation is extremely expensive, in the order of 42 hours, or 25 seconds
-per template of average dimensions (125x125) with a target sample of average
-length (3 minutes). (see apndx 1 for detailed time analysis)
+This operation is extremely expensive, taking up to 70 hours, or approximately
+5.8 hours per sample, 0.6 seconds per template on average.
 
 The aim is therefore to reduce the feature count as much as possible while
 retaining the highest possible accuracy by determining an appropriate importance
@@ -50,21 +55,21 @@ Removing features and reevaluating the classifier takes no significant time in
 contrast to template extraction and may therefore be done by iteratively removing
 and checking classifier accuracy, adjusting the importance cutoff accordingly.
 Measuring feature importance unfortunately requires a complete run which involves
-the cross-correlation of all templates, which negates any performance benefits
-for recordings which aren't new to the system.
-Since we are using cross-validation to evaluate all samples, all templates are
-used eventually, even if their importances remain low across all folds.\\
+the cross-correlation of all templates, which means any performance benefits will
+only affect new sample classifications.\\
 
-Feature reduction is very helpful during feature extraction, when merging the
-results of two batches.
+Feature reduction is however beneficial during feature extraction, when merging
+the results of two batches.
 Templates with importance scores equalling or close to zero can be safely removed
-from the set before merging, saving a considerable amount of time.
-Time saved is estimated to be 232103 minutes on average.
+from the set before merging with another batch, saving a considerable amount of time.
+Although we have not done this in practice the estimated amount of time saved is
+in the order of x hours assuming a consistent 50\% template reduction rate.
 
-\textbf{unless we can get importances from training only, then when we test
-we can use the reduced template set and speed all this up}
-
-\textbf{graph of feature importances}\\
+\begin{figure}[!htb]
+  \centering
+  \caption{Visualisation of feature importances}
+  \label{fig:fimp}
+\end{figure}
 
 
 \textbf{paragraph on important and non important feature analysis. lots of 

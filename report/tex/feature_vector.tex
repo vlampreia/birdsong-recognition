@@ -31,7 +31,7 @@ another.
 We use a normalised cross-correlation method for template matching.
 This mode was chosen over squared-difference and cosine-coefficient because it
 has been used with good results in similar spectrogram template matching tasks
-(ref) ... (ref).
+(\textcite{lasseck2013}).
 Normalisation is used to reduce the effect of background noise in the
 spectrogram images.
 
@@ -86,14 +86,14 @@ and filtering procedures described in previous sections.
 Total time to completion was approximately 22 hours on the machine listed in
 Appendix~\ref{app:machine}.\\
 
-\begin{figure}[h!]
+\begin{figure}[!htb]
   \centering
-  \begin{subfigure}[t]{0.5\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \centering
     \includegraphics[width=1.0\textwidth]{ccm_time_sgram}
     \caption{}
   \end{subfigure}%
-  \begin{subfigure}[t]{0.5\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \centering
     \includegraphics[width=1.0\textwidth]{ccm_mem_sgram}
     \caption{}
@@ -149,4 +149,4 @@ The values of each element in the vector are derived from the template matching
 results by taking the maximum value from the cross-correlation mapping.
 The maxima intuitively gives us the highest matching probability for a template,
 but discards information of other possible matches.
-This extraction has shown promising results in (ref fodor).
+This extraction has shown promising results (\textcite{fodor2013}).

@@ -35,44 +35,51 @@ We have written a shell script to make this procedure fully automatic, executabl
 when new recordings have been sourced.
 
 
-
 \subsection{Spectrogram Representation}
-A spectrogram image provides a wealth of additional information that can be used
-to visualise the audio data as energy per frequency band as a function of time.
-Figure x shows that the spectrogram representation retains amplitude information
-while exposing the frequencies which make up the signal.
+A spectrogram is a visualisation of a sound as energy in the frequency spectrum
+in function of time.
+This allows us to intuitively visualise the shape of a sound in a 2d image.
+Figure~\ref{fig:sgram_pcm} shows how the spectrogram representation retains
+amplitude information from a waveform, while exposing the frequency composition
+of the waveform.
 
-\textbf{show spectrogram image under waveform of same section}
-
-note monochrome
+\begin{figure}[!htb]
+  \centering
+  \begin{subfigure}[b]{1.0\textwidth}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[b]{1.0\textwidth}
+    \caption{}
+  \end{subfigure}
+  \caption{Waveform (a) and corresponding spectrogram (b) of a bird 1 recording}
+  \label{fig:sgram_pcm}
+\end{figure}
 
 Our image recognition approach makes use of this spectrographic representation
 of the field recordings.
 
-Spectrogram construction is processed as a discrete stage in our program, which
-processes all audio files and stores their spectrograms to disk.
-Spectrogram construction is unintensive work on modern CPUs, making this stage
-relatively quick.
-Processing each audio file takes x minutes in total.
-The source WAV files are loaded and read as pulse-code modulation (PCM) data.
-Spectrogram images are then constructed using a fast fourier transform (FFT) method,
-which is a efficient disscrete fourier transform (DFT).
-The details of the FFT mechanism can be found in \textbf{appendix x}.
-The Python Matplotlib library's specgram function is used to generate spectrograms.
+Spectrogram construction is performed for all recordings.
+Each recording is processed sequentially and immediately stored on disk.
+The audio is first loaded as raw pulse-code modulation (Appendix~\ref{app:pcm}).
+The Fast fourier transform (FFT) method is then used to generate a spectrogram
+from the PCM (see Appendix~\ref{app:sgram} for details on constructing
+spectrograms using FFTs).
+Modern hardware handles FFT computations very well, making this stage very quick.
+The Matplotlib |specgram| function is used to generate spectrograms.
 
-The following parameters are used:
+The following parameters are used during spectrogram construction:
 \begin{itemize}[noitemsep]
   \item \textbf{NFFT: 512}.
-    NFFT defines the number of data points used in each block.
-  \item \textbf{Window: Hann window of 512.}
-    Windowing functions minimise spectral leakage in the signal by tapering the ends
-    of the window.
-    simplify and move to appendix
+    NFFT defines the number of PCM data points used in each chunk.
+  \item \textbf{Window: Hann window of 512 points.}
+    Windowing is used to merge overlapping chunks.
   \item \textbf{Overlap: 75\%}.
-    Overlap defines the number of points overlapping between blocks.
+    Overlap defines the number of points overlapping between chunks.
 \end{itemize}
 
-See Appendix for details on FFTS.
+Spectrograms are converted to monochrome to simplify operations in the stages
+to follow.
+This does not reduce the information present in the spectrogram.
 
-Frequencies above 10000Hz and below 100Hz are removed from the spectrograms as these do
-not contain signals belonging to any bird species \textbf{(cite)}.
+Frequencies above 10000Hz and below 100Hz are removed from the spectrograms as
+these do not contain signals belonging to any bird species \textbf{(cite)}.

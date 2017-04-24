@@ -56,7 +56,8 @@ A balance must therefore be struck, in both preprocessing and selection stages.
 Performing selection manually is infeasable given the quantity
 of pixel segments.
 Selection is therefore done automatically by considering the dimensionality and
-pixel values of each template.\\
+pixel values of each template.
+Results are shown in Figure~\ref{fig:template_select_effects}\\
 
 Templates with the following properties are automatically rejected:
 \begin{itemize}[noitemsep]
@@ -77,6 +78,19 @@ Templates with the following properties are automatically rejected:
     This filter eliminates some of these templates.
 \end{itemize}
 
+\begin{figure}[!htb]
+  \centering
+  \begin{subfigure}[b]{1.0\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[b]{1.0\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{A noisy spectrgoram before (a) and after (b) template selection}
+  \label{fig:template_select_effects}
+\end{figure}
 
 \subsubsection{Extraction mechanism}\label{sec:extract}
 
@@ -108,15 +122,14 @@ mapping in order to ensure consistency.
     \centering
     \caption{}
   \end{subfigure}
-  \caption{A template before (a) and after (b) gaussian filtering.}
+  \caption{A template before (a) and after (b) gaussian filtering}
   \label{fig:extract_blur}
 \end{figure}
 
-\subsection{Guided Template Elimination}
+\subsection{Advanced Template Elimination}
 It is desireable to reduce the template count further by recognizing aspects which
-make for good templates. This subsection outlines some speculative options for
-selecting better templates, and reducing those which would have a low importance
-score after training and classification.
+make for good templates. This subsection outlines some speculative methods for
+selecting better templates.
 
 \subsubsection{Spatial inclusion}
 Imperfections in the preprocessing mechanism leads to errorneous pixel segments.

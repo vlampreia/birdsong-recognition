@@ -33,7 +33,7 @@ individual templates, in our case measurable directly through feature importance
 
 Once an initial algorithm has been chosen, it may be compared to others through
 multi-run cross-validation, comparing accuracy results.
-(ref Choosing between two learning algorithmsbased on calibrated testsRemco R. Bouckaert).
+(\textcite{Bouckaert2003}).
 
 
 \subsection{Random Forest Classifier}
@@ -41,11 +41,11 @@ A random forest is an ensemble of decision tree classifiers.
 Each tree is developed using randomly sampled training data.
 
 The random forest algorithm is well suited for the given task.
-It is relatively performant, not particularly sensitive to bias or noise,
+It is relatively performant, not particularly sensitive to bias or noise (\textcite{marko2004}),
 and it is possible to extract individual feature importances directly without
-having to develop computationally expensive mechanisms. (ref)
-Random forests also exhibit good scalability because it is an ensemble of
-independent trees. (ref)
+having to develop computationally expensive mechanisms.
+Random forests also exhibit good scalability because the algorithm can be easily
+parallelised (breiman2001).
 
 It does not allow for online learning however since trees have to be recomputed, 
 and so the addition of extra training samples, features and thus labels may

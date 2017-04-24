@@ -3,6 +3,10 @@
 \usepackage{url}
 \usepackage{pslatex}
 
+\usepackage[backend=biber, style=authoryear]{biblatex}
+\addbibresource{refs.bib}
+\usepackage{csquotes}
+
 \usepackage{listings}
 \lstset{
   language=Python,
@@ -70,11 +74,12 @@
 \input{tex/feature_reduction}
 \input{tex/tuning}
 
+\input{tex/conclusions}
 
-\bibliography{refs}
-\bibliographystyle{alpha}
 
-\appendix
-\include{app_}
+\printbibliography
+
+%\appendix
+%\include{app_}
 
 \end{document}

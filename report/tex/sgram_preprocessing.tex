@@ -33,7 +33,7 @@ A filter is first applied to the spectrogram, which reduces the noise in the
 image by smoothing just enough until granular noise is reduced sufficiently
 (Figure~\ref{fig:preproc_vis_filter}).
 This is accomplished using a Gaussian filter with a 5x5 kernel and sigma of 0.
-\textbf{wtf, sigma 0?}
+\textbf{sigma 0??}
 Median filtering was also tested. \textbf{so what happened?}
 
 The image is then thresholded using a thresholding algorithm
@@ -134,7 +134,7 @@ It can be shown that as the sample count increases, the number of valid template
 tends to increase.
 The number of noise also increases, however these do not intercorrelate as valid
 templates do, and are handled well by less sensitive classifiers such as
-random forests (ref Improving Random Forests Marko Robnik-Sikonja).
+random forests (\textcite{marko2004}).
 
 Quality is therefore moderated after preprocessing in the selection stage as
 described in Section~\ref{sec:template_select}.

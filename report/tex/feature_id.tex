@@ -1,10 +1,11 @@
 \section{Useful Feature Identification}
-This section discusses what information shown in a spectrogram can be used as
-useful features. ...
+This section explores the information given by the spectrogram image
+representation of an audio file, and what features may be extracted to
+characterise and identify bird species.
 
 \subsection{Song Segmentation}
-Bird song structure is well defined in terms of segmentation.
-Segment labelling is in a naturally descending order of granularity, from
+Bird song structure is well defined in terms of segmentation (\textcite{Catch1997}).
+Segment labelling is defined in a naturally descending order of granularity, from
 large sequences to basic singular elements, and are identified by their length
 and duration of silence between sounds:
 \begin{itemize}
@@ -12,18 +13,16 @@ and duration of silence between sounds:
     An entire song is a conplete end-to-end sequence of multiple or a single
     phrase.
     The same phrase is may be repeated exactly or with variation within a
-    song. (ref)
+    song.
   \item \textbf{phrase:}
     A phrase consists of a series of usually equal syllables.
-    Phrases at the end of a song are often not composed of equal syllables. (ref)
+    Phrases at the end of a song are often not composed of equal syllables.
   \item \textbf{syllable:}
     Syllables may be simple or complex vocalisations.
-    Complex syllables can be further partitioned into individual elements. (ref)
+    Complex syllables can be further partitioned into individual elements.
   \item \textbf{element:}
-    Elements form the most basic of vocalisations, for instance, sweeps or tones. (ref)
+    Elements form the most basic of vocalisations, for instance, sweeps or tones.
 \end{itemize}
-
-ref: Catchpole C.K., Slater P.J.B. - Bird Song biological themes and variations - (1995)
 
 \textbf{show sgram}
 
@@ -37,8 +36,7 @@ Specifically, variations exist within a species songs between individuals.
 One instance of such variation is regional, where the geographical
 location of birds has been found to correlate with differences in detail.
 Local isolation of populations also plays a part in minute variations of song,
-referred to as dialects
-(ref Podos, J. and P. S. Warren. 2007. The evolution of geographic variation in birdsong. Advances in the Study of Behavior 37:403–458).
+referred to as dialects (\textcite{podos2007}).
 
 It has also been observed that birds learn aspects of their song, which affects
 the exactness of the reproduction (ref?).
@@ -53,7 +51,7 @@ sweeps, tones, high/low frequency repetitions, continuous, harmonics}
 
 Birds are able to produce a large varienty of sounds.
 These vary from simple pure tones to complex harmonics with amplitude and
-frequency modulations. (ref AcousticsandphysicalmodelsofbirdsoundsSeppoFagerlund)
+frequency modulations (\textcite{fager2004}).
 
 Our image recognition approach makes direct use of the structures present
 in bird songs.
@@ -77,7 +75,7 @@ implicitly included in our approach.
 \subsubsection{Variations in amplitude}
 Amplitude variations are present in many bird vocalisations.
 These have been seen to be dynamic and dependant on the environment and social
-context. (ref http://dx.doi.org/10.1590/S0001-37652004000200017)
+context. (\textcite{brumm2004})
 It is therefore likely that this feature is not significantly important for
 species recognition.
 
@@ -109,4 +107,4 @@ unique or indicative characteristic.
 These features are implicitly included through image recognition, but only at
 the level of granularity afforded by the template extraction mechanism.
 The direct inclusion of extensive segment statistics has been shown to boost
-the classification accuracy to some significance (ref fodor?).
+the classification accuracy to some significance (\textcite{lasseck2013}).

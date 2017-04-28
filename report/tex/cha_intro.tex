@@ -1,6 +1,29 @@
 \chapter{INTRODUCTION}
 
 \section{Motivation}
+The study and observation of 
+
+ornithology been a topic of increasing interest in scientific and
+popular communities.
+in particular observations in the wild are fundamental to large parts of
+ornithology.
+Auditory observations can be made.
+birds produce an array of characteristic sounds, distinguished as songs and calls,
+which differ by their complexity and ....
+the existence of unique elements to each song makes it possible to identify the
+species of a bird by their voice.
+With over 10,000 catalogued bird species, identifying a single species becomes
+a non trivial task for an observer, even with geographical narrowing its still
+problematic due to complexity.
+methods exist to aid the observer through sonographic analysis and geographical
+correlations, or visual correlations.
+the benefit of an automatic method is clear
+immediate gains in recognition scale and speed
+increased data accuracy and quantity important to conservation efforts and
+other observational tasks
+...
+
+
 Current manual and semi-automatic methods of bird species recognition are limited
 by the cost and challenge of analysing enormous amounts of field recordings.
 Identifying a species from thousands of other possibilities is a challenge itself
@@ -33,20 +56,41 @@ world.
 They shall not undergo any form of manual selection or processing.
 In similar vein, they should also not be subjected to rigorous quality control
 aside from what classifications may be provided by sources.
-This is to ensure that validation represents real-world performance.
+This is to ensure that validation represents real-world performance.\\
 
 For the purposes of this project, some limitations are imposed to simplify some
-problem areas.
-Firstly, A general level of quality is ensured by selecting only higher quality recordings
-as defined by the data source.
-This is a reasonable restriction which reduces the number of recordings required.
-Secondly, the number of species the system should know about is limited to 50
-randomly picked labels.
-Thirdly, only bird songs are considered.
+problem areas:
+\begin{itemize}
+\item A general level of quality is ensured by selecting only higher quality recordings
+      as defined by the data source.
+      This is a reasonable restriction which reduces the number of recordings required.
+\item The number of species the system should know about is limited to 50
+      randomly picked labels.
+\item Only bird songs are considered.
+      Bird songs differ from calls in complexity, length and context.
+      song is usually but not always performed by males.
+      a few more details
+\end{itemize}
 
-\section{Bird Songs vs Calls}
-Bird songs differ from calls in complexity, length and context.
 
-song is usually but not always performed by males.
+\section{Existing Approaches}
+Automatic birdsong recognition has become increasingly popular in the field of
+data science the past decade.
+eeveral competitions (ref) have taken place to develop solutions to the problem
+with varying requirements.
 
-this shouldnt be a section
+MLSP 2014 for example has lead to a few successful approaches with a fairly
+normalised and controlled data set.
+..
+..
+
+competition/source
+data source
+description of approach
+results
+
+may not have implementation available, no software "app"
+
+Outside of competative ..., publicly available software is under development
+whlrblr from london uni phd, and the US one..
+mixed results

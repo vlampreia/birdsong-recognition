@@ -172,6 +172,11 @@ This is a similar to the observation in \textbf{spatial inclusion}.
 \textbf{what to do about it}
 \textbf{is it a problem}
 
+\begin{figure}[!htb]
+  \centering
+  \caption{Example of selected templates with varying granularity}
+\end{figure}
+
 
 \subsubsection{inter-template correlation}
 some templates may correlate with eachother, should they be merged?
@@ -180,8 +185,42 @@ It can also be argued that templates with little to know intercorrelation may be
 independent anomalies such as noise in the signal or other sounds irrelevant to
 the subject species.
 
+\begin{figure}[!htb]
+  \centering
+  \begin{subfigure}[h]{0.2\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.2\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.2\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.2\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[h]{0.2\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{A selection of very similar segments}
+\end{figure}
+
 \subsubsection{Species-specific template statistics}
 It may be possible to use information regarding average dimensionality and mean
 frequency information to determine the relevance likelyhood of a particular template.
 Such metrics require an existing set of validated templates, which may be gathered
 by filtering a non discriminated set of templates by their measures importances.
+
+Figure~\ref{fig:bandlimnit} shows how the birdx song doesn't use vocalisations
+under 123 Hz.
+
+\begin{figure}[!htb]
+  \centering
+  \caption{Example of a bird song with a principal frequency range}
+  \label{fig:bandlimit}
+\end{figure}

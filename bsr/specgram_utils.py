@@ -46,9 +46,9 @@ def write_specgram(pxx, freqs, times, path):
 
 def make_specgram(pcm, samplerate):
     fs = samplerate
-    nfft = 512
-    window = np.hamming(512)
-    noverlap = 512 * 0.75
+    nfft = 256
+    window = np.hamming(nfft)
+    noverlap = nfft * 0.75
     vmin = None
     vmax = None
 

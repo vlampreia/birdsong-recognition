@@ -1,4 +1,5 @@
-\section{Accuracy Evaluation}\label{sec:acc_eval}
+\section{ Evaluation and Validation}\label{sec:acc_eval}
+
 
 a mention on differences in measuring accuracy for single-label vs multi
 label classifier
@@ -7,14 +8,15 @@ mention any metrics that we do not use but are standard, and explain
 why we do not use them.
 
 \subsection{Validation Strategy and Sample Space}
-mutliple run stratified k-fold cross validation (for enhanced repeatability?).
 In effort to reduce sensitivity to chance selection of random samples, all
-measurements are performed using stratified 10-fold cross validation.
-This gives us a 90/10 train/test split, and is repeated with a new random sample
-shuffle 10 times.
+measurements are performed using a multi-run stratified 10-fold cross validation.
+This gives us a 90/10 train/test data split, and is repeated with a new random
+sample shuffling 10 times.
+Stratification ensures that there exists an equal class balance in the testing
+and training splits.
 
-For each fold, only the features from the samples selected for training are
-used.
+For each fold, only features from the selected training samples are
+used for training and validation.
 
 A total of 3 batches have been computed and merged, giving 12 species in total.
 Selection was performed using the mechanisms outlined in
@@ -43,50 +45,70 @@ and template counts per species.
   \end{tabular}
 \end{table}
 
-\subsection{Accuracy Metrics}
-The accuracy is computed for each fold using four standard metrics.
-Each accuracy result is stored and then averaged at the end of the 10-fold
-cross validation.
-The four metrics used are:
+\subsection{Evaluation Metrics}\label{sec:metrics}
+Each of the four evaluation metrics are computed in a fold.
+They are then stored and averaged at the end of the 10-fold cross validation.
+The four evaluation metrics used are:
 \begin{itemize}
-  \item \textbf{Accuracy:}
-    The ability of the classifier to correctly label samples.
-    It is defined as $\frac{TP+TN}{P+N}$;
+  \item \textbf{Accuracy}
+    Is the ability of the classifier to correctly label samples.
+    \begin{equation}
+      \frac{TP+TN}{P+N}
+    \end{equation}
 
-  \item \textbf{Precision:}
-    The ability of the classifier to label 
-    It is defined as $\frac{TP}{TP+FP}$;
+  \item \textbf{Precision},
+    Sometimes referred to as the positive predictive value, is the ability of the
+    classifier to label all predicted values correctly.
+    \begin{equation}
+      \frac{TP}{TP+FP}
+    \end{equation}
 
-  \item \textbf{Recall:}
-    The ability of the classifier to classify all positive samples correctly.
-    It is defined as $\frac{TP}{P}$;
+  \item \textbf{Recall},
+    Sometimes referred to as sensitivity, is the ability of the classifier to
+    label all positive samples correctly.
+    \begin{equation}
+      \frac{TP}{P}
+    \end{equation}
 
-  \item \textbf{F-Beta score:}
-    Weighted harmonic mean, or balance, of the precision and recall, where
+  \item \textbf{F-beta score}
+    Is the weighted harmonic mean of the precision and recall, where
     higher values indicate better performance.
-    It is defined as $\frac{2TP}{2TP+FP+FN}$;
+    This makes it simpler to compare the performance of different parameter sets.
+    \begin{equation}
+      \frac{(1+\beta^2)TP}{(1+\beta^2)TP+\beta^2FN+FP}
+    \end{equation}
+
+    We consider precision and recall as equally important, in which case the
+    beta value is set to 1:
+    \begin{equation}
+      \frac{2TP}{2TP+FN+FP}
+    \end{equation}
 \end{itemize}
+\textbf{move equations to app?}
+show how we can extract TP/TN etc from multiclass results (cnf matrix) .. in
+appendix prob
 
-Sklearn's |precision_recall_fscore_support| function was used to compute these
-metrics.
+The Scikit Learn |precision_recall_fscore_support| function was used to compute
+these metrics.
 
-Because this is a multi-class classification task, each metric must be computed
+Because this is a multi-class classification task, each metric is computed
 on a per-label basis, treating the data as a set of binary classification tasks.
-To compute scores for the entire classification task, the values must are averaged.
-In this case macro averaging is used, in which the mean of each is taken with
-equal weighting.
-We use macro averaging, in which the mean of the scores are computed with equal
+To compute scores for the entire classification task, the values are averaged.
+For this we use macro averaging, in which the mean of the scores are computed with equal
 weighting, for each one of the metrics.
-Macro averaging is appropriate considering we use stratified k-fold, and each
+This is appropriate considering we use stratified k-fold, and each
 species is considered equally important to all the others.
 
 \textbf{see about possible multilabel w/o averaging}
 
+\subsubsection{Results}
 Results are promising, good performance has been achieved using the initial
 parameters, and improvements are observed after tuning as is shown in
 Table~\ref{tbl:acc_before_after}.
 
-\begin{table}
+\textbf{update w/ new defaults}
+\textbf{wait for gs results... }
+\begin{table}[!htb]
   \centering
   \caption{Comparison of accuracies using default and tuned parameters}
   \label{tbl:acc_before_after}
@@ -108,10 +130,9 @@ Table~\ref{tbl:acc_before_after}.
 \end{table}
 
 \subsection{AUC curve}
-we dont use this but if we can construct one then show how we do and what
-this tells us
-we probably need to split classification into individual binary classifications.
-This should be detailed in the classification section.
+Not yet measured, can use one v one or one v all to measure individual AUC
+and then volume under roc hypersurface (vus)
+can also compute individual auc for each class if we do try ensembled binary RF
 
 \subsection{Confusion Matrix}
 A confusion matrix plots the rate at which each label is predicted as any other
@@ -120,12 +141,11 @@ classifier's predictions.
 
 We construct a confusion matrix to evaluate the performance of the classifier
 and the features used to discriminate between species.
-In this case it is instrumental to show the correlation between bird song of
-different species, and shows indications of their similarity of their
-vocalisations on the level of granularity defined by the templates extracted.
+In this case the matrix allows us to visualise performance per class, and give
+some insight into how the classifier is responding to the selected features.
 
 Figure~\ref{fig:cnf12} shows the resulting confusion matrix from classifying the
-selected data, averaged over the 10 folds.
+selected data, averaged over the 10-run 10-fold cross validation.
 
 \begin{figure}[!htb]
   \centering
@@ -135,10 +155,14 @@ selected data, averaged over the 10 folds.
 
 The confusion matrix shows good classification performance for most species.\\
 
-species A has the highest error-rate, being confused mostly for species B.
-This shows that their templates, and therefore their song, share some
-similarities.\\
+We can see from the results that the Common Blackbird is the worst performing
+classification with a 40\% false negative rate.
+It is often mistaken for a Great Reed Warbler, but not the other way around,
+which may indicate weakness in the Common Blackbird's templates.
 
-species C has an excellent score, having been confused with no other species.
-This shows that species C has very unique vocal characteristics amongst the
-picked samples.
+... more speculation
+
+Aside from computing the metrics shown in Section~\ref{sec:metrics}, a confusion
+matrix can only offer a speculative insight into template performance.
+Nonetheless, it offers a starting point into further template analysis as
+discussed in Section~\ref{sec:template_analysis}.

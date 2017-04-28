@@ -5,6 +5,8 @@ import pickle
 from collections import defaultdict
 import logging
 
+import itertools
+
 class SampleRepository:
     samples = None
     spectrograms_dir = ''
@@ -82,7 +84,7 @@ class SampleRepository:
 
     def get_all_templates(self, samples=None):
         if samples is not None:
-            return [s.get_templates for s in samples]
+            return list(itertools.chain.from_iterable([s.get_templates() for s in samples]))
 
         return [s.get_templates() for s in self.samples]
 
@@ -90,11 +92,14 @@ class SampleRepository:
     def get_templates_by_uid(self, uids=[], samples=None):
         if uids is None: return []
 
+        if samples is None:
+            samples = self.samples
+
         return [t for t in self.get_all_templates(samples) if t.get_uid() in uids]
 
 
     def store_all(self):
-        for sample in samples.values():
+        for sample in self.samples:
             sample.store_all()
 
 
@@ -122,6 +127,7 @@ class PersistentSample(AbstractSample):
     sample_dir = ''
     spectrogram_dir = ''
     _spectrograms_dir = ''
+    pcm_path = ''
 
 
     def __init__(self, path, spectrograms_dir):
@@ -186,7 +192,7 @@ class PersistentSample(AbstractSample):
 
 
     def store_all(self):
-        self._spectrogram.store_all()
+        self._sample.spectrogram.store_all()
 
 
 class PersistentSpectrogram(AbstractSpectrogram):
@@ -245,22 +251,18 @@ class PersistentSpectrogram(AbstractSpectrogram):
         if not os.path.exists(dpath):
             os.makedirs(dpath)
 
-        success = futils.image_write(self.pxx, path + '.png')
+        success = futils.image_write(self._spectrogram.pxx, path + '.png')
         if success:
             with open(path + '.pkl', 'w') as f:
-                pickle.dump(self.freqs, f)
-                pickle.dump(self.times, f)
+                pickle.dump(self._spectrogram.freqs, f)
+                pickle.dump(self._spectrogram.times, f)
 
 
     def store_all(self):
-        print 'check this '
-        print 'check this '
-        print 'check this '
-        print 'check this '
-        Tracer()()
+        print ('write to {}'.format(self._path))
         if self._changed: self.write_to_file(self._path)
-        for template in self._spectrogram.get_templates():
-            template.write_to_file()
+#        for template in self._spectrogram.get_templates():
+#            template.write_to_file()
 
 
 class PersistentTemplate(AbstractTemplate):

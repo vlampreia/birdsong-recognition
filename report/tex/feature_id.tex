@@ -3,7 +3,7 @@ This section explores the information given by the spectrogram image
 representation of an audio file, and what features may be extracted to
 characterise and identify bird species.
 
-\subsection{Song Segmentation}
+\subsection{Song Segment Formalisms}
 Bird song structure is well defined in terms of segmentation (\textcite{Catch1997}).
 Segment labelling is defined in a naturally descending order of granularity, from
 large sequences to basic singular elements, and are identified by their length
@@ -24,7 +24,18 @@ and duration of silence between sounds:
     Elements form the most basic of vocalisations, for instance, sweeps or tones.
 \end{itemize}
 
-\textbf{show sgram}
+\begin{figure}[!htb]
+  \centering
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.5\textwidth}
+    \centering
+    \caption{}
+  \end{subfigure}
+  \caption{Spectrograms visualising formalised song segments}
+\end{figure}
 
 \subsection{Distinctive Features in Spectrograms}
 It is common knowledge that bird song is genereally consistent amongst species,
@@ -39,7 +50,7 @@ Local isolation of populations also plays a part in minute variations of song,
 referred to as dialects (\textcite{podos2007}).
 
 It has also been observed that birds learn aspects of their song, which affects
-the exactness of the reproduction (ref?).
+the exactness of the reproduction (\textcite{Krood1983}).
 Recordings of younger birds is therefore expected to differ, to a possibly
 significant extent.
 This is an interesting subject in itself: it is plausable that an automatic

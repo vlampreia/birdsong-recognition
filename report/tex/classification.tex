@@ -1,15 +1,17 @@
 \section{Classification}
 With feature vectors constructed, we select a machine learning algorithm to
 train and classify birdsong using these, giving rise to our model.
-This section details the choice of algorithm, it's variations, and performance.
+This section discusses the considerations made when choosing an algorithm,
+and details our choice of algorithm and variations in its mechanism.
 Parameter tuning is discussed is Section~\ref{sec:tuning}
 
-\subsection{Approaches to Classification}
+\subsection{Approaches to Classification}\label{sec:clfapp}
 We are approaching this as a multi-class machine learning task, that is, the
 classification of a sample as a single label given a set of possibile labels.
 A mutli-label approach may also be taken, to identify multiple labels from a
-given sample, although this is raises the complexity of the problem somewhat,
-and given that most recordings appear to have a single dominant vocalising
+given sample, although this potentially is raises the complexity of the problem
+somewhat, especially during feature extraction.
+Given that most recordings appear to have a single dominant vocalising
 bird, this has not been pursued.
 
 There exist many suitable multi-class machine learning algorithms.
@@ -20,7 +22,8 @@ transparency of our classifications.
 
 A multi-class classifier may also be constructed from an ensemble of several
 binary classifiers by combining the results of each.
-Doing so may allow  us to use a wider variety of verification metrics.\\
+Doing so may allow us to use a wider variety of verification metrics and to
+identify label-specific behaviours.\\
 
 The initial decision of which classifier to use depends mostly on the nature
 of the data being classified.
@@ -36,57 +39,50 @@ multi-run cross-validation, comparing accuracy results.
 (\textcite{Bouckaert2003}).
 
 
-\subsection{Random Forest Classifier}
-A random forest is an ensemble of decision tree classifiers.
-Each tree is developed using randomly sampled training data.
 
-The random forest algorithm is well suited for the given task.
-It is relatively performant, not particularly sensitive to bias or noise (\textcite{marko2004}),
+\subsection{Overview of the Random Forest Classifier}
+A random forest \parencite{breiman2001} is an ensemble of decision tree classifiers.
+Each tree is developed using randomly sampled training data, and because decision
+trees are capable of multi-class classification, forests can also.
+
+The random forest algorithm is well suited for the given task:
+It is relatively performant, not particularly sensitive to bias or noise
+(\textcite{marko2004}),
 and it is possible to extract individual feature importances directly without
 having to develop computationally expensive mechanisms.
 Random forests also exhibit good scalability because the algorithm can be easily
-parallelised (breiman2001).
+parallelised \parencite{breiman2001}.
 
 It does not allow for online learning however since trees have to be recomputed, 
 and so the addition of extra training samples, features and thus labels may
 become expensive for larger additions.
-This is countered somewhat by the short time required to train an entire forest.
+This is countered somewhat by the short time required to train an entire forest
+on our data.
 
-We may also use an ensemble of random forest classifiers with probabilistic
-binary output.
-In this configuration each forest is responsible for classifying a single
-species, considering only the features of that species and returning the
-probability of a given sample belonging to a specific species.
+Although we have not done so, it is possible to employ an ensemble of binary
+random forest classifiers with probabilistic output.
+In such configuration each forest is responsible for classifying a single
+species, while considering only the features of that species.
 This allows for less expensive updates, as we can add and modify species without
 needing to rebuild all of the forests.
 Although this method ignores higher-order interactions between class features,
-it has been shown to exhibit good performance (ref gabor?).
+it has been shown to exhibit good performance (\textcite{lasseck2013}).\\
 
+We have chosen to use a single multithreaded multi-class random forest.
 
-explain how it fits with the data we are working with
-
-This is a multi-class classifier, returning the probabilities of each class
-corresponding to the data given.
-An alternative approach is possible, in which the classification of each species
-is split into individual random forests, the final result of which is retrieved
-by taking the maximum of all probabilities.
-Using multiple binary classifiers allows other accuracy metrics to be used,
-facilitating the accuracy evaluation of single species.
 
 \subsubsection{Extremely Randomised Trees}
-Extremely Randomised Trees is similar to a traditional Random Forest, however
-however splitting is randomised, instead of being computed for optimal
-performance.
+Extremely Randomised Trees \parencite{geurt2006} is an algorithm similar to a
+traditional Random Forest, however the thresholds during splitting arerandomised,
+instead of being computed for optimal performance.
 This has the benefit of being faster, with the drawback of being more sensitive
 to noisy features.\\
 
-Using this classifier has seen no major accuracy or performance differences.
-why do we use it, no reason??
+Using this classifier shows no major accuracy or performance differences.
+A speed increase is likely to be observed with many more trees.
 
-ert thresholds are random, best one is picked, reduces variance, increases bias
-
-\subsection{Parameter Selection}
-The most impactful parameters for random forest performance are the quantity of
+\subsection{Parameter Selection}\label{sec:param}
+The most impactful parameters for random forest performance are the number of
 trees and the number of features at each split.
 Random forests are generally trained so that trees are fully grown to minimise
 bias, and the number of trees is increased as much as necessary to minimise variance.
@@ -111,7 +107,7 @@ desireable if overfitting occurs.
     correlated as features are randomly selected.
 
     A random forest will eventually converge with the increase in tree count,
-    from which the gains begin to diminish (ref breiman 2001).
+    from which the gains begin to diminish (\textcite{breiman2001}).
 
   \item \textbf{Min samples per leaf node:}
     Defines the size of the leaf nodes.
@@ -131,16 +127,20 @@ desireable if overfitting occurs.
 The following parameters are set by default and used to gauge the effectiveness
 of tuning:
 \begin{itemize}
-  \item Estimators: 500
+  \item Estimators: 10
   \item Max features: square root of number of features
-  \item Min samples to split: 3
+  \item Min samples to split: 2
+  \item Min samples leaf: 1
+  \item Max depth: |none|
 \end{itemize}
 
 For comparison, the following parameters have found to be optimal through the tuning mechanism
 discussed in Section~\ref{sec:tuning}, and is used throughout evaluation in
 Sections~\ref{sec:acc_eval} and \ref{sec:feature_imp}:
 \begin{itemize}
-  \item Estimators: 500
-  \item Max features: square root of number of features
-  \item Min samples to split: 3
+  \item Estimators: ?
+  \item Max features: ?
+  \item Min samples to split: ?
+  \item Min samples leaf: ?
+  \item Max depth: ?
 \end{itemize}

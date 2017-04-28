@@ -1,14 +1,16 @@
 \section{Data Source: Xeno-Canto}
 
-Xeno-Canto provides a substantial number of user uploaded field recordings
-of various bird species, both calls and songs (\textcite{xenocanto}).
-Recordings may originate from any part of the world, may vary extremely in
-terms of quality, and any number of species may be present in a single
-recording.
+Xeno-Canto \parencite{xenocanto} provides over 353830 recordings of 9728
+individual species.
+Recordings consist of both calls and song, uploaded by arbitrary users, and
+therefore may originate from any part of the world, may vary extremely in
+terms of quality, and content.
 
-Recordings are of varying duration, ranging from 1 to 20 minutes each.
-The content may be densely packed, with multiple birds singing simultaneously,
+Recordings vary in duration, ranging from 1 to 20 minutes each.
+The content may be densely packed, with multiple birds vocalising simultaneously,
 or sparse with long durations of silence.
+Additionally, multiple species may be present in a single recording, however
+higher quality recordings tend to contain a singly identifiable species.
 
 Xeno-canto provides all audio as dynamic MP3.
 These are normalised as described in Section~\ref{sec:prep}
@@ -27,23 +29,27 @@ Although not used in our implementation, the location of the recording could be
 used to improve the accuracy of the classifier, as some species are restricted
 to certain parts of the world.
 Including this information in the feature set is very likely to provide a
-good accuracy by itself, but without much precision.
-It can be used however to narrow down the set of possible species, so long as
-special care is taken to account for migration patterns.
+good accuracy by itself, but perhaps without precision.
+It could be used however to narrow down the set of possible species, so long as
+special care is taken to account for migratory patterns.
 
 
 \subsection{Automatic Sample Retrieval}
 Manually selecting and downloading recordings is a time-consuming process.
 A public API does not exist for Xeno-canto, therefore we developed a web scraper
-specifically for automatic retrieval.
+specifically for automatic retrieval in |Python 2.7| using the |lxml| package.
 
 The scraper allows the user to filter samples on species and on recording quality
 before downloading a sample by examining the metadata present in the HMTL.
 Filtering may be done by exclusion or selection.
 
-When repeated fetching is required, an interval may be set in order to reduce
-strain on Xeno-canto's servers.
-Once the interval has been set, the scraper will continuously download samples
+When continuous fetching is desired, an interval may be set in order to reduce
+strain on Xeno-Canto's servers.
+Once an interval is set, the scraper will continuously download samples
 at the specified rate until it has been interrupted by the user.\\
 
-The webscraper is written in Python 2.7 using the |lxml| package.
+The scraper was ran throughout the course of development, for an approximate
+accumulated time of 40 hours, with an average interval of 60 seconds between
+downloads.
+2211 audio samples were collected in total.
+

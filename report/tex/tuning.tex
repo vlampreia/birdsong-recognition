@@ -1,80 +1,122 @@
 \section{Tuning}\label{sec:tuning}
-why tune\\
+In machine learning there is no single set of parameters or rule set which will
+gaurantee optimal performance.
+The only conclusive method to find optimal parameter values is to evaluate
+the effects of changing them.
+If done incorrectly however, tuning can lead to overfitting.
 
-when overfit\\
+Overfitting can occur if tuning is performed on the entire dataset.
+To reduce the chance of this, datasets should also be split into development
+and evaluation sets.
+Although we don't do this here, we do use 10-times 10-fold cross validation as
+described in Section~\ref{sec:acc_eval}.
+This mechanism coupled the good overfitting resistance exhibited by the random
+forests algorithm should provide sufficiently valid results.
 
-
-Tuning is generally performed by cross-validated grid search.
-This involves running the same validation procedures described in
-Section~\ref{sec:acc_eval}, but with a set of varying parameters.
-
-Here we select the most significant parameters, as well as a set of discrete
-values to test.
-Grid search essentially involves testing all possible permutations of the
-parameter value set.
-
-This section discusses the results obtained by performing a grid search on
-the following parameter set:
-\begin{itemize}
-  \item lala: [1, 2, 3]
-\end{itemize}
-
-Learning Curve
-
-max features: maximum number of features per tree. auto select like sqrt takes 
-total number of features sqrt.
-higher numbers generally increase performance, but decrease diversity
-features are chosen at random
-small number of features reduces variance but increases bias of individual trees
-ratio of noise/good features effects choice of max features
-smaller maxfeatures means less chance of selecting good feature for split
-
-num estimators: max number of trees to build. higher == better == slower
-increasing this will not affect bias. test error is low due to variance reduction.
-more trees = less variance
-reduction in correlation of trees = less variance, achieved by random feature
-selection
-
-min sample leaf: size of leaf nodes, smaller = more sensitive to noise
-dunno
-affects tree depth?
-
-
-cv used during search
-
-max depth = none + minsamplssplit = 1 results in fully developed trees
-
-
+The parameter search algorithm and analysis of results are discussed in this
+section.
 
 
 \subsection{Gridsearch}
-explain gridsearch and how to use it.
-explain how we use it if we do.
-show parameter ranges
+The most basic form of parameter search is exhaustive gridsearch.
+A set of influential parameters are chosen, as well as a range of discrete
+values to test.
+Gridsearch then involves the exhaustive enumeration  of all possible parameter
+value combinations.
 
-validation curve
-tune based on validation score
-will be biased towards validation dataset
+We test each combination using the usual evaluation mechanism with the following
+search space:
+\begin{itemize}
+  \item Estimators: 10, 500, 5000, 10000
+  \item Max features: Sqrt, log2, num features
+  \item min samples split: 2, 10, 100
+  \item min samples leaf: 1 10 100
+  \item max depth: None, 5, 10, 100, 200
+\end{itemize}
+
+The effect of each parameter is described in Section~\ref{sec:param}.
+
+..we can use oob to help eval but it's reportedly not as certain as splitting
+train/test
+
+we do this multithread
+
+NOTE NOTE NOTE
+variance uncertainty with low number of samples
+
+%0 doing params: 0/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
+%/usr/lib/python2.7/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+%  'precision', 'predicted', average, warn_for)
+%0 params: 0/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.792083333333 std. 0.0846756474896
+%fscores: 0.774496031746 std. 0.0912070497428
+%precisions: 0.807 std. 0.0956255638247
+%recalls: 0.792083333333 std. 0.0846756474896
+%
+%0 doing params: 1/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 1/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.828958333333 std. 0.0882308269226
+%fscores: 0.815523809524 std. 0.0966295635391
+%precisions: 0.848388888889 std. 0.0972153211836
+%recalls: 0.828958333333 std. 0.0882308269226
+%
+%0 doing params: 2/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 2/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.8425 std. 0.0817020898232
+%fscores: 0.83025 std. 0.0894293997584
+%precisions: 0.864009259259 std. 0.0897250797427
+%recalls: 0.8425 std. 0.0817020898232
+%
+%0 doing params: 3/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 3/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.847708333333 std. 0.0785720542453
+%fscores: 0.835843253968 std. 0.0857529898424
+%precisions: 0.86990625 std. 0.0854490334312
+%recalls: 0.847708333333 std. 0.0785720542453
+%
+%0 doing params: 4/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 4/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.8225 std. 0.0965048933705
+%fscores: 0.80795 std. 0.106203027383
+%precisions: 0.841780555556 std. 0.109063062903
+%recalls: 0.8225 std. 0.0965048933705
+%
+%0 doing params: 5/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 5/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.824236111111 std. 0.0939180335682
+%fscores: 0.80928968254 std. 0.10361060088
+%precisions: 0.842261574074 std. 0.106871892753
+%recalls: 0.824236111111 std. 0.0939180335682
+%
+%0 doing params: 6/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 6/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.825297619048 std. 0.0924877228783
+%fscores: 0.810106575964 std. 0.102024617976
+%precisions: 0.842986111111 std. 0.105094010389
+%recalls: 0.825297619048 std. 0.0924877228783
+%
+%0 doing params: 7/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
+%0 params: 7/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
+%accuracies: 0.826302083333 std. 0.090884670484
+%fscores: 0.811121031746 std. 0.100457879026
+%precisions: 0.844520833333 std. 0.10332019009
+%recalls: 0.826302083333 std. 0.090884670484
+
+
+
+\subsection{validation curves}
+we tune based on best performing params in gsearch
+possibly biased towards validation dataset
 for better generalization estimation compute score on different set
+(already mentioned above)
 
-we can use this to check over/under fitting though
+we can use this to check over/under fitting?
 check influence of single parameter on training and validation scores
 if both are low, clf is undefitting
 if training is high, valid is low, clf is overfitting
 low training, high validation not possible usually
 
-Analuse the results of parameter optimization
-also measure overfitting (how)
-show performance chages over changes in parameters
-
-coarse-to-fine search gridsearch
-
-plot it
-            n estimators=500,
-            max features='sqrt',
-            min samples split=3,
-            max depth
-            bootstrap?
+coarse-to-fine search gridsearch, if we have the time
 
 \subsection{Learning Rate}
 learning curve
@@ -88,4 +130,4 @@ has lower bias
 if training score is higher than valid score, we benefit from adding training
 samples probably, increasing generalisation
 
-
+is this useful for RF?

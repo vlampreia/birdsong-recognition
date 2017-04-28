@@ -96,8 +96,8 @@ def extract_templates(im, interactive = False):
         area = r[2] * r[3]
 
         #TODO: use average values from sgram?
-        if area < 50: continue
-        if area > 10000:
+        if area < 50 or area > 10000: # : continue
+        #if area > 10000:
             if not interactive: continue
             cv2.putText(im_dbg_template_rejected, '{}'.format(area), (left, top), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,0))
             cv2.rectangle(im_dbg_template_rejected, (left,top), (right,bottom), (0, 0, 0), 1)

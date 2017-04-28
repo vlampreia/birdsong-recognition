@@ -46,7 +46,8 @@
   \thispagestyle{empty}%
   \vspace*{1.4in}
   \begin{center}
-    {\large { University of Manchester\\School of Computer Science\\Project Report \@reportyear} \\
+    {\large { University of Manchester\\School of Computer Science}\\ \vspace*{0.2in}
+    {B.Sc. Computer Science\\Third Year Project Report\\\@reportyear} \\
       \vspace*{0.2in}
       {\bf \@title} \\
       \vspace*{0.2in}
@@ -57,15 +58,11 @@
   \begin{abstract}
     \begin{center}
       \large
-      \@title \\
-      \vspace*{0.2in}
-      Author: \@author
     \end{center}
     \normalsize
     \setlength{\parindent}{0pt}
     \input \@abstractfile \relax
     \begin{center}
-      \large Supervisor: \@supervisor
     \end{center}
   \end{abstract}
   \ifthanks@{

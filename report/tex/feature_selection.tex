@@ -1,36 +1,38 @@
 \section{Template Extraction}
-Before we can extract template images for cross-correlation, they must first be
+Before template images can be extracted for cross-correlation, they must first be
 identified in the source spectrograms.
-For this to be viable at any level of consistency, spectrograms must undergo
+If matching results are to be consistent, spectrograms must undergo
 noise reduction and segmentation.
 This section details the mechanisms developed for preprocessing spectrogram
-images and filtering segments so that only relevant templates are included for
+images and filtering segments so that only the relevant templates are included for
 extraction.
 
 Each spectrogram is processed in sequence using functionality provided by the
-Python OpenCV library, and immediately stored on disk.
+OpenCV \parencite{opencv_library} library, and immediately stored on disk.
 Parallelisation is possible here, but the computational cost of this stage is
-not large enough to justify sparing development time on this aspect at the time.
+not large enough to have justified sparing development time on this aspect.
 
 \input{tex/sgram_preprocessing}
 
 \subsection{Basic Selection and Extraction}\label{sec:template_select}
-With optimal results the segments represent parts of song at the desired
-granularity, from elements to phrases.
+Given optimal results the segments represent parts of song at the desired
+granularity.
 This is often not the case however.
 Noise may persist after preprocessing, and new deformations may appear, such as
 incorrectly joined or incomplete segments.
 
-Some effort is taken to reduce the number of undesireable templates.
+Some effort is taken to reduce the number of undesireable templates after
+preprocessing.
 In addition to noise, undesireable templates include extremely specific or
 extremely generalised templates.
 
 For example, if a sound is featured in a single instance of bird song, but not
 in any other recording of songs of that species, then it is an extreme outlier,
-which may occur due to a bird's individual expression or external sources.
+which may occur due to a bird's individual expression or originate from external
+sources.
 It is non trivial to detect outliers during feature extraction, but because
-random forests are generally insensitive to this type of outlier, we do not
-treat these in this stage.
+random forests are generally insensitive to this type of error, we do not
+account for these at this stage.
 
 Generalised, or weak templates are easier to detect.
 Such templates will have a very faint structure (low contrast), or a complete
@@ -45,8 +47,17 @@ cross-correlations computed.
 
 \begin{figure}[h]
   \centering
-  \caption{Spectrogram of a birdx featuring extremely small, large, and weak
-  templates}
+  \includegraphics[width=1\textwidth]{large_template}
+  \caption{Spectrogram featuring rejected extremely large noise segment}
+  \label{fig:bad_select}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1\textwidth]{bad_select}
+  \caption{Spectrogram featuring erronously rejected weak templates}
+  \label{fig:bad_select}
+  %used XC36327
 \end{figure}
 
 \subsubsection{Selection mechanism}
@@ -73,22 +84,25 @@ Templates with the following properties are automatically rejected:
 
   \item \textbf{Maximum template intensity lower than average intensity of the
     spectrogram:}
-    Templates with significantly low intenstity or contrast are too general to
-    become useful features.
-    This filter eliminates some of these templates.
+    Low maximum intensity is an indicator background or baseline noise.
+    This filter eliminates some of these templates, however not very well.
+    Local variance may be a better property to test for, but this has not been
+    explored.
 \end{itemize}
 
 \begin{figure}[!htb]
   \centering
   \begin{subfigure}[b]{1.0\textwidth}
     \centering
+    \includegraphics[width=1\textwidth]{accept}
     \caption{}
   \end{subfigure}
   \begin{subfigure}[b]{1.0\textwidth}
     \centering
+    \includegraphics[width=1\textwidth]{reject}
     \caption{}
   \end{subfigure}
-  \caption{A noisy spectrgoram before (a) and after (b) template selection}
+  \caption{A noisy spectrgoram showing accepted (a) and rejected (b) templates}
   \label{fig:template_select_effects}
 \end{figure}
 
@@ -100,115 +114,69 @@ Once selection is performed for a particular pixel region, it's bounding box is
 expanded by 10 pixels in each direction, and that region is extracted from the
 original, unprocessed spectrogram.
 This forms a single template.
-The template is then blurred using a Gaussian filter with a sigma of 1.5
-(Figure~\ref{fig:extract_blur}).
+The template is then blurred using a Gaussian filter with a sigma of 1.5.
 
 Blurring the template allows us to reduce its size, which brings performance
 boosts to template matching.
 Blurring the template also improves it's generality, which makes matches more
 likely.
 Care is taken to ensure that templates do not become overly generic, resulting
-in general ambiguity.
+in ambiguity.
 The same operation is made to the spectrograms subject to cross-correlation
-mapping in order to ensure consistency.
-
-\begin{figure}[h]
-  \centering
-  \begin{subfigure}[h]{0.5\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[h]{0.5\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \caption{A template before (a) and after (b) gaussian filtering}
-  \label{fig:extract_blur}
-\end{figure}
+mapping for consistency.
 
 \subsection{Advanced Template Elimination}
-It is desireable to reduce the template count further by recognizing aspects which
-make for good templates. This subsection outlines some speculative methods for
+It is desireable to reduce the template count further.
+This can be made possible by recognizing correlations between candidate templates.
+This subsection outlines some speculative methods for
 selecting better templates.
 
 \subsubsection{Spatial inclusion}
 Imperfections in the preprocessing mechanism leads to errorneous pixel segments.
 Incorrect gaps, joins and other inconsistencies in structure persist or
 materialise.
-If ignored, these will be extracted along with valid templates.
-As long as these are infrequent, the additional templates will factor more as
-a performance penalty than an accuracy reduction.
+If ignored, these are extracted along with valid templates.
+If infrequent, the additional templates will factor less as an accuracy penalty,
+and more as a performance issue.
 
 In many of these cases, one template's bounding box intersects or is contained
 entirely within another template's bounding box as shown in
 Figure~\ref{fig:segment_intersect_a}.
 These errors can be corrected by taking the bounding box of their unions.
+In contrast, Figure~\ref{fig:segment_intersec_b} shows that this does not always
+work, and result in large, incorrect groupings.
 
-\begin{figure}[h]
+\begin{figure}[!htb]
   \centering
   \begin{subfigure}[h]{0.5\textwidth}
     \centering
+    \includegraphics[width=1.0\textwidth]{spatial_fix}
     \caption{}\label{fig:segment_intersect_a}
-  \end{subfigure}
+  \end{subfigure}%
   \begin{subfigure}[h]{0.5\textwidth}
     \centering
+    \includegraphics[width=1.0\textwidth]{spatial_unfix}
     \caption{}
+    \caption{}\label{fig:segment_intersect_b}
   \end{subfigure}
   \caption{Example of errorneous segmentations correctable (a) and incorrectable (b)
   by merging their bounding boxes}
   \label{fig:segment_intersect}
 \end{figure}
 
-Similarly, templates which are sufficiently close to eachother may be merged,
-but without special care, this may quickly result in excessively large groupings.
-
-\subsubsection{Variation in granularity}
-There exists a variance in granularity for the extracted templates, in which
-some sections of song are mostly connected to form a single template, and others
-are disconnected, leaving templates with single syllables \textbf{right word?}
-and templates with entire sections of song.
-This is a similar to the observation in \textbf{spatial inclusion}.
-
-\textbf{what to do about it}
-\textbf{is it a problem}
-
-\begin{figure}[!htb]
-  \centering
-  \caption{Example of selected templates with varying granularity}
-\end{figure}
-
-
 \subsubsection{inter-template correlation}
-some templates may correlate with eachother, should they be merged?
+As expected, templates will have some level of inter-correlation.
+This leads to a database of many hundreds or thousands of very similar templates.
+Merging these in some form has been considered but not approached.
+This would benefit performance dramatically, but it is most likely to cause
+a noticeable dip in accuracy.
+For this to succeed, the result of the merge must represent all related templates
+equally, and it is clear that this would not be as accurate as individual
+templates.
 
 It can also be argued that templates with little to know intercorrelation may be
-independent anomalies such as noise in the signal or other sounds irrelevant to
-the subject species.
-
-\begin{figure}[!htb]
-  \centering
-  \begin{subfigure}[h]{0.2\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[h]{0.2\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[h]{0.2\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[h]{0.2\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[h]{0.2\textwidth}
-    \centering
-    \caption{}
-  \end{subfigure}
-  \caption{A selection of very similar segments}
-\end{figure}
+independent anomalies, such as noise or external signals irrelevant to the
+subject species.
 
 \subsubsection{Species-specific template statistics}
 It may be possible to use information regarding average dimensionality and mean
@@ -216,7 +184,7 @@ frequency information to determine the relevance likelyhood of a particular temp
 Such metrics require an existing set of validated templates, which may be gathered
 by filtering a non discriminated set of templates by their measures importances.
 
-Figure~\ref{fig:bandlimnit} shows how the birdx song doesn't use vocalisations
+Figure~\ref{fig:bandlimit} shows how the birdx song doesn't use vocalisations
 under 123 Hz.
 
 \begin{figure}[!htb]

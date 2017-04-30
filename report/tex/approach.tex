@@ -1,16 +1,20 @@
 \section{Our Approach}
-Our initial approach is inspired by similar sound recognition problems.
-Such problems include the recognition of voice, music, animals vocalisations
-including whale song, calls, and so on.
+Our initial approach is inspired by similar sound recognition problems and
+existing methods.
+Such problems include the recognition of voice, music, and animal vocalisations
+of species other than birds.
 It is observed that these problems, while similar in nature, differ in practice.
 This is mainly due to the nature of the sound being analysed, as well as
 domain knowledge of the structure.
 
-For example, the acoustics of human voice is well studied, and patterns are
-easily identified today.
-Specialised methods for analysing voice recordings exist, including intonation
-etc etc \textbf{add more}.
-we have a mapping, we know the words, we dont speak bird noises
+For example, the structure of human voice is well studied, and patterns are
+easily automatically identified today.
+Specialised methods for modelling and analysing voice recordings exist, such as 
+hidden markov models, dynamic time warping, neural networks.
+Human speech recognition is however a different task entirely, as the goal here
+is to identify words, and not the individual speaking.
+One could consider the problem of individual identification, which may provide
+insight into useful methods.
 
 Music recognition is trivial in the case of identifying pure reproductions,
 the main challenge in this area being noise reduction and distortion compensation.
@@ -18,11 +22,13 @@ Music can be easily identified using statistical methods to compare pitch
 variations along the duration of the recording.
 Bird song however contains many variations and transpositions within the same
 species which make it difficult to find an archetypal sequence of pitch
-variations.\\
+variations.
+The issue of noise reduction remains relevant to our problem.\\
 
-A common approach to solving these problems is to reduce it to image recognition
-on spectrogram images, where elements common to specific classifications are
-searched for within a the spectrogram of a target example.
+A common approach to solving these problems is to first reduce it to an image
+recognition problem by using the spectrographic representation of the audio.
+Elements descriptive of specific labels are searched for within a the
+spectrogram of a target example.
 The simplicity and success of such solutions has driven the direction of this
 project.
 
@@ -34,43 +40,62 @@ how an orthonologist visually inspects the song spectra.
 These sections are then matched against new samples to be classified through a
 multi-class machine learning algorithm.
 
-move bulk of subsections to appendices
-
-\subsection{Process Overview}
-The project is divided into four discrete parts.
-These follow the logical flow of data in the system:
+\subsection{Process Overview and Document Outline}
+The project is divided into four discrete parts, which follow the logical flow
+of data in the system.
+Each part is detailed in their relevant sections, including discussion on
+possible alternatives and improvements to the mechanisms that have been
+developed.
 \begin{enumerate}
-  \item \textbf{Collection:}
+  \item \textbf{Collection and Specification:}
     Data is sourced from field recordings done in uncontrolled environments.
     The variety provides a good estimate of real-world performance and
     introduces many quality related issues.
 
-  \item \textbf{Preparation and selection:}
+  \item \textbf{Preparation and Selection:}
     Recordings are filtered and selected to maintain reasonable quality levels.
     Spectrograms are then derived from the recordings.
     This is now the representation that is used throughout the program until
     the feature vector is constructed.
 
-  \item \textbf{Preprocessing and feature extraction:}
+  \item \textbf{Preprocessing and Feature Extraction:}
     Noise is reduced as much as possible to identify key regions of interest
     within the spectrogram image.
     These are extracted as templates and cross-correlated against other
     recording spectrograms to form a feature vector.
 
-  \item \textbf{Classification and evaluation:}
+  \item \textbf{Classification and Evaluation:}
     The resulting data is then fed to a classifier and evaluated using techniques
     designed to reduce statistical bias.
 \end{enumerate}
 
-Each of these procedures are described in detail in their respective sections.
-A few of these sections discuss possible alternatives or improvements to the
-developed mechanisms.
-
 Performance is an equally important aspect of this project, as such some
 analysis is discussed on the cost of key stages.
 
+\subsection{Architectural Overview}
 
-\textbf{diagram of key sections}
+\begin{figure}
+  \centering
+  \caption{System block diagram}
+  \label{fig:sysoverview}
+\end{figure}
+
+
+Flexibility was the primary concern in designing the system.
+We built a framework from which discrete stages in the pipeline are as isolated
+as possible.
+Throughout the development process it became clear that performance was a
+primary concern due to the large volume of data and the complexity of the
+operations on such data.
+Some effort is made to improve performance in key areas, such as the use of
+multiprocessing in template extraction and cross-correlation, and on-demand
+loading of samples and templates, as opposed to loading everything during
+initialisation.
+Performance improvements to specific mechanisms such as template matching are
+discussed in their respective sections.
+
+
+
 
 discuss The codebase evolved through several iterations 
 leave retrospective dev thoughts to conclusion section

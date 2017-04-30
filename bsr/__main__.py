@@ -125,6 +125,8 @@ class ClfEval:
     def run(self):
         self.feature_importances = [-1] * len(self.data.template_order)
 
+        oobs = []
+
         for shuffle_idx in range(self.n_shuffles):
             print('shuffle {} of {}'.format(shuffle_idx+1, self.n_shuffles))
 
@@ -155,6 +157,7 @@ class ClfEval:
 
                     self.clf.fit(X_train, y_train)
                     print('OOB predictive accuracy: {} '.format(self.clf.oob_score_), end='')
+                    oobs.append(self.clf.oob_score_)
                     #imp1 = copy.deepcopy(self.clf.feature_importances_)
                     preds = self.clf.predict(X_test)
                     #imp2 = copy.deepcopy(self.clf.feature_importances_)
@@ -170,12 +173,15 @@ class ClfEval:
                     #logging.info('accuracy: {}'.format(
                     #    np.mean(self.accuracies[split_idx]))
                     #)
-            print('  res acc: {:.4f} {:.4f}  precision: {:.4f} {:.4f}  recall: {:.4f} {:.4f}  fscore: {:.4f} {:.4f}'.format(
+            print('  {} {} res acc: {:.4f} {:.4f}  precision: {:.4f} {:.4f}  recall: {:.4f} {:.4f}  fscore: {:.4f} {:.4f}'.format(
+                np.mean(oobs), np.std(oobs),
                 np.mean(self.stats['accuracies'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['accuracies'][shuffle_idx:shuffle_idx+self.n_shuffles]),
                 np.mean(self.stats['precisions'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['precisions'][shuffle_idx:shuffle_idx+self.n_shuffles]),
                 np.mean(self.stats['recalls'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['recalls'][shuffle_idx:shuffle_idx+self.n_shuffles]),
-                np.mean(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles])
+                np.mean(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles]),
             ))
+
+        print ('{} {}'.format(np.mean(oobs),np.std(oobs)))
 
     def set_classifier(self, clf):
         self.clf = clf
@@ -281,6 +287,7 @@ def find_templates(ids):
 def build_all_spectrograms(samples):
     num_build = 0
 
+    print('{} sg'.format(len(samples)))
     for sample in samples:
         path = sample.get_pcm_path(DIR_SAMPLES)
         if not os.path.exists(path): continue
@@ -297,14 +304,15 @@ def build_all_spectrograms(samples):
             print(e)
             continue
 
-        pxx, freqs, times = make_specgram(pcm[15000:50000], fs)
+        left = 00000
+        right = left + 50000
+        pxx, freqs, times = make_specgram(pcm[left:right], fs)
         sgram = Spectrogram(sample, pxx, freqs, times)
 
         fig,ax=plt.subplots()
         fig.set_size_inches(10,2)
         fig.tight_layout()
-        time = np.linspace(0, len(pcm[15000:50000])/fs, num=len(pcm[15000:50000]))
-        time = np.arange(0, len(pcm[15000:50000])) * (1.0 / fs)
+        time = np.arange(0, len(pcm[left:right])) * (1.0 / fs)
         scale = 1e3
         ticks = matplotlib.ticker.FuncFormatter(
                 lambda x, pos: '{0:g}'.format(x/scale))
@@ -312,18 +320,17 @@ def build_all_spectrograms(samples):
             d = datetime.timedelta(seconds=x)
             return datetime.time(0,0,d.seconds).strftime("%M:%S") + '.' + str(d.microseconds)[:2]
         formatter = matplotlib.ticker.FuncFormatter(timeTicks)
-        #ax.imshow(pxx, extent=[times.min(),times.max(),freqs.min(),freqs.max()], aspect='auto', cmap=pylab.get_cmap('Greys'), origin='lower')
-        #ax.set_aspect('auto')
-        #ax.set_ylabel('kHz')
-
-        #ax.set_xticks(time)
-
-        ax.plot(time, pcm[15000:50000], 'k')
-        ax.set_xlim(0,35000)
+        ax.imshow(pxx, extent=[times.min(),times.max(),freqs.min(),freqs.max()],
+                aspect='auto', cmap=pylab.get_cmap('Greys'), origin='lower')
         ax.set_aspect('auto')
-        ax.axis('tight')
-        ax.set_ylabel('dB')
-        ax.get_yaxis().set_visible(False)
+        ax.set_ylabel('kHz')
+
+        #ax.plot(time, pcm[15000:50000], 'k')
+        #ax.set_xlim(0,35000)
+        #ax.set_aspect('auto')
+        #ax.axis('tight')
+        #ax.set_ylabel('dB')
+        #ax.get_yaxis().set_visible(False)
 
         ax.set_xlabel('time m:s')
         ax.yaxis.set_major_formatter(ticks)
@@ -331,6 +338,7 @@ def build_all_spectrograms(samples):
         ax.set_xlim(0,time[len(time)-1])
 
         plt.tight_layout()
+        plt.show()
         plt.savefig('pcm')
 
 #        plt.plot(time, pcm[15000:50000],'k')
@@ -344,13 +352,18 @@ def build_all_spectrograms(samples):
         #plt.show()
 
 
-        exit()
 
         #Tracer()()
         #exit()
         num_build += 1
 
-        sample.spectrogram = sgram
+        sample.get_spectrogram()
+        print(np.min(pxx))
+        print(np.max(pxx))
+        sample._sample.spectrogram._spectrogram = sgram
+        sample._sample.spectrogram._path = './test'
+        sample._sample.spectrogram.write_to_file('./test')
+        sample._sample.spectrogram.spectrogram = sample._sample.spectrogram.load_from_file(sample,'./test')
 
     return num_build
 
@@ -1185,9 +1198,9 @@ def main():
         preserve = True;
         if preserve:
             #repository.filter_labels(['Common Blackbird', 'Great Reed Warbler', 'Common Rosefinch', 'Common Cuckoo'], reject=False)
-            repository.filter_uids(['XC234247'], reject=False)
-            if len(previous_ids) != 0:
-                repository.filter_uids(previous_ids, reject=False)
+            repository.filter_uids(['XC144519'], reject=False)
+            #if len(previous_ids) != 0:
+                #repository.filter_uids(previous_ids, reject=False)
         else:
             repository.filter_uids(previous_ids, reject=True)
             logging.info('remove previous ids: filtered down to {} samples'.format(len(repository.samples)))
@@ -1209,7 +1222,6 @@ def main():
             sgram_count = build_all_spectrograms(repository.samples)
             logging.info('built {} spectrograms'.format(sgram_count))
             #repository.store_all()
-            Tracer()()
             #store_all_spectrograms(samples)
     #    elif options.spectrograms_load:
     #        if options.verbose: print 'loading spectrograms..'
@@ -1229,16 +1241,17 @@ def main():
         if options.templates_build:
             #logging.error('UNSUPPORTED ACTION')
             #exit()
-            Tracer()()
+            #Tracer()()
             #delete_stored_templates(samples)
-            all_templates = build_all_templates(repository.samples, options.label_filter)
+            all_templates = build_all_templates(repository.samples, 
+                    options.label_filter)
             exit()
             logging.info('extracted {} templates'.format(len(all_templates)),
                 '',
                 'vvv after template build vvv')
             print_template_statistics(samples)
 
-            store_all_templates(samples)
+            #store_all_templates(samples)
     #    elif options.templates_load or options.features_build:
     #        if options.verbose:
     #            print 'loading templates..'
@@ -1317,8 +1330,8 @@ def main():
         ce = ClfEval(data, 10, 10, None)
         #clf = ExtraTreesClassifier(
         param_grid = {
-            'n_estimators': [10, 100, 500, 5000, 10000],#[10, 500, 5000, 10000],
-            'max_features': ['sqrt', 'log2', '0.33', None],#, len(previous_data.template_order)*0.8],
+            'n_estimators': [150, 300],#[10, 500, 5000, 10000],
+            'max_features': [0.33, 'sqrt', 'log2'],#, len(previous_data.template_order)*0.8],
             'min_samples_split': [2],#, 10, 100],
             'min_samples_leaf': [1],#, 10, 100],
             'max_depth': [None]#, 5, 10, 100, 200]

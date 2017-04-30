@@ -21,7 +21,7 @@ def plotMultiple(graphs, label=None, labels=None):
                                                        sharey = ax[i-1])
         else: _ax = plt.subplot2grid((2,1), (i,0))
         _ax.axis('off')
-        _ax.imshow(graph, cmap=pylab.get_cmap('Greys_r'))
+        _ax.imshow(graph, cmap=pylab.get_cmap('Greys'), vmin=np.min(graph), vmax=np.max(graph))#, origin='lower')
         _ax.set_aspect('auto')
         if labels is not None: _ax.set_title(labels[i])
         ax.append(_ax)
@@ -56,14 +56,17 @@ def extract_templates(im, interactive = False):
     Extract all templates from a given spectrogram image
     """
 
+    im = np.flipud(im)
 #    tmp = cv2.medianBlur(im, 5)
 #    tmp = cv2.threshold(tmp, 255*0.65, 255, cv2.THRESH_BINARY)[1]
+
     im_filtered = filter_specgram(im, interactive)
     _, contours, _ = cv2.findContours(
         im_filtered,
         cv2.RETR_LIST,
         cv2.CHAIN_APPROX_SIMPLE
     )
+
 
     templates = []
 
@@ -72,6 +75,8 @@ def extract_templates(im, interactive = False):
     if interactive:
         im_dbg_template_rejected = im.copy()
         im_dbg_template_overlay = im.copy()
+
+    #im_dbg_template_overlay *= 255/im_dbg_template_overlay.max()
 
 
     # apply trunc threshold
@@ -99,8 +104,10 @@ def extract_templates(im, interactive = False):
         if area < 50 or area > 10000: # : continue
         #if area > 10000:
             if not interactive: continue
-            cv2.putText(im_dbg_template_rejected, '{}'.format(area), (left, top), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,0))
-            cv2.rectangle(im_dbg_template_rejected, (left,top), (right,bottom), (0, 0, 0), 1)
+#            cv2.putText(im_dbg_template_rejected, '{}'.format(area),
+#                    (left, top), cv2.FONT_HERSHEY_PLAIN, 1.0,
+#                    int(np.max(im_dbg_template_rejected)))
+            cv2.rectangle(im_dbg_template_rejected, (left,top), (right,bottom), int(np.max(im_dbg_template_rejected)), 1)
             continue
 
         if smallest == -1 or area < smallest: smallest = area
@@ -109,19 +116,21 @@ def extract_templates(im, interactive = False):
         #x = im[r[1]:r[1]+r[3], r[0]:r[0]+r[2]]
         if np.min(x) >= average_val:
             if not interactive: continue
-            cv2.putText(im_dbg_template_rejected, 'v:{}'.format(np.average(x)), (left, top), cv2.FONT_HERSHEY_PLAIN, 1.0, (0,0,0))
-            cv2.rectangle(im_dbg_template_rejected, (left,top), (right,bottom), (0, 0, 0), 1)
+            cv2.putText(im_dbg_template_rejected, 'v:{}'.format(np.average(x)), (left, top), cv2.FONT_HERSHEY_PLAIN, 1.0, int(np.max(im_dbg_template_rejected)))
+            cv2.rectangle(im_dbg_template_rejected, (left,top), (right,bottom), int(np.max(im_dbg_template_rejected)), 1)
             continue
         x = cv2.GaussianBlur(x, (0,0), 1.5)
         templates.append(x)
 
         if interactive:
-            cv2.rectangle(im_dbg_template_overlay, (left, top), (right, bottom), (0, 0, 0), 1)
+            cv2.rectangle(im_dbg_template_overlay, (left, top), (right, bottom), int(np.max(im_dbg_template_overlay)), 1)
         #cv2.rectangle(im_dbg_template_overlay, (r[0]-10, r[1]-10), (r[0]+r[2]+10, r[1]+r[3]+10), (255,0,0), 1)
     if interactive:
         plotMultiple([im_dbg_template_overlay, im_dbg_template_rejected],
+        #plotMultiple([im_filtered, im_dbg_template_rejected],
                      None,
                      ['templates', 'rejected'])
+
 
 #        cv2.namedWindow('orig')
 #        cv2.imshow('orig', im_dbg_template_overlay)
@@ -130,10 +139,24 @@ def extract_templates(im, interactive = False):
     #    plt.imshow(im_dbg_template_overlay, aspect='auto')
     #    plt.show()
         print 'smallest: {}'.format(smallest)
+    plt_(im_dbg_template_rejected,'reject')
+    plt_(im_dbg_template_overlay,'accept')
 #        while cv2.waitKey(0) != ord('n'):
 #            pass
 
     return templates
+
+
+def plt_(im,f):
+    im=im[:,:350]
+    fig,ax=plt.subplots()
+    fig.set_size_inches(4,2)
+    fig.tight_layout()
+    ax.imshow(im,aspect='auto',cmap=pylab.get_cmap('Greys'))
+    ax.get_yaxis().set_visible(False)
+    ax.get_xaxis().set_visible(False)
+    plt.tight_layout()
+    plt.savefig(f)
 
 
 def filter_specgram(im, interactive = False):
@@ -152,21 +175,31 @@ def filter_specgram(im, interactive = False):
 #    im_thresh = cv2.dilate(im_thresh, np.ones((6, 6)))
 #    im_thresh = cv2.erode(im_thresh, np.ones((6, 6)))
 
+    im=-im
     th = cv2.GaussianBlur(im, (5, 5), 0)
+    #plt_(th,'pp_gauss')
     th = cv2.threshold(th, 0, 255, cv2.THRESH_TRUNC + cv2.THRESH_OTSU)[1]
+    #plt_(th,'pp_ttrunc')
     th = cv2.threshold(th, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    #plt_(th,'pp_tbin')
 
     #small grouping
     th2 = cv2.dilate(th, np.ones((3,3)))
     th2 = cv2.erode(th2, np.ones((3,3)))
+    #plt_(th2,'pp_small')
 
     #large grouping
     th = cv2.erode(th, np.ones((7, 7)))
     th = cv2.dilate(th, np.ones((7, 7)))
+    #plt_(th2,'pp_large')
+
+    th = -th
 
     filled = cv2.morphologyEx(
             th, cv2.MORPH_CLOSE,
             cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)))
+
+    #plt_(filled,'pp_fill')
 
 #    if interactive:
 #        #cv2.namedWindow('blur')

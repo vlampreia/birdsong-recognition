@@ -12,6 +12,7 @@ def image_load(path):
 
 def image_write(im, path):
     try:
+        print(path)
         matplotlib.image.imsave(
             path,
             im,

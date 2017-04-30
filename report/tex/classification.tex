@@ -17,7 +17,7 @@ bird, this has not been pursued.
 There exist many suitable multi-class machine learning algorithms.
 It is desireable to obtain a probabilistic output, which gives the probabilities
 for each label.
-This is useful to gauge the confidence level of the classifier increasing the
+This is useful to gauge the confidence level of the classifier and increase the
 transparency of our classifications.
 
 A multi-class classifier may also be constructed from an ensemble of several
@@ -36,14 +36,13 @@ individual templates, in our case measurable directly through feature importance
 
 Once an initial algorithm has been chosen, it may be compared to others through
 multi-run cross-validation, comparing accuracy results.
-(\textcite{Bouckaert2003}).
-
-
+\parencite{Bouckaert2003}.
 
 \subsection{Overview of the Random Forest Classifier}
 A random forest \parencite{breiman2001} is an ensemble of decision tree classifiers.
-Each tree is developed using randomly sampled training data, and because decision
-trees are capable of multi-class classification, forests can also.
+Each tree is developed using randomly sampled training data.
+Because decision trees are capable of multi-class classification,
+forests are also support this natively.
 
 The random forest algorithm is well suited for the given task:
 It is relatively performant, not particularly sensitive to bias or noise
@@ -66,7 +65,7 @@ species, while considering only the features of that species.
 This allows for less expensive updates, as we can add and modify species without
 needing to rebuild all of the forests.
 Although this method ignores higher-order interactions between class features,
-it has been shown to exhibit good performance (\textcite{lasseck2013}).\\
+it has been shown to exhibit good performance \parencite{lasseck2013}.\\
 
 We have chosen to use a single multithreaded multi-class random forest.
 
@@ -85,7 +84,8 @@ A speed increase is likely to be observed with many more trees.
 The most impactful parameters for random forest performance are the number of
 trees and the number of features at each split.
 Random forests are generally trained so that trees are fully grown to minimise
-bias, and the number of trees is increased as much as necessary to minimise variance.
+bias, and the number of trees is increased as much as necessary to minimise
+variance \parencite{breiman2001}.
 Altering the remaining parameters mostly results is tree pruning, which may be
 desireable if overfitting occurs.
 
@@ -126,18 +126,19 @@ desireable if overfitting occurs.
 
 The following parameters are set by default and used to gauge the effectiveness
 of tuning:
-\begin{itemize}
+\begin{itemize}[noitemsep]
   \item Estimators: 10
-  \item Max features: square root of number of features
+  \item Max features: $sqrt(n)$
   \item Min samples to split: 2
   \item Min samples leaf: 1
   \item Max depth: |none|
 \end{itemize}
+Max features is a function of the number of features.
 
 For comparison, the following parameters have found to be optimal through the tuning mechanism
 discussed in Section~\ref{sec:tuning}, and is used throughout evaluation in
 Sections~\ref{sec:acc_eval} and \ref{sec:feature_imp}:
-\begin{itemize}
+\begin{itemize}[noitemsep]
   \item Estimators: ?
   \item Max features: ?
   \item Min samples to split: ?

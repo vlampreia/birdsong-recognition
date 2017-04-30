@@ -11,9 +11,13 @@ This section describes the mechanisms used to perform cross-correlation mapping
 for feature vector construction and a short analysis of the computational
 expense involved.
 
-\subsection{Batch Processing}
-Once initial reductions have been made through the selection process,
-further processing is batched in groups of four species, which are selected in
+\subsection{Batch Processing and Result Persistency}
+Once initial reductions are been made through the selection process as described
+in Section~\ref{sec:template_select}, template matching is performed in batched
+stages.
+
+\subsubsection{Batching}
+Further processing is batched in groups of four species, which are selected in
 random order without replacement.
 Each batch undergoes template matching, the results of which are stored on disk.
 Once a batch is completed it is merged with previous results by cross-template
@@ -25,23 +29,36 @@ This is an effective method for dividing work into managable chunks while storin
 intermediate results.
 The cost analysis in the following section justifies the need for batching.
 
+\subsubsection{Persistency}
+Results are stored on disk.
+This is done using the Python |Pickle| module.
+Each result file is self-sufficient, as it contains all the necessary information
+to classify and manipulate feature sets:
+\begin{itemize}[noitemsep]
+  \item Ordered list of \textbf{feature vectors} for each sample;
+  \item Ordered list of numeric \textbf{labels} for each sample;
+  \item Ordered list of unique \textbf{ids} for each sample;
+  \item Mapping from numeric labels to real labels;
+  \item List of \textbf{used templates}, in order of appearance in feature vectors.
+\end{itemize}
+
 \subsection{Template Matching}
 Template matching is a method for computing the similarity of an image within
 another.
 We use a normalised cross-correlation method for template matching.
 This mode was chosen over squared-difference and cosine-coefficient because it
 has been used with good results in similar spectrogram template matching tasks
-(\textcite{lasseck2013}).
+\parencite{lasseck2013}.
 Normalisation is used to reduce the effect of background noise in the
 spectrogram images.
 
-The result of cross-correlation is a 2-dimensional vector of equal dimensions to
-the target image, where values are normalised from 0 to 1 (Figure~\ref{fig:ccm}).
+The result of cross-correlation is a 2-dimensional vector with dimensions equal to
+those of the target image, with values from 0 to 1 (Figure~\ref{fig:ccm}).
 Greater values indicate a higher level of correlation for the template in that
 area.
 This can be thought of and visualised as a heatmap of the template's correlation.
 
-\begin{figure}[t!]
+\begin{figure}[!htb]
   \centering
   \begin{subfigure}[t]{0.5\textwidth}
     \centering
@@ -60,27 +77,29 @@ This can be thought of and visualised as a heatmap of the template's correlation
   \label{fig:ccm}
 \end{figure}
 
-Section~\ref{sec:feature_imp} discusses the mechanism for and analysis of feature
-importance.
+Section~\ref{sec:feature_imp} discusses the mechanism and analysis of individual
+feature importances.
 
 \subsubsection{Implementation and cost}
 We use Open-CV's |matchTemplate| function with the normalised CCM method.
 It's implementation uses a Fourer analysis approach for improved performance over
 the traditional raw statistical methods.
-This works by first applying a FFT to the template and target image before
+This works by first applying a FFT to the template and target images before
 performing the cross-correlation.
-\textbf{cant find ref, look at code?}
 
 Even with such optimizations, template matching takes a considerable amount of
 time.
-Template matching takes on average x minutes per template, given
-mean size of m and n pixels for spectrograms and templates respectively.
+Template matching takes on average 16 minutes per spectrogram, or 0.07 seconds
+per template,
+given mean volume of 21941 and 34 pixels for spectrograms and templates respectively.
+Considerably larger spectrograms occur often enough to add to the costs,
+potentially in the order of hours.
 Considering the quantity of templates being analysed, the time required quickly
 amounts to days.
 
 To gain insight into how the requirements respond to the size of a
 spectrogram, a feature extraction run was performed for 80 spectrograms of
-varying sizes, with 12204 templates.
+varying sizes, with 12204 total templates.
 Spectrograms and templates were selected at random following the same selection
 and filtering procedures described in previous sections.
 Total time to completion was approximately 22 hours on the machine listed in
@@ -99,12 +118,12 @@ Appendix~\ref{app:machine}.\\
     \caption{}
   \end{subfigure}
   \caption{Time (a) and resident memory (b) usages as pixel count increases for
-  cross-correlation against 12204 templates}
+  cross-correlation of a single spectrogram against 12204 templates}
 \end{figure}
 
 Further optimisations have been implemented.
 In particular, dimensionality reduction is performed on templates and
-spectrograms by blurring and reducing their size as seen in
+spectrograms by blurring and reducing their size as discussed in
 Section~\ref{sec:extract}.
 
 In addition, template matching is multithreaded using Python's |multiprocessing|
@@ -124,14 +143,14 @@ Additional optimizations could, but have not been implemented:
 
   \item Open-CV's template matching function supports on-GPU calculations.
     Doing so would result in considerable gains in speed, however this requires
-    an NVIDIA CUDA device (http://docs.opencv.org/2.4/modules/gpu/doc/introduction.html).
+    an NVIDIA CUDA device.
 
   \item Open-CV uses FFT.
     Fast Normalised Cross Correlation (FNCC) is a faster alternative to FFT based
-    methods of template matching (TemplateMatchingusingFastNormalizedCrossCorrelationKaiBriechleandUweDHanebeck).
-    Replacing calls to an implementation which uses FNCC would result in some 
+    methods of template matching \parencite{briechle2001}.
+    Replacing calls to an implementation which uses FNCC may result in some 
     performance gains, however an existing implementation has not been found,
-    and writing one from scratch is expensive without a guarantee of noticeable
+    and writing one from scratch is costly without a guaranteed noticeable
     impact.
 \end{itemize}
 
@@ -149,4 +168,4 @@ The values of each element in the vector are derived from the template matching
 results by taking the maximum value from the cross-correlation mapping.
 The maxima intuitively gives us the highest matching probability for a template,
 but discards information of other possible matches.
-This extraction has shown promising results (\textcite{fodor2013}).
+This extraction has shown promising results \parencite{fodor2013}.

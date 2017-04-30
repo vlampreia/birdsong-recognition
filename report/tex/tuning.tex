@@ -1,107 +1,99 @@
 \section{Tuning}\label{sec:tuning}
-In machine learning there is no single set of parameters or rule set which will
+In machine learning there is no default set of parameters or rule set which will
 gaurantee optimal performance.
 The only conclusive method to find optimal parameter values is to evaluate
-the effects of changing them.
-If done incorrectly however, tuning can lead to overfitting.
+each by comparison.
+This can quickly lead to overfitting if the results are misinterpreted or
+incorrectly measured.
 
-Overfitting can occur if tuning is performed on the entire dataset.
-To reduce the chance of this, datasets should also be split into development
-and evaluation sets.
+The primary cause of overfitting is tuning on the entire dataset.
+To reduce the chance of this, datasets should be split into development
+and evaluation sets, on top of cross validation.
 Although we don't do this here, we do use 10-times 10-fold cross validation as
 described in Section~\ref{sec:acc_eval}.
-This mechanism coupled the good overfitting resistance exhibited by the random
-forests algorithm should provide sufficiently valid results.
 
-The parameter search algorithm and analysis of results are discussed in this
-section.
+The OOB error rate gives us an estimate of real-world performance, and we may
+gain some insight into whether or not we are actaully gaining performance in
+other metrics or overfitting by comparing this with the OOB error.
 
 
 \subsection{Gridsearch}
-The most basic form of parameter search is exhaustive gridsearch.
+The most basic form of parameter search is gridsearch.
 A set of influential parameters are chosen, as well as a range of discrete
 values to test.
-Gridsearch then involves the exhaustive enumeration  of all possible parameter
+Gridsearch then involves the exhaustive enumeration of all possible parameter
 value combinations.
 
 We test each combination using the usual evaluation mechanism with the following
 search space:
 \begin{itemize}
-  \item Estimators: 10, 500, 5000, 10000
-  \item Max features: Sqrt, log2, num features
-  \item min samples split: 2, 10, 100
-  \item min samples leaf: 1 10 100
-  \item max depth: None, 5, 10, 100, 200
+  \item Number of Estimators: 10, 100, 500, 5000, 10000
+  \item Max features: $sqrt$, $log2$, $0.33*n$
 \end{itemize}
 
 The effect of each parameter is described in Section~\ref{sec:param}.
+We have not tested other parameters due to the time cost of doing so.
 
-..we can use oob to help eval but it's reportedly not as certain as splitting
-train/test
 
-we do this multithread
+\subsubsection{Results}
 
-NOTE NOTE NOTE
-variance uncertainty with low number of samples
+\begin{figure}[!htb]
+  \centering
+  \begin{subfigure}[b]{0.70\textwidth}
+    \centering
+    \includegraphics[width=1.0\textwidth]{plt_oob}
+    \caption{OOB error}
+    \label{fig:tuning_oob}
+  \end{subfigure}\\
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1.0\textwidth]{plt_acc}
+    \caption{Accuracy}
+    \label{fig:tuning_acc}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.5\textwidth}
+    \centering
+    \includegraphics[width=1.0\textwidth]{plt_f1}
+    \caption{F1-Score}
+    \label{fig:tuning_f1}
+  \end{subfigure}
+%  \begin{subfigure}[b]{0.5\textwidth}
+%    \centering
+%    \includegraphics[width=1.0\textwidth]{plt_prc}
+%    \caption{Precision}
+%  \end{subfigure}%
+%  \begin{subfigure}[b]{0.5\textwidth}
+%    \centering
+%    \includegraphics[width=1.0\textwidth]{plt_rec}
+%    \caption{Recall}
+%  \end{subfigure}
+  \caption{Metrics over n. estimators for each max feature function}
+  \label{fig:tuning}
+\end{figure}
 
-%0 doing params: 0/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
-%/usr/lib/python2.7/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
-%  'precision', 'predicted', average, warn_for)
-%0 params: 0/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.792083333333 std. 0.0846756474896
-%fscores: 0.774496031746 std. 0.0912070497428
-%precisions: 0.807 std. 0.0956255638247
-%recalls: 0.792083333333 std. 0.0846756474896
-%
-%0 doing params: 1/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 1/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.828958333333 std. 0.0882308269226
-%fscores: 0.815523809524 std. 0.0966295635391
-%precisions: 0.848388888889 std. 0.0972153211836
-%recalls: 0.828958333333 std. 0.0882308269226
-%
-%0 doing params: 2/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 2/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.8425 std. 0.0817020898232
-%fscores: 0.83025 std. 0.0894293997584
-%precisions: 0.864009259259 std. 0.0897250797427
-%recalls: 0.8425 std. 0.0817020898232
-%
-%0 doing params: 3/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 3/8 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.847708333333 std. 0.0785720542453
-%fscores: 0.835843253968 std. 0.0857529898424
-%precisions: 0.86990625 std. 0.0854490334312
-%recalls: 0.847708333333 std. 0.0785720542453
-%
-%0 doing params: 4/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 4/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.8225 std. 0.0965048933705
-%fscores: 0.80795 std. 0.106203027383
-%precisions: 0.841780555556 std. 0.109063062903
-%recalls: 0.8225 std. 0.0965048933705
-%
-%0 doing params: 5/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 5/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.824236111111 std. 0.0939180335682
-%fscores: 0.80928968254 std. 0.10361060088
-%precisions: 0.842261574074 std. 0.106871892753
-%recalls: 0.824236111111 std. 0.0939180335682
-%
-%0 doing params: 6/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 6/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 5000, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.825297619048 std. 0.0924877228783
-%fscores: 0.810106575964 std. 0.102024617976
-%precisions: 0.842986111111 std. 0.105094010389
-%recalls: 0.825297619048 std. 0.0924877228783
-%
-%0 doing params: 7/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
-%0 params: 7/8 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10000, 'max_depth': None, 'min_samples_leaf': 1}
-%accuracies: 0.826302083333 std. 0.090884670484
-%fscores: 0.811121031746 std. 0.100457879026
-%precisions: 0.844520833333 std. 0.10332019009
-%recalls: 0.826302083333 std. 0.090884670484
+The OOB error rate (Figure~\ref{fig:tuning_oob}) shows that the random forest is
+predicted to achieve peak
+performance with $0.33 * n. features$ at around 300 estimators, rising outside
+the stable range of $]150,500[$.
+The error rate plateaus at about 500 estimators with other max feature functions.
 
+Accuracy (Figure~\ref{fig:tuning_acc}) and F1-score (Figure~\ref{fig:tuning_f1})
+show that peak performance is achieved between $]35,50[$
+and $[150,500[$ estimators for all max feature functions.
+Because the OOB error begins to stabalise at 100, it is likely that the latter
+range is more indicative of real-world performance over the former.
+The $0.33$ function specifically achieves the peak performance at 300 estimators.
+This correlates with the OOB error curve.
+
+The rise in accuracy at from 500 estimators is most likely attributed to
+overfitting, especially as we consider the tendant rise in OOB error from that
+point.
+Performance improvements are generally observed with the increase in max features.
+The linear max features function shows a smoother response and better
+performance overall.\\
+
+Without a completely independent validation data set it is impossible to perform
+a truly representative evaluation.
 
 
 \subsection{validation curves}

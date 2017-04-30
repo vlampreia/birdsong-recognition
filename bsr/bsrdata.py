@@ -84,7 +84,7 @@ class Spectrogram(AbstractSpectrogram):
         return self.times
 
     def get_templates(self):
-        return this.templates
+        return self.templates
 
     def get_label(self):
         return self.src_sample.get_label()

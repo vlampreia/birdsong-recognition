@@ -1,50 +1,91 @@
 \chapter{CONCLUSIONS}
 
-write some conclusions
-reflection on development 
-what was accomplished
+%- a summary and critical evaluation of what has been achieved
+%
+%- some feedback on what you personally have learned from the project
+%
+%- some thoughts to what you would do with more time (what are the
+%  most important tasks not carried out?), and also how you would
+%  change your approach if you were tarting over, based on what you
+%  know now.
 
-- a summary and critical evaluation of what has been achieved
+\section{Summary}
+This report describes the solution developed for the task of automatic birdsong
+recognition.
+Existing approaches to relevant problems were used as a starting point.
+The approach reduces the initial problem to image recognition using spectrograms
+of the 2211 field recordings sourced from Xeno-canto.
+Image processing techniques were investigated to maximise template quality.
+A random forest classifier was selected to classify 240 of the samples using the
+cross-correlation results.
+After tuning, the model was evaluated using 10-times 10-fold cross validation, 
+achieving a peak accuracy of 88\%, and F1 score of 87\%.
+Finally, feature importances were analysed to rank templates and perform further
+feature reductions to improve scalability.
 
-- some feedback on what you personally have learned from the project
+\section{Reflection}
+An open-ended project such as this has scope for exploratory research.
+Regardless of the approach taken, the nature of the project touches on many
+facets of computer science.
+Our approach focuses on computer vision and machine learning, touching on
+performance computing with (relatively) large amounts of data.\\
 
-- some thoughts to what you would do with more time (what are the
-  most important tasks not carried out?), and also how you would
-  change your approach if you were tarting over, based on what you
-  know now.
+Although good results were achieved, these could have been improved.
+Model performance is highly dependent on the features used, and this area
+lacks in sophistication and validation.
+Although we learned about a few computer vision techniques for this, we could
+have increased the breadth and depth of our investigations in this area.
+
+We are confident that the choice of classifier was a good one.
+A lot was learned about machine learning methodologies, although there exists
+a lot of contradictory findings and advice, it is the general consensus that
+with whatever application, it is the data that shapes the approach and the only
+conclusive evaluation to be made is directly based on this.
+
+Given more time, other classifiers could be evaluated as well,
+however validation was limited immensely by the lack of data processed data.
+A total of 20 samples per label was not enough to confidently measure the
+performance of the classifier.
+Given more data, a further separation of development and validation could have
+been done, leading to a more representative evaluation.\\
+
+The lack of data stems from the immense processing power required to
+cross-correlate all 35773 templates.
+This makes it extremely expensive to evaluate new template extractions.
+With this in mind it would have been justifiable to seek external computing
+resources early on, and to spend more time on optimisations.
+With this in mind, Python was not the right choice in terms of performance.\\
 
 
-  - Does it make sense to discard all but one channel instead of trying
-  to merge them? This is slightly surprising to me.
-I have not made too much of an analysis on this, and have just taken
-the easy path of discarding. Merging may indeed make more sense.
-Usually the information is sufficiently similar on both channels, but
-in our case the small changes may indeed matter. Merging might
-also have a negative impact, perhaps a noise source is more audiable
-on one channel, for example. Of course without analysis it doesn't make
-sense to discard the right over the left or vice-versa.
-Something to reflect on I suppose?
+On the topic of software engineering, recommended practices were not observed.
+The exploratory nature of the project has lead to many quick iterations and hacks
+in the software.
+Some effort was expended to restructure large portions of the code to make it
+more robust to future changes, however this quickly deteriorated.
+This was due to the fact that no strict requirements were produced for the
+program's functionality.
+It was always inteded as a test-bed for the explored methods, and so there exists
+a tradeoff between developing the framework and developing the solution.
+We have learned instead that simplicity is key: equal performance would have
+been achieved by splitting the program into discrete artefacts, and transferring
+data through files instead of in-memory.
 
-- It's very interesting that blackbird is a problem species. They do
-  have comparatively varied songs, and I mostly recognize them by the
-  quality of voice rather than any specific phrases. I wonder whether
-  for such species one could change the template selection
-  parameters.
-I plan on looking into the templates extracted for this one and write a 
-bit about any findings I may have.
 
-You currently do not at all address standard SE issues in terms of the
-design, implementation and testing of the software you produced. This
-is fine with me because I am much more interested in what you have
-written about. I still felt I should point this out in case you want
-to squeeze in a summary.
-For this I plan to include some diagrams to describe the flow of data and
-how the software is structured.
-I am yet to write about my development process, but it will not be
-anything too in depth.
-I also intend to discuss any difficulties or matters of interest
-retrospectively in the conclusion.
-Some SE matters are briefly discussed in some of the texts, but I did not
-want to dive into too much detail since implementation details are not the
-main concern.
-No strict testing took place. Something to reflect on again.
+\section{Future Work}
+
+
+%You currently do not at all address standard SE issues in terms of the
+%design, implementation and testing of the software you produced. This
+%is fine with me because I am much more interested in what you have
+%written about. I still felt I should point this out in case you want
+%to squeeze in a summary.
+%For this I plan to include some diagrams to describe the flow of data and
+%how the software is structured.
+%I am yet to write about my development process, but it will not be
+%anything too in depth.
+%I also intend to discuss any difficulties or matters of interest
+%retrospectively in the conclusion.
+%Some SE matters are briefly discussed in some of the texts, but I did not
+%want to dive into too much detail since implementation details are not the
+%main concern.
+%No strict testing took place. Something to reflect on again.

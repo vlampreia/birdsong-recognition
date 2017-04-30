@@ -4,7 +4,7 @@ representation of an audio file, and what features may be extracted to
 characterise and identify bird species.
 
 \subsection{Song Segment Formalisms}
-Bird song structure is well defined in terms of segmentation (\textcite{Catch1997}).
+Bird song structure is well defined in terms of segmentation \parencite{Catch1997}.
 Segment labelling is defined in a naturally descending order of granularity, from
 large sequences to basic singular elements, and are identified by their length
 and duration of silence between sounds:
@@ -39,43 +39,40 @@ and duration of silence between sounds:
 
 \subsection{Distinctive Features in Spectrograms}
 It is common knowledge that bird song is genereally consistent amongst species,
-and differing from species to species.
+and differ from species to species.
 However, there exist some inconsistencies which may become problematic if our
 system does not have enough samples to account for the variance.
 Specifically, variations exist within a species songs between individuals.
 
 One instance of such variation is regional, where the geographical
-location of birds has been found to correlate with differences in detail.
+location of birds has been found to correlate with nuanced differences in detail.
 Local isolation of populations also plays a part in minute variations of song,
-referred to as dialects (\textcite{podos2007}).
+referred to as dialects \parencite{podos2007}.
 
 It has also been observed that birds learn aspects of their song, which affects
-the exactness of the reproduction (\textcite{Krood1983}).
-Recordings of younger birds is therefore expected to differ, to a possibly
+the exactness of the reproduction \parencite{Krood1983}.
+Recordings of younger birds is therefore expected to differ, possibly to a
 significant extent.
 This is an interesting subject in itself: it is plausable that an automatic
 system may be constructed which identifies not only the species of bird but also
 an estimate of its age by similar cross-correlation methods.
 
-\textbf{show closeup of spectrogram detail, show different characteristics:
-sweeps, tones, high/low frequency repetitions, continuous, harmonics}
-
 Birds are able to produce a large varienty of sounds.
 These vary from simple pure tones to complex harmonics with amplitude and
-frequency modulations (\textcite{fager2004}).
+frequency modulations \parencite{fager2004}.
 
 Our image recognition approach makes direct use of the structures present
 in bird songs.
 The intuition is that spectrograms contain all the information necessary to
 distinguish a bird song from another, and that these may be segmented and
-catalogued such that they form the basis of truth for an automatic statistical
+catalogued such that they form the basis of truth for a statistical
 classification system.
 Such a system is essentially the automatic equivalent of manual spectrogram 
 analysis performed by skilled ornithologists, and somewhat an analogue of natural
 pattern recognition done when observing sounds in the field.
 
 Section~\ref{sec:granularity} discusses the issue of selecting an appropriate
-granularity to use for cross-correlation.
+granularity for use in cross-correlation.
 
 \subsection{Potential Alternative and Additional Features}
 There are a number of potentially useful features which have not been tested or
@@ -86,12 +83,12 @@ implicitly included in our approach.
 \subsubsection{Variations in amplitude}
 Amplitude variations are present in many bird vocalisations.
 These have been seen to be dynamic and dependant on the environment and social
-context. (\textcite{brumm2004})
+context \parencite{brumm2004}
 It is therefore likely that this feature is not significantly important for
 species recognition.
 
 This feature is however included in the cross-correlation approach since
-amplitude is represented in spectrograms, although mostly inconsistent due to
+amplitude is represented in spectrograms, although bearinbg inconsistencies due to
 both the dynamic nature of the amplitude variations, and the granularity of the
 extracted segments.
 
@@ -118,4 +115,4 @@ unique or indicative characteristic.
 These features are implicitly included through image recognition, but only at
 the level of granularity afforded by the template extraction mechanism.
 The direct inclusion of extensive segment statistics has been shown to boost
-the classification accuracy to some significance (\textcite{lasseck2013}).
+the classification accuracy to some significance \parencite{lasseck2013}.

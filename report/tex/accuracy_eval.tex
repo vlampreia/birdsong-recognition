@@ -1,11 +1,17 @@
 \section{ Evaluation and Validation}\label{sec:acc_eval}
+To validate our model, several metrics are taken to measure the performance of
+our model.
+Although random forests are less likely to overfit, it can still occur, and is
+nonetheless important to detect.
 
+Most metrics, natively suited to binary classifiers, are easily adapted for use
+in multi-class tasks.
+It is equally important to correctly sample the data as to avoid bias.
+This section discusses first the framework around which the performance of our
+model is measured, the metrics used, and finally an analysis of the results.
 
-a mention on differences in measuring accuracy for single-label vs multi
-label classifier
-
-mention any metrics that we do not use but are standard, and explain
-why we do not use them.
+Section~\ref{sec:tuning} analyses the performance of the classifier with varying
+parameters, in order to find their optimal values.
 
 \subsection{Validation Strategy and Sample Space}
 In effort to reduce sensitivity to chance selection of random samples, all
@@ -13,7 +19,16 @@ measurements are performed using a multi-run stratified 10-fold cross validation
 This gives us a 90/10 train/test data split, and is repeated with a new random
 sample shuffling 10 times.
 Stratification ensures that there exists an equal class balance in the testing
-and training splits.
+and training splits, so that all classes are represented equally.
+
+This is especially important given the small number of representative samples
+for each class.
+Advanced methods exist in order to futher improve our results, such as
+bootstrapping, but this has not been pursued.
+Note that random forests use bootstrap sampling, where a portion of the data is
+not used for training.
+This does produce a measurable result similar in effect to cross-validation,
+called the OOB error, discussed in Section~\ref{sec:metrics}.
 
 For each fold, only features from the selected training samples are
 used for training and validation.
@@ -41,14 +56,15 @@ and template counts per species.
     Common Reed Bunting        & 20 & 2233\\
     Chestnut-breasted Wren     & 20 & 2203\\
     Corn Bunting               & 20 & 2082\\
-    Rufous-browed Peppershrike & 20 & 1404
+    Rufous-browed Peppershrike & 20 & 1404\\ \hline
+    \multicolumn{1}{r}{Total} & 240 & 35773
   \end{tabular}
 \end{table}
 
 \subsection{Evaluation Metrics}\label{sec:metrics}
-Each of the four evaluation metrics are computed in a fold.
-They are then stored and averaged at the end of the 10-fold cross validation.
-The four evaluation metrics used are:
+Each of the five following evaluation metrics are computed in a fold.
+They are then stored and averaged at the end of the cross validation.
+
 \begin{itemize}
   \item \textbf{Accuracy}
     Is the ability of the classifier to correctly label samples.
@@ -83,27 +99,29 @@ The four evaluation metrics used are:
     \begin{equation}
       \frac{2TP}{2TP+FN+FP}
     \end{equation}
+
+  \item \textbf{OOB error rate}
+    Is the out-of-bag (OOB) samples are those which were not selected during the
+    construction of a specific tree.
+    Given the most common label from classifying a sample with its respective tree,
+    the porportion of incorrect classifications is averaged over all OOB samples
+    is taken as the OOB error rate on the training data.
+
 \end{itemize}
-\textbf{move equations to app?}
-show how we can extract TP/TN etc from multiclass results (cnf matrix) .. in
-appendix prob
 
 The Scikit Learn |precision_recall_fscore_support| function was used to compute
 these metrics.
 
 Because this is a multi-class classification task, each metric is computed
-on a per-label basis, treating the data as a set of binary classification tasks.
-To compute scores for the entire classification task, the values are averaged.
-For this we use macro averaging, in which the mean of the scores are computed with equal
-weighting, for each one of the metrics.
+on a per-label basis.
+The average is then computed using "macro" averaging, in which the mean of each
+score is computed with equal weighting for all labels.
 This is appropriate considering we use stratified k-fold, and each
 species is considered equally important to all the others.
 
-\textbf{see about possible multilabel w/o averaging}
-
 \subsubsection{Results}
 Results are promising, good performance has been achieved using the initial
-parameters, and improvements are observed after tuning as is shown in
+parameters, with observed improvements after tuning as is shown in
 Table~\ref{tbl:acc_before_after}.
 
 \textbf{update w/ new defaults}
@@ -119,7 +137,8 @@ Table~\ref{tbl:acc_before_after}.
       Accuracy  & 79.5 (7.3) & 0 \\
       F1 Score  & 77.9 (8.1) & 0 \\
       Recall    & 79.5 (7.4) & 0 \\
-      Precision & 82.3 (8.5) & 0
+      Precision & 82.3 (8.5) & 0 \\
+      OOB Error & -- & --
     \end{tabular}
     \begin{tablenotes}
       \footnotesize
@@ -129,11 +148,6 @@ Table~\ref{tbl:acc_before_after}.
   \end{threeparttable}
 \end{table}
 
-\subsection{AUC curve}
-Not yet measured, can use one v one or one v all to measure individual AUC
-and then volume under roc hypersurface (vus)
-can also compute individual auc for each class if we do try ensembled binary RF
-
 \subsection{Confusion Matrix}
 A confusion matrix plots the rate at which each label is predicted as any other
 label, where the rows represent the true label, and columns represent the
@@ -141,16 +155,18 @@ classifier's predictions.
 
 We construct a confusion matrix to evaluate the performance of the classifier
 and the features used to discriminate between species.
-In this case the matrix allows us to visualise performance per class, and give
+In this case the matrix allows us to visualise the performance distribution per
+class, and give
 some insight into how the classifier is responding to the selected features.
 
 Figure~\ref{fig:cnf12} shows the resulting confusion matrix from classifying the
 selected data, averaged over the 10-run 10-fold cross validation.
+Row-wise normalisation was performed.
 
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=1.0\textwidth]{cnf_matrix_12}
-  \caption{Normalized Confusion Matrix}\label{fig:cnf12}
+  \caption{Row-Normalized Confusion Matrix}\label{fig:cnf12}
 \end{figure}
 
 The confusion matrix shows good classification performance for most species.\\

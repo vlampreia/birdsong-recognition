@@ -2,15 +2,17 @@
 
 Xeno-Canto \parencite{xenocanto} provides over 353830 recordings of 9728
 individual species.
-Recordings consist of both calls and song, uploaded by arbitrary users, and
-therefore may originate from any part of the world, may vary extremely in
-terms of quality, and content.
+Recordings consist of both calls and song, uploaded both professional and
+amateur users, and
+may originate from any part of the world, vary extremely in
+terms of quality, and also content.
 
-Recordings vary in duration, ranging from 1 to 20 minutes each.
+Recordings vary in duration, ranging from a few seconds to over 10 minutes.
 The content may be densely packed, with multiple birds vocalising simultaneously,
 or sparse with long durations of silence.
 Additionally, multiple species may be present in a single recording, however
-higher quality recordings tend to contain a singly identifiable species.
+higher quality recordings tend to contain a singly identifiable species, and
+are otherwise labeled.
 
 Xeno-canto provides all audio as dynamic MP3.
 These are normalised as described in Section~\ref{sec:prep}
@@ -28,11 +30,11 @@ This program only makes use of the prominent species tagged in the recording.
 Although not used in our implementation, the location of the recording could be
 used to improve the accuracy of the classifier, as some species are restricted
 to certain parts of the world.
-Including this information in the feature set is very likely to provide a
-good accuracy by itself, but perhaps without precision.
-It could be used however to narrow down the set of possible species, so long as
+Including this information in the feature set is likely to provide a
+some accuracy by itself, but perhaps without much precision.
+It could however be used to narrow down the set of possible species, so long as
 special care is taken to account for migratory patterns.
-
+This has not been done.
 
 \subsection{Automatic Sample Retrieval}
 Manually selecting and downloading recordings is a time-consuming process.
@@ -51,5 +53,6 @@ at the specified rate until it has been interrupted by the user.\\
 The scraper was ran throughout the course of development, for an approximate
 accumulated time of 40 hours, with an average interval of 60 seconds between
 downloads.
-2211 audio samples were collected in total.
-
+2211 audio samples were collected, totalling just over 45 hours.
+See Appendix~\ref{app:files} for a comprehensive list of all recordings which
+have been used including relevant attributions.

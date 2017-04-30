@@ -1,7 +1,10 @@
 \documentclass[12pt,twoside]{third-rep}
 
+\linespread{1.0}
 \usepackage{url}
 \usepackage{pslatex}
+\usepackage[toc,page]{appendix}
+\usepackage{longtable}
 
 \usepackage[backend=biber, style=authoryear]{biblatex}
 \addbibresource{refs.bib}
@@ -71,15 +74,16 @@
 \input{tex/cha_clf_eval}
 \input{tex/classification}
 \input{tex/accuracy_eval}
-\input{tex/feature_reduction}
 \input{tex/tuning}
+\input{tex/feature_reduction}
 
 \input{tex/conclusions}
 
 
 \printbibliography
 
-%\appendix
-%\include{app_}
+\begin{appendices}
+  \input{tex/app/app_samples}
+\end{appendices}
 
 \end{document}

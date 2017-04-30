@@ -1,18 +1,19 @@
 \section{Sample Selection}\label{sec:sample_select}
-A local database of birdsong samples has been extracted from Xeno-Canto using
-the described automatic procedure.
-Over the course of several days, 2211 total distinct samples were downloaded and
-processed.
-189 individual species were catalogued, with approximately half of these having
-more than 10 individual samples.
+A local database of birdsong samples has been created, using collections
+extracted from Xeno-Canto through the described automatic procedure.
+Over the course of several days, 2211 total distinct samples have been downloaded
+and processed.
+189 individual species have been catalogued, with approximately half of these
+including more than 10 individual samples.
 The top 10 species, and their sample counts are shown in Table~\ref{tab:top10}.
-The average length of each recording is 5 minutes.
+See Appendix~\ref{app:samples} for a full list.
+The average length of each recording is approximately 1 minute.
 
-Due to resource limitations imposed by template matching consts, not all samples
+Due to resource limitations imposed by template matching, not all samples
 are used in the final evaluation of the algorithm.
 Although all samples are processed as described in Section~\ref{sec:prep} and
-\ref{sec:preproc}, only a selection is processed through feature extraction and
-classification.
+\ref{sec:preproc}, only a selection is passed through feature extraction and
+classification stages.
 
 The following criteria has been found to result in a good balance between
 data volume and time cost:
@@ -22,6 +23,7 @@ data volume and time cost:
   \item Reject species with less than 2000 templates
   \item Keep first 3000 templates of each species
 \end{itemize}
+
 To reduce bias samples and templates may instaed be picked at random, however
 we did not have time to implement a method for tracking the random sampling.
 
@@ -44,9 +46,7 @@ we did not have time to implement a method for tracking the random sampling.
 \end{table}
 
 The |repository| class facilitates sample rejection and selection based on
-several criteria.
-For this stage, functionality for rejection by class count and template count
-are used.
+several criteria, including class and template counts.
 
 % audio samples (wav): 2211
 %  102  Eurasian Blackcap       
@@ -239,196 +239,3 @@ are used.
 %    1  Crimson-backed Tanager  
 %    1  Green-chinned Euphonia  
 %    1  Winifred's Warbler      
-%                                                y dim               x dim            
-% label                            sgrms count   min   max   avg     min   max   avg  
-% 
-% Common Blackbird                 101   38818   14    212   14      22    389   25   
-% Eurasian Blackcap                99    42274   15    190   16      18    299   21   
-% Eurasian Wren                    94    17431   14    160   14      16    276   22   
-% Common Chiffchaff                66    10273   14    142   14      23    296   23   
-% Grey-breasted Wood Wren          66    5603    14    170   14      16    322   23   
-% Spotted Towhee                   53    3583    14    162   14      22    220   23   
-% Garden Warbler                   48    18258   14    188   14      19    180   22   
-% Eurasian Blue Tit                44    4228    14    182   14      20    338   24   
-% Common Whitethroat               42    9858    14    168   14      25    421   25   
-% Great Reed Warbler               40    12762   14    184   14      25    355   25   
-% Rufous-browed Peppershrike       39    3491    14    215   17      17    322   21   
-% River Warbler                    38    11291   15    130   15      17    313   21   
-% Yellowhammer                     38    6442    14    120   15      21    236   24   
-% White-breasted Wood Wren         38    4123    15    125   15      25    549   25   
-% Eurasian Reed Warbler            37    30421   14    186   14      20    356   24   
-% Common Grasshopper Warbler       36    3035    18    159   18      14    346   20   
-% Corn Bunting                     32    3177    14    140   14      25    217   25   
-% Common Reed Bunting              31    2850    20    137   21      25    173   25   
-% Northern Mockingbird             29    8333    14    171   14      16    264   24   
-% Common Cuckoo                    29    4854    14    120   14      25    623   25   
-% Common Redstart                  27    10774   15    170   17      25    279   25   
-% Common Rosefinch                 27    3733    14    146   14      21    404   24   
-% Ortolan Bunting                  24    2686    14    103   14      25    516   25   
-% Chestnut-breasted Wren           24    2524    14    167   14      14    643   24   
-% Western Meadowlark               23    8256    14    196   20      24    208   24   
-% Pale-breasted Spinetail          22    2717    14    174   20      24    212   24   
-% White-throated Toucan            21    6814    14    189   14      24    817   24   
-% European Greenfinch              21    2844    15    138   17      17    244   24   
-% Pin-striped Tit-Babbler          20    2575    14    156   14      19    254   22   
-% Ferruginous Pygmy Owl            18    5000    15    188   15      15    653   23   
-% American Robin                   18    3515    14    142   14      24    271   24   
-% Barred Antshrike                 16    2478    14    136   14      20    265   24   
-% Black-striped Sparrow            15    2510    14    122   14      15    404   23   
-% Lesser Shortwing                 15    1656    16    144   16      22    338   24   
-% Green-winged Saltator            15    1644    16    126   20      17    344   23   
-% Black-faced Antbird              15    1514    14    114   15      25    523   25   
-% Pale-breasted Thrush             14    2955    14    197   14      17    307   22   
-% Plain-tailed Wren                14    2847    15    155   15      22    240   24   
-% Channel-billed Toucan            14    1619    14    119   14      21    317   24   
-% Plumbeous Vireo                  14    1094    15    147   16      22    1015  24   
-% Common Potoo                     13    3690    14    66    14      25    489   25   
-% Grace's Warbler                  13    2069    25    121   25      25    234   25   
-% Swainson's Thrush                13    2044    22    147   22      25    193   25   
-% Rufous-capped Warbler            13    1692    14    165   22      24    162   24   
-% Greenish Warbler                 13    1668    22    146   24      15    238   24   
-% White-breasted Tapaculo          13    1525    14    142   14      23    561   23   
-% Tawny Owl                        13    1133    17    188   17      18    535   25   
-% Loggerhead Shrike                12    3281    16    165   20      15    173   24   
-% Undulated Tinamou                11    4184    14    123   14      14    535   21   
-% Collared Owlet                   11    3642    14    153   14      21    354   23   
-% Great-tailed Grackle             11    2424    15    209   18      23    219   24   
-% Japanese Bush Warbler            11    1628    14    151   14      18    239   23   
-% Giant Antshrike                  11    605     25    60    25      22    536   25   
-% Rattling Cisticola               10    0       -1    -1    0       -1    -1    0    
-% Bell's Vireo                     10    0       -1    -1    0       -1    -1    0    
-% White-throated Sparrow           10    0       -1    -1    0       -1    -1    0    
-% Scrub Greenlet                   10    0       -1    -1    0       -1    -1    0    
-% Olive Warbler                    10    0       -1    -1    0       -1    -1    0    
-% Laughing Falcon                  10    0       -1    -1    0       -1    -1    0    
-% Red-winged Blackbird             9     0       -1    -1    0       -1    -1    0    
-% Common Hawk-Cuckoo               9     0       -1    -1    0       -1    -1    0    
-% Yellow-browed Sparrow            9     0       -1    -1    0       -1    -1    0    
-% Eastern Meadowlark               9     0       -1    -1    0       -1    -1    0    
-% Slaty-breasted Wood Rail         9     0       -1    -1    0       -1    -1    0    
-% Sumichrast's Wren                9     0       -1    -1    0       -1    -1    0    
-% Plain-crowned Spinetail          9     0       -1    -1    0       -1    -1    0    
-% Yellow-eyed Junco                9     0       -1    -1    0       -1    -1    0    
-% Spotted Nightingale-Thrush       9     0       -1    -1    0       -1    -1    0    
-% Japanese White-eye               9     0       -1    -1    0       -1    -1    0    
-% Painted Bunting                  8     0       -1    -1    0       -1    -1    0    
-% Southern Yellowthroat            8     0       -1    -1    0       -1    -1    0    
-% Great Tinamou                    8     0       -1    -1    0       -1    -1    0    
-% Sooty Antbird                    8     0       -1    -1    0       -1    -1    0    
-% Styan's Grasshopper Warbler      8     0       -1    -1    0       -1    -1    0    
-% Yellow-throated Vireo            7     0       -1    -1    0       -1    -1    0    
-% Connecticut Warbler              7     0       -1    -1    0       -1    -1    0    
-% Hooded Siskin                    7     0       -1    -1    0       -1    -1    0    
-% Fire-tufted Barbet               7     0       -1    -1    0       -1    -1    0    
-% Duida Woodcreeper                7     0       -1    -1    0       -1    -1    0    
-% Gartered Trogon                  7     0       -1    -1    0       -1    -1    0    
-% Eurasian Treecreeper             7     0       -1    -1    0       -1    -1    0    
-% Buff-browed Foliage-gleaner      7     0       -1    -1    0       -1    -1    0    
-% Eurasian Golden Oriole           7     0       -1    -1    0       -1    -1    0    
-% White-bellied Antpitta           7     0       -1    -1    0       -1    -1    0    
-% Grey Antwren                     7     0       -1    -1    0       -1    -1    0    
-% Southern Boubou                  7     0       -1    -1    0       -1    -1    0    
-% Western Orphean Warbler          6     55      25    91    27      26    131   27   
-% Bay Wren                         6     10      27    56    34      28    97    33   
-% Recurve-billed Bushbird          6     0       -1    -1    0       -1    -1    0    
-% Golden-crowned Sparrow           6     0       -1    -1    0       -1    -1    0    
-% Splendid Sunbird                 6     0       -1    -1    0       -1    -1    0    
-% Moustached Wren                  6     0       -1    -1    0       -1    -1    0    
-% Collared Antshrike               6     0       -1    -1    0       -1    -1    0    
-% Violaceous Euphonia              6     0       -1    -1    0       -1    -1    0    
-% Siberian Blue Robin              6     0       -1    -1    0       -1    -1    0    
-% Henna-hooded Foliage-gleaner     6     0       -1    -1    0       -1    -1    0    
-% Baillon's Crake                  6     0       -1    -1    0       -1    -1    0    
-% Paradise Jacamar                 6     0       -1    -1    0       -1    -1    0    
-% Rufous-vented Tapaculo           6     0       -1    -1    0       -1    -1    0    
-% Ashy-headed Greenlet             6     0       -1    -1    0       -1    -1    0    
-% Spotless Starling                6     0       -1    -1    0       -1    -1    0    
-% Eastern Woodhaunter              6     0       -1    -1    0       -1    -1    0    
-% White-throated Screech Owl       6     0       -1    -1    0       -1    -1    0    
-% Lineated Foliage-gleaner         6     0       -1    -1    0       -1    -1    0    
-% Orange-breasted Bushshrike       5     10      25    37    24      30    221   81   
-% Yellow Grosbeak                  5     0       -1    -1    0       -1    -1    0    
-% Tanager Finch                    5     0       -1    -1    0       -1    -1    0    
-% Foothill Schiffornis             5     0       -1    -1    0       -1    -1    0    
-% Singing Quail                    5     0       -1    -1    0       -1    -1    0    
-% Esmeraldas Antbird               5     0       -1    -1    0       -1    -1    0    
-% Spectacled Owl                   5     0       -1    -1    0       -1    -1    0    
-% Dark-capped Bulbul               5     0       -1    -1    0       -1    -1    0    
-% Marico Sunbird                   5     0       -1    -1    0       -1    -1    0    
-% Yellow-bellied Elaenia           5     0       -1    -1    0       -1    -1    0    
-% Buff-cheeked Greenlet            5     0       -1    -1    0       -1    -1    0    
-% Audubon's Oriole                 5     0       -1    -1    0       -1    -1    0    
-% Curve-billed Scythebill          5     0       -1    -1    0       -1    -1    0    
-% Wedge-billed Woodcreeper         4     341     25    84    25      25    185   26   
-% California Quail                 4     126     25    57    25      26    61    27   
-% White-throated Toucanet          4     0       -1    -1    0       -1    -1    0    
-% Red-fan Parrot                   4     0       -1    -1    0       -1    -1    0    
-% Black-cowled Saltator            4     0       -1    -1    0       -1    -1    0    
-% Western Wood Pewee               4     0       -1    -1    0       -1    -1    0    
-% Variegated Antpitta              4     0       -1    -1    0       -1    -1    0    
-% Zigzag Heron                     4     0       -1    -1    0       -1    -1    0    
-% Fan-tailed Cuckoo                4     0       -1    -1    0       -1    -1    0    
-% Greater Thornbird                4     0       -1    -1    0       -1    -1    0    
-% Blue-chested Hummingbird         4     0       -1    -1    0       -1    -1    0    
-% Green-backed Sparrow             4     0       -1    -1    0       -1    -1    0    
-% Varied Bunting                   4     0       -1    -1    0       -1    -1    0    
-% Ferruginous Partridge            4     0       -1    -1    0       -1    -1    0    
-% White-vented Violetear           4     0       -1    -1    0       -1    -1    0    
-% Golden-rumped Euphonia           3     379     16    160   25      25    298   25   
-% White-fronted Honeyeater         3     336     25    133   25      25    135   25   
-% White-necked Puffbird            3     82      24    51    25      27    363   51   
-% White-spectacled Warbler         3     53      25    75    29      30    193   54   
-% White-shouldered Antbird         3     0       -1    -1    0       -1    -1    0    
-% Rufous-tailed Hummingbird        3     0       -1    -1    0       -1    -1    0    
-% Blue-winged Pitta                3     0       -1    -1    0       -1    -1    0    
-% Jerdon's Leafbird                3     0       -1    -1    0       -1    -1    0    
-% Olive Thrush                     3     0       -1    -1    0       -1    -1    0    
-% Azure Jay                        3     0       -1    -1    0       -1    -1    0    
-% Johannes's Tody-Tyrant           3     0       -1    -1    0       -1    -1    0    
-% Short-billed Leaftosser          3     0       -1    -1    0       -1    -1    0    
-% Japanese Quail                   3     0       -1    -1    0       -1    -1    0    
-% Chestnut-bellied Thrush          3     0       -1    -1    0       -1    -1    0    
-% Crested Lark                     3     0       -1    -1    0       -1    -1    0    
-% Emerald Toucanet                 3     0       -1    -1    0       -1    -1    0    
-% Greater Hoopoe-Lark              3     0       -1    -1    0       -1    -1    0    
-% Chestnut-bellied Nuthatch        3     0       -1    -1    0       -1    -1    0    
-% Forest Elaenia                   3     0       -1    -1    0       -1    -1    0    
-% Long-billed Pipit                3     0       -1    -1    0       -1    -1    0    
-% Moustached Puffbird              3     0       -1    -1    0       -1    -1    0    
-% Choco Tapaculo                   3     0       -1    -1    0       -1    -1    0    
-% Wedge-tailed Grass Finch         3     0       -1    -1    0       -1    -1    0    
-% Pearly Antshrike                 2     173     25    87    26      26    99    26   
-% Little Cuckoo-Dove               2     139     25    86    24      25    197   26   
-% Bahama Oriole                    2     109     27    96    31      26    99    31   
-% White-eared Brown Dove           2     97      25    61    25      25    203   26   
-% Plush-crested Jay                2     96      26    193   39      25    105   25   
-% Grey-throated Warbler            2     92      25    89    26      25    180   34   
-% White-naped Jay                  2     56      25    176   27      27    97    31   
-% Pririt Batis                     2     35      25    36    25      28    75    40   
-% Black-goggled Tanager            2     33      25    106   31      26    114   37   
-% Scarlet-rumped Trogon            2     5       27    35    24      37    53    36   
-% Arafura Fantail                  2     0       -1    -1    0       -1    -1    0    
-% Yellow-crowned Elaenia           2     0       -1    -1    0       -1    -1    0    
-% Bronzy Jacamar                   2     0       -1    -1    0       -1    -1    0    
-% Philippine Coucal                2     0       -1    -1    0       -1    -1    0    
-% Flammulated Bamboo Tyrant        2     0       -1    -1    0       -1    -1    0    
-% Russet Nightingale-Thrush        2     0       -1    -1    0       -1    -1    0    
-% Hepatic Tanager                  2     0       -1    -1    0       -1    -1    0    
-% Solitary Tinamou                 2     0       -1    -1    0       -1    -1    0    
-% Jerdon's Nightjar                2     0       -1    -1    0       -1    -1    0    
-% Cuban Vireo                      2     0       -1    -1    0       -1    -1    0    
-% Streak-breasted Treehunter       1     1118    17    175   21      25    101   25   
-% Emei Shan Liocichla              1     350     14    91    15      26    264   26   
-% Crimson-backed Tanager           1     261     24    119   24      25    197   25   
-% Curve-winged Sabrewing           1     236     23    179   27      25    131   25   
-% Eastern Nicator                  1     169     25    143   25      25    156   25   
-% Yellow-breasted Boatbill         1     160     25    94    25      25    178   26   
-% Tiny Tyrant-Manakin              1     149     25    81    25      26    187   27   
-% Mountain Wren-Babbler            1     119     20    101   20      23    210   29   
-% Winifred's Warbler               1     116     25    99    25      25    304   35   
-% Negros Scops Owl                 1     109     15    73    17      16    174   28   
-% Green-chinned Euphonia           1     98      23    159   28      25    80    25   
-% Sombre Rock Chat                 1     83      27    115   32      25    95    27   
-% Cherrie's Antwren                1     39      25    65    25      25    75    29   
-% Sand Martin                      1     17      26    52    28      26    61    29   
-% Yellow-breasted Pipit            1     13      26    107   72      31    73    48   

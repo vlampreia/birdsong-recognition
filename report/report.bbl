@@ -1,0 +1,606 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.8 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist[entry]{nyt/global/}
+    \entry{ffmpeg}{misc}{}
+      \field{sortinit}{}
+      \field{sortinithash}{495dc9894017a8b12cafa9c619d10c0c}
+      \field{labeldatesource}{nodate}
+      \field{howpublished}{\url{http://www.ffmpeg.org}}
+    \endentry
+    \entry{aab}{misc}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{b685c7856330eaee22789815b49de9bb}
+      \field{labeldatesource}{nodate}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.allaboutbirds.org/do-bird-songs-have-frequencies-higher-than-humans-can-hear/}}
+      \field{title}{All About Birds}
+    \endentry
+    \entry{Bouckaert2003}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=16fcb37887a739aca92c9b615a942f8b}{%
+           family={Bouckaert},
+           familyi={B\bibinitperiod},
+           given={Remco\bibnamedelima R.},
+           giveni={R\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=9c15aa0b2a7683cefeaa12c991d0b1c2}{%
+           family={Fawcett},
+           familyi={F\bibinitperiod},
+           given={Tom},
+           giveni={T\bibinitperiod}}}%
+        {{hash=5cc397067052b5802c5963e6da19708b}{%
+           family={Mishra},
+           familyi={M\bibinitperiod},
+           given={Nina},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {AAAI Press}%
+      }
+      \strng{namehash}{16fcb37887a739aca92c9b615a942f8b}
+      \strng{fullhash}{16fcb37887a739aca92c9b615a942f8b}
+      \strng{authornamehash}{16fcb37887a739aca92c9b615a942f8b}
+      \strng{authorfullhash}{16fcb37887a739aca92c9b615a942f8b}
+      \strng{editornamehash}{c5e531c527663062c6c481a4e2ad1a6b}
+      \strng{editorfullhash}{c5e531c527663062c6c481a4e2ad1a6b}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{ICML}
+      \field{isbn}{1-57735-189-4}
+      \field{title}{Choosing Between Two Learning Algorithms Based on Calibrated Tests.}
+      \field{year}{2003}
+      \field{pages}{51\bibrangedash 58}
+      \range{pages}{8}
+      \verb{url}
+      \verb http://dblp.uni-trier.de/db/conf/icml/icml2003.html#Bouckaert03
+      \endverb
+      \keyw{dblp}
+    \endentry
+    \entry{opencv_library}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=1e285b4d9e3fd00770ae735d75aa22f0}{%
+           family={Bradski},
+           familyi={B\bibinitperiod},
+           given={G.},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{1e285b4d9e3fd00770ae735d75aa22f0}
+      \strng{fullhash}{1e285b4d9e3fd00770ae735d75aa22f0}
+      \strng{authornamehash}{1e285b4d9e3fd00770ae735d75aa22f0}
+      \strng{authorfullhash}{1e285b4d9e3fd00770ae735d75aa22f0}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Dr. Dobb's Journal of Software Tools}
+      \field{title}{The OpenCV Library}
+      \field{year}{2000}
+      \keyw{bibtex-import}
+    \endentry
+    \entry{breiman2001}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=132b7100417675d55d5d4d8b244f7a34}{%
+           family={Breiman},
+           familyi={B\bibinitperiod},
+           given={Leo},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Hingham, MA, USA}%
+      }
+      \list{publisher}{1}{%
+        {Kluwer Academic Publishers}%
+      }
+      \strng{namehash}{132b7100417675d55d5d4d8b244f7a34}
+      \strng{fullhash}{132b7100417675d55d5d4d8b244f7a34}
+      \strng{authornamehash}{132b7100417675d55d5d4d8b244f7a34}
+      \strng{authorfullhash}{132b7100417675d55d5d4d8b244f7a34}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0885-6125}
+      \field{journaltitle}{Mach. Learn.}
+      \field{month}{10}
+      \field{number}{1}
+      \field{title}{Random Forests}
+      \field{volume}{45}
+      \field{year}{2001}
+      \field{pages}{5\bibrangedash 32}
+      \range{pages}{28}
+      \verb{doi}
+      \verb 10.1023/A:1010933404324
+      \endverb
+      \verb{url}
+      \verb http://dx.doi.org/10.1023/A:1010933404324
+      \endverb
+      \keyw{classification,ensemble,regression}
+    \endentry
+    \entry{briechle2001}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,hash=102b04de9678d5a104418efc98704d37}{%
+           family={Briechle},
+           familyi={B\bibinitperiod},
+           given={Kai},
+           giveni={K\bibinitperiod}}}%
+        {{uniquename=0,hash=5de7dd296d745b386dbd90707a97f314}{%
+           family={Hanebeck},
+           familyi={H\bibinitperiod},
+           given={Uwe\bibnamedelima D},
+           giveni={U\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \list{organization}{2}{%
+        {International Society for Optics}%
+        {Photonics}%
+      }
+      \strng{namehash}{d2181c9ff0867f61fbaa17a32183da3a}
+      \strng{fullhash}{d2181c9ff0867f61fbaa17a32183da3a}
+      \strng{authornamehash}{d2181c9ff0867f61fbaa17a32183da3a}
+      \strng{authorfullhash}{d2181c9ff0867f61fbaa17a32183da3a}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Aerospace/Defense Sensing, Simulation, and Controls}
+      \field{title}{Template matching using fast normalized cross correlation}
+      \field{year}{2001}
+      \field{pages}{95\bibrangedash 102}
+      \range{pages}{8}
+    \endentry
+    \entry{brumm2004}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=76190271d2aee779e35aca300935718a}{%
+           family={Brumm},
+           familyi={B\bibinitperiod},
+           given={Henrik},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{76190271d2aee779e35aca300935718a}
+      \strng{fullhash}{76190271d2aee779e35aca300935718a}
+      \strng{authornamehash}{76190271d2aee779e35aca300935718a}
+      \strng{authorfullhash}{76190271d2aee779e35aca300935718a}
+      \field{sortinit}{B}
+      \field{sortinithash}{4ecbea03efd0532989d3836d1a048c32}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Anais da Academia Brasileira de Ci\^{e}ncias}
+      \field{number}{2}
+      \field{title}{Causes and consequences of song amplitude adjustment in a territorial bird: a case study in nightingales}
+      \field{volume}{76}
+      \field{year}{2004}
+      \field{pages}{289\bibrangedash 295}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1590/s0001-37652004000200017
+      \endverb
+    \endentry
+    \entry{Catch1997}{book}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,hash=5badba270667ab21d3a5d37f88a69117}{%
+           family={Catchpole},
+           familyi={C\bibinitperiod},
+           given={Clive},
+           giveni={C\bibinitperiod}}}%
+        {{uniquename=0,hash=fa84fd0dae646f989bbcfb9e141c279a}{%
+           family={Slater},
+           familyi={S\bibinitperiod},
+           given={1942-},
+           giveni={1\bibinithyphendelim \bibinitperiod},
+           suffix={P.\bibnamedelimi J.\bibnamedelimi B.\bibnamedelimi (Peter\bibnamedelimb James\bibnamedelima Bramwell)},
+           suffixi={P\bibinitperiod\bibinitdelim J\bibinitperiod\bibinitdelim B\bibinitperiod\bibinitdelim (\bibinitperiod\bibinitdelim J\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {English}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge [England] : New York, NY, USA : Cambridge University Press}%
+      }
+      \strng{namehash}{b9ac1b7614d7bade4e017f4496f8eb9d}
+      \strng{fullhash}{b9ac1b7614d7bade4e017f4496f8eb9d}
+      \strng{authornamehash}{b9ac1b7614d7bade4e017f4496f8eb9d}
+      \strng{authorfullhash}{b9ac1b7614d7bade4e017f4496f8eb9d}
+      \field{sortinit}{C}
+      \field{sortinithash}{59f25d509f3381b07695554a9f35ecb2}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{0521417996 (hardback)}
+      \field{note}{Includes bibliographical references (p. [221]-240) and index}
+      \field{title}{Bird song : biological themes and variations}
+      \field{type}{Book; Book/Illustrated}
+      \field{year}{1995}
+    \endentry
+    \entry{chirpomatic}{misc}{}
+      \field{sortinit}{C}
+      \field{sortinithash}{59f25d509f3381b07695554a9f35ecb2}
+      \field{labeldatesource}{nodate}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{http://www.chirpomatic.com}}
+      \field{note}{Accessed: 2017-04-29}
+      \field{title}{Chirpomatic}
+    \endentry
+    \entry{fodor2013}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=8902d87c8c581961ba9784d42dfe2dfe}{%
+           family={Fodor},
+           familyi={F\bibinitperiod},
+           given={G\'{a}bor},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{8902d87c8c581961ba9784d42dfe2dfe}
+      \strng{fullhash}{8902d87c8c581961ba9784d42dfe2dfe}
+      \strng{authornamehash}{8902d87c8c581961ba9784d42dfe2dfe}
+      \strng{authorfullhash}{8902d87c8c581961ba9784d42dfe2dfe}
+      \field{sortinit}{F}
+      \field{sortinithash}{c6a7d9913bbd7b20ea954441c0460b78}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The Ninth Annual MLSP Competition: First Place}
+      \field{year}{2013}
+    \endentry
+    \entry{geurts2006}{article}{}
+      \name{author}{3}{}{%
+        {{uniquename=0,hash=04d0aa9fc26c1881b5d9f8abbcf7df51}{%
+           family={Geurts},
+           familyi={G\bibinitperiod},
+           given={Pierre},
+           giveni={P\bibinitperiod}}}%
+        {{uniquename=0,hash=6fbe33fd3b6a25f54629f311cb113551}{%
+           family={Ernst},
+           familyi={E\bibinitperiod},
+           given={Damien},
+           giveni={D\bibinitperiod}}}%
+        {{uniquename=0,hash=a66465f00752277e96b03f8046d66d7b}{%
+           family={Wehenkel},
+           familyi={W\bibinitperiod},
+           given={Louis},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{d0f7a6e18b557632261c444879fced3d}
+      \strng{fullhash}{d0f7a6e18b557632261c444879fced3d}
+      \strng{authornamehash}{d0f7a6e18b557632261c444879fced3d}
+      \strng{authorfullhash}{d0f7a6e18b557632261c444879fced3d}
+      \field{sortinit}{G}
+      \field{sortinithash}{1c854ef9177a91bf894e66485bdbd3ed}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Machine learning}
+      \field{number}{1}
+      \field{title}{Extremely randomized trees}
+      \field{volume}{63}
+      \field{year}{2006}
+      \field{pages}{3\bibrangedash 42}
+      \range{pages}{40}
+    \endentry
+    \entry{lifeclef2014}{inproceedings}{}
+      \name{author}{6}{}{%
+        {{uniquename=0,hash=3852a91e9572aab258643bae1656282c}{%
+           family={Go\"{e}au},
+           familyi={G\bibinitperiod},
+           given={Herv\'{e}},
+           giveni={H\bibinitperiod}}}%
+        {{uniquename=0,hash=1b1d2d59fe3fee85a7999e4e777facab}{%
+           family={Glotin},
+           familyi={G\bibinitperiod},
+           given={Herv\'{e}},
+           giveni={H\bibinitperiod}}}%
+        {{uniquename=0,hash=ba67b0666d0357dc20d43dbf9bf523fc}{%
+           family={Vellinga},
+           familyi={V\bibinitperiod},
+           given={Willem-Pier},
+           giveni={W\bibinithyphendelim P\bibinitperiod}}}%
+        {{uniquename=0,hash=1e1bdef0154d98610f822f13b3b43af9}{%
+           family={Planqu\'{e}},
+           familyi={P\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{uniquename=0,hash=66733b4fcd6699926ffaae081c654825}{%
+           family={Rauber},
+           familyi={R\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{uniquename=0,hash=00a1863105df6fae815d632a91b43808}{%
+           family={Joly},
+           familyi={J\bibinitperiod},
+           given={Alexis},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{901db1c3f621d62a36c86ababa910071}
+      \strng{fullhash}{c3a138f04e9b66646eca76db299a81ea}
+      \strng{authornamehash}{901db1c3f621d62a36c86ababa910071}
+      \strng{authorfullhash}{c3a138f04e9b66646eca76db299a81ea}
+      \field{sortinit}{G}
+      \field{sortinithash}{1c854ef9177a91bf894e66485bdbd3ed}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{CLEF2014}
+      \field{title}{LifeCLEF bird identification task 2014}
+      \field{year}{2014}
+    \endentry
+    \entry{Hunter:2007}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=515b7a67462b8750a0711541001538cb}{%
+           family={Hunter},
+           familyi={H\bibinitperiod},
+           given={J.\bibnamedelimi D.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE COMPUTER SOC}%
+      }
+      \strng{namehash}{515b7a67462b8750a0711541001538cb}
+      \strng{fullhash}{515b7a67462b8750a0711541001538cb}
+      \strng{authornamehash}{515b7a67462b8750a0711541001538cb}
+      \strng{authorfullhash}{515b7a67462b8750a0711541001538cb}
+      \field{sortinit}{H}
+      \field{sortinithash}{82012198d5dfa657b8c4a168793268a6}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Matplotlib is a 2D graphics package used for Python for application development, interactive scripting, and publication-quality image generation across user interfaces and operating systems.}
+      \field{journaltitle}{Computing In Science \& Engineering}
+      \field{number}{3}
+      \field{title}{Matplotlib: A 2D graphics environment}
+      \field{volume}{9}
+      \field{year}{2007}
+      \field{pages}{90\bibrangedash 95}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1109/MCSE.2007.55
+      \endverb
+    \endentry
+    \entry{kaggle}{misc}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=8fec9765921cfa63cb331e42a924c27c}{%
+           family={Kaggle},
+           familyi={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{8fec9765921cfa63cb331e42a924c27c}
+      \strng{fullhash}{8fec9765921cfa63cb331e42a924c27c}
+      \strng{authornamehash}{8fec9765921cfa63cb331e42a924c27c}
+      \strng{authorfullhash}{8fec9765921cfa63cb331e42a924c27c}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labeldatesource}{nodate}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.kaggle.com/c/mlsp-2013-birds}}
+      \field{note}{Accessed: 2016-06-14}
+      \field{title}{MLSP 2013 Bird Classification Challenge}
+    \endentry
+    \entry{Krood1983}{book}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=84bd3a28111f244dbb5e78d7689ba294}{%
+           family={Kroodsma},
+           familyi={K\bibinitperiod},
+           given={Donald},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{84bd3a28111f244dbb5e78d7689ba294}
+      \strng{fullhash}{84bd3a28111f244dbb5e78d7689ba294}
+      \strng{authornamehash}{84bd3a28111f244dbb5e78d7689ba294}
+      \strng{authorfullhash}{84bd3a28111f244dbb5e78d7689ba294}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Acoustic Communication in Birds, Vol. 2: Song Learning and Its Consequences}}
+      \field{year}{1983}
+    \endentry
+    \entry{lasseck2013}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=80afbb0b87d968c38bc16a7869d1bedb}{%
+           family={Lasseck},
+           familyi={L\bibinitperiod},
+           given={Mario},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \strng{fullhash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \strng{authornamehash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \strng{authorfullhash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \field{sortinit}{L}
+      \field{sortinithash}{872351f18d0f736066eda0bf18bfa4f7}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Bird Song Classification in Field Recordings: Winning Solution for NIPS4B 2013 Competition}
+      \field{year}{2013}
+    \endentry
+    \entry{lasseck2014}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=80afbb0b87d968c38bc16a7869d1bedb}{%
+           family={Lasseck},
+           familyi={L\bibinitperiod},
+           given={Mario},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \strng{fullhash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \strng{authornamehash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \strng{authorfullhash}{80afbb0b87d968c38bc16a7869d1bedb}
+      \field{sortinit}{L}
+      \field{sortinithash}{872351f18d0f736066eda0bf18bfa4f7}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Large-scale Identification of Birds in Audio Recordings.}
+      \field{year}{2014}
+    \endentry
+    \entry{otsu1979}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=4531dc3ea86ad7c21ff2c751725cbf58}{%
+           family={Otsu},
+           familyi={O\bibinitperiod},
+           given={N.},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{4531dc3ea86ad7c21ff2c751725cbf58}
+      \strng{fullhash}{4531dc3ea86ad7c21ff2c751725cbf58}
+      \strng{authornamehash}{4531dc3ea86ad7c21ff2c751725cbf58}
+      \strng{authorfullhash}{4531dc3ea86ad7c21ff2c751725cbf58}
+      \field{sortinit}{O}
+      \field{sortinithash}{7803d2715d5e795e70382b084ab8d00e}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0018-9472}
+      \field{journaltitle}{IEEE Transactions on Systems, Man, and Cybernetics}
+      \field{month}{1}
+      \field{number}{1}
+      \field{title}{A Threshold Selection Method from Gray-Level Histograms}
+      \field{volume}{9}
+      \field{year}{1979}
+      \field{pages}{62\bibrangedash 66}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1109/TSMC.1979.4310076
+      \endverb
+      \keyw{Displays;Gaussian distribution;Histograms;Least squares approximation;Marine vehicles;Q measurement;Radar tracking;Sea measurements;Surveillance;Target tracking}
+    \endentry
+    \entry{podos2007}{article}{}
+      \name{author}{2}{}{%
+        {{uniquename=0,hash=39a0ce8254b46be15d6caefc56a4bd17}{%
+           family={Podos},
+           familyi={P\bibinitperiod},
+           given={Jeffrey},
+           giveni={J\bibinitperiod}}}%
+        {{uniquename=0,hash=66b45926b477311c8cfc6f649b5d1113}{%
+           family={Warren},
+           familyi={W\bibinitperiod},
+           given={Paige\bibnamedelima S.},
+           giveni={P\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{53789ca06d9c5249e0277a0e3378d398}
+      \strng{fullhash}{53789ca06d9c5249e0277a0e3378d398}
+      \strng{authornamehash}{53789ca06d9c5249e0277a0e3378d398}
+      \strng{authorfullhash}{53789ca06d9c5249e0277a0e3378d398}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Advances In The Study Of Behaviour}
+      \field{title}{The Evolution of Geographic Variation in Birdsong}
+      \field{volume}{37}
+      \field{year}{2007}
+      \field{pages}{403\bibrangedash 458}
+      \range{pages}{56}
+    \endentry
+    \entry{marko2004}{inbook}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=26dfee7dd9e2b5f46211c92abf736e07}{%
+           family={Robnik-\v{S}ikonja},
+           familyi={R\bibinithyphendelim \v{S}\bibinitperiod},
+           given={Marko},
+           giveni={M\bibinitperiod}}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=5e1c29e4163df3970ddd3f9e20fef0e4}{%
+           family={Boulicaut},
+           familyi={B\bibinitperiod},
+           given={Jean-Fran\c{c}ois},
+           giveni={J\bibinithyphendelim F\bibinitperiod}}}%
+        {{hash=2f19810cf26d0c7b8b6c5c57eba12eeb}{%
+           family={Esposito},
+           familyi={E\bibinitperiod},
+           given={Floriana},
+           giveni={F\bibinitperiod}}}%
+        {{hash=7b5335e9010800b63f5c2959f076d90f}{%
+           family={Giannotti},
+           familyi={G\bibinitperiod},
+           given={Fosca},
+           giveni={F\bibinitperiod}}}%
+        {{hash=a2cc2c3b41c34d28b00e8b61bf830b42}{%
+           family={Pedreschi},
+           familyi={P\bibinitperiod},
+           given={Dino},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{26dfee7dd9e2b5f46211c92abf736e07}
+      \strng{fullhash}{26dfee7dd9e2b5f46211c92abf736e07}
+      \strng{authornamehash}{26dfee7dd9e2b5f46211c92abf736e07}
+      \strng{authorfullhash}{26dfee7dd9e2b5f46211c92abf736e07}
+      \strng{editornamehash}{d839e799285678b1c6ad2e98f177ad06}
+      \strng{editorfullhash}{8cdcdce4916a177045da47d92fcdfc16}
+      \field{sortinit}{R}
+      \field{sortinithash}{c7387613477035a752d935acfc3e3ea2}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Machine Learning: ECML 2004: 15th European Conference on Machine Learning, Pisa, Italy, September 20-24, 2004. Proceedings}
+      \field{isbn}{978-3-540-30115-8}
+      \field{title}{Improving Random Forests}
+      \field{year}{2004}
+      \field{pages}{359\bibrangedash 370}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1007/978-3-540-30115-8_34
+      \endverb
+      \verb{url}
+      \verb http://dx.doi.org/10.1007/978-3-540-30115-8_34
+      \endverb
+    \endentry
+    \entry{warblr}{misc}{}
+      \field{sortinit}{W}
+      \field{sortinithash}{99e3ba1b3f78bb6f073e7fa7ac11636b}
+      \field{labeldatesource}{nodate}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{http://warblr.net}}
+      \field{note}{Accessed: 2017-04-29}
+      \field{title}{Warblr}
+    \endentry
+    \entry{xenocanto}{misc}{}
+      \field{sortinit}{X}
+      \field{sortinithash}{2999ebab86052e6d71b434385f8b4ed2}
+      \field{labeldatesource}{nodate}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{http://www.xeno-canto.org}}
+      \field{note}{Accessed: 2016-06-14}
+      \field{title}{{Xeno Canto}}
+    \endentry
+  \endsortlist
+  \missing{fager2004}
+  \missing{nips}
+\endrefsection
+\endinput
+

@@ -14,7 +14,19 @@ described in Section~\ref{sec:acc_eval}.
 
 The OOB error rate gives us an estimate of real-world performance, and we may
 gain some insight into whether or not we are actaully gaining performance in
-other metrics or overfitting by comparing this with the OOB error.
+other metrics or overfitting by comparing this with the OOB error.\\
+
+In order to confidently produce unbiased statistics, and ensure that tuning is
+not guided to overfitting, validation curves should be computed.
+These compare
+the performance of the classifier on separate training and validation datasets.
+This has not been done because we have not collected sufficient data to be able
+to split it further, on top of the cross validation used.
+
+We could also plot the learning rate, which shows the performance of the classifier
+with a varying number of samples, allowing us to gauge whether adding more
+samples will improve classification scores or not.
+This has also not been done.
 
 
 \subsection{Gridsearch}
@@ -27,8 +39,8 @@ value combinations.
 We test each combination using the usual evaluation mechanism with the following
 search space:
 \begin{itemize}
-  \item Number of Estimators: 10, 100, 500, 5000, 10000
-  \item Max features: $sqrt$, $log2$, $0.33*n$
+  \item Number of Estimators: 10, 35, 50, 75, 90, 100, 110, 250, 300, 500, 5000, 10000
+  \item Max features: $sqrt(n)$, $log2(n)$, $0.33*n$
 \end{itemize}
 
 The effect of each parameter is described in Section~\ref{sec:param}.
@@ -36,6 +48,33 @@ We have not tested other parameters due to the time cost of doing so.
 
 
 \subsubsection{Results}
+
+
+The OOB error rate (Figure~\ref{fig:tuning_oob}) shows that the random forest is
+predicted to achieve peak
+performance with $0.33 * n. features$ at around 300 estimators, rising outside
+the stable range of $]150,500[$.
+The error rate plateaus at about 500 estimators for all max feature functions.
+
+Accuracy (Figure~\ref{fig:tuning_acc}) and F1-score (Figure~\ref{fig:tuning_f1})
+show that peak performance is achieved somewhere between $[75,300[$ estimators
+for all max feature functions, peaking at 89\% accuracy for $0.33*n$.
+This correlates with the global minimum OOB error at 300 estimators.
+
+Both metrics quickly drop somewhere between $[300,500]$, where the random forest
+is most likely beginning to overfit and lose generalisation.
+After this point, as the number of trees increases, we observe overfitting as
+accuracy, F1-score, and the OOB error rate increases.
+
+Because the OOB error begins to stabalise at 100, it is likely that peak
+real-world performance will lie within $[100,300[$ for most max feature functions.
+
+Performance improvements are generally observed with the increase in max features.
+The linear max features function shows a smoother response and better
+performance overall.\\
+
+Without a completely independent validation data set it is impossible to perform
+an evaluation which is truly representative of real-world performance.
 
 \begin{figure}[!htb]
   \centering
@@ -70,56 +109,3 @@ We have not tested other parameters due to the time cost of doing so.
   \caption{Metrics over n. estimators for each max feature function}
   \label{fig:tuning}
 \end{figure}
-
-The OOB error rate (Figure~\ref{fig:tuning_oob}) shows that the random forest is
-predicted to achieve peak
-performance with $0.33 * n. features$ at around 300 estimators, rising outside
-the stable range of $]150,500[$.
-The error rate plateaus at about 500 estimators with other max feature functions.
-
-Accuracy (Figure~\ref{fig:tuning_acc}) and F1-score (Figure~\ref{fig:tuning_f1})
-show that peak performance is achieved between $]35,50[$
-and $[150,500[$ estimators for all max feature functions.
-Because the OOB error begins to stabalise at 100, it is likely that the latter
-range is more indicative of real-world performance over the former.
-The $0.33$ function specifically achieves the peak performance at 300 estimators.
-This correlates with the OOB error curve.
-
-The rise in accuracy at from 500 estimators is most likely attributed to
-overfitting, especially as we consider the tendant rise in OOB error from that
-point.
-Performance improvements are generally observed with the increase in max features.
-The linear max features function shows a smoother response and better
-performance overall.\\
-
-Without a completely independent validation data set it is impossible to perform
-a truly representative evaluation.
-
-
-\subsection{validation curves}
-we tune based on best performing params in gsearch
-possibly biased towards validation dataset
-for better generalization estimation compute score on different set
-(already mentioned above)
-
-we can use this to check over/under fitting?
-check influence of single parameter on training and validation scores
-if both are low, clf is undefitting
-if training is high, valid is low, clf is overfitting
-low training, high validation not possible usually
-
-coarse-to-fine search gridsearch, if we have the time
-
-\subsection{Learning Rate}
-learning curve
-shows validation/training score for varying train sample count.
-shows how clf may benefit from additional samples if at all
-shows if clf suffers from variance or bias error
-if validation and training score converge to a low value with more training samples,
-we don't benefit. might have to change parameters or choose different clf which
-has lower bias
-
-if training score is higher than valid score, we benefit from adding training
-samples probably, increasing generalisation
-
-is this useful for RF?

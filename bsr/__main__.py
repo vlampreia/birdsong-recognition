@@ -882,7 +882,7 @@ def plot_cnf_matrix(cnf, y, idx_to_class, plot_now=False, normalize=False, show_
 
     plt.figure()
     plt.imshow(_cnf, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.colorbar()
+    #plt.colorbar()
 
     tm = np.arange(len(set(y)))
     labels = [idx_to_class[x] for x in set(y)]
@@ -1170,7 +1170,7 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
 
-    __loaddata = not options.classify
+    __loaddata = True#not options.classify
     if __loaddata:
         repository = SampleRepository(
             spectrograms_dir=DIR_SPECTROGRAMS,
@@ -1198,9 +1198,9 @@ def main():
         preserve = True;
         if preserve:
             #repository.filter_labels(['Common Blackbird', 'Great Reed Warbler', 'Common Rosefinch', 'Common Cuckoo'], reject=False)
-            repository.filter_uids(['XC144519'], reject=False)
-            #if len(previous_ids) != 0:
-                #repository.filter_uids(previous_ids, reject=False)
+            #repository.filter_uids(['XC144519'], reject=False)
+            if len(previous_ids) != 0:
+                repository.filter_uids(previous_ids, reject=False)
         else:
             repository.filter_uids(previous_ids, reject=True)
             logging.info('remove previous ids: filtered down to {} samples'.format(len(repository.samples)))
@@ -1330,8 +1330,8 @@ def main():
         ce = ClfEval(data, 10, 10, None)
         #clf = ExtraTreesClassifier(
         param_grid = {
-            'n_estimators': [150, 300],#[10, 500, 5000, 10000],
-            'max_features': [0.33, 'sqrt', 'log2'],#, len(previous_data.template_order)*0.8],
+            'n_estimators': [300],#[10, 500, 5000, 10000],
+            'max_features': [0.33],#, 'sqrt', 'log2'],#, len(previous_data.template_order)*0.8],
             'min_samples_split': [2],#, 10, 100],
             'min_samples_leaf': [1],#, 10, 100],
             'max_depth': [None]#, 5, 10, 100, 200]
@@ -1345,55 +1345,64 @@ def main():
             print('  {}'.format(p))
         print('')
 
-        __ev(__params_l, 0, data)
+        #__ev(__params_l, 0, data)
 
-        #procs = []
-        #np=4
-        #div = int(len(__params_l)/np)
-        #for pidx in range(np):
-        #    left = 0 if pidx == 0 else pidx*div
-        #    right = (pidx+1)*div if pidx < np-1 else len(__params_l)
-        #    print ('proc {}: {} to {}'.format(pidx,left,right))
-        #    procs.insert(
-        #        pidx,mp.Process(target=__ev, args=(__params_l[left:right], left, data))
-        #    )
-        #for pidx in range(np):
-        #    try:
-        #        procs[pidx].start()
-        #    except OSError as e:
-        #        print(e)
-        #for pidx in range(np):
-        #    procs[pidx].join()
+        with open('./cnfdata', 'r') as f:
+            cnf = pickle.load(f)
+        with open('./fidata', 'r') as f:
+            fi = pickle.load(f)
 
-        
-#        for __params in __params_l:
-#            print('             params: {}/{} {}'.format(__i, len(__params_l), __params))
-#            clf = RandomForestClassifier(
-#                n_estimators = __params['n_estimators'],
-#                max_features = __params['max_features'],
-#                min_samples_split = __params['min_samples_split'],
-#                min_samples_leaf = __params['min_samples_leaf'],
-#                max_depth = __params['max_depth']
-#    #            #warm_start=True,
-#    #            #oob_score=True,
-#    #            n_estimators=500,
-#    #            max_features='sqrt',
-#    #            min_samples_split=3,
-#    #            #bootstrap=True,
-#    #            n_jobs=4,
-#    #            random_state=1
-#            )
-#            ce.set_classifier(clf)
-#            ce.run()
-#
-#            ce.print_stats()
-#            __i += 1
+        def __plot(fi, path, torder):
+            fi_s = [s/100 for s in fi]
+            fig = plt.figure()
+            fig.set_size_inches(10,5)
+            ax = fig.add_subplot(111)
+            ax.plot(fi_s)
+            prev_sid = ''
+            prev_label = ''
+            labels = []
+            ticks = []
+            agr_labels = []
+            agr_ticks = []
+            idx = 0
+            agr_sum = 0
+            agr_importances = []
+            v = 0
+            for i, uid in enumerate(torder):
+                sid = uid.split('-')[0]
+                label = idx_to_class[data.y[data.ids.index(sid)]]
 
+                if label != prev_label:
+                    sid = sid + '\n' + label
+                    if prev_label != '':
+                        agr_importances.append(agr_sum)
+                        agr_sum = 0
+                        ax.vlines(i,0,np.max(fi_s), 'r', 'dotted')
+                    ax.text(i, np.max(fi_s)-(0.0004+(v%2)*0.0004), label[:12])
+                    v += 1
+                    prev_label = label
+                    agr_ticks.append(idx)
+                    agr_labels.append(label)
+                    idx += 1
 
-        Tracer()()
+                if len(labels) == 0 or sid != prev_sid:
+                    prev_sid = sid
+                    labels.append(sid)
+                    ticks.append(i)
+
+            ax.set_ylabel('Importance (%)')
+            ax.set_xlabel('Feature number')
+            ax.set_xlim(0,len(fi_s))
+            ax.set_ylim(0, np.max(fi_s))
+            plt.tight_layout()
+
+            #plt.show()
+            plt.savefig(path)
+
         clf = RandomForestClassifier(
-            n_estimators = 10000,
-            max_features = 'sqrt',
+            n_estimators = 300,
+            max_features = 0.33,
+            oob_score=True,
 #                min_samples_split = __params['min_samples_split'],
 #                min_samples_leaf = __params['min_samples_leaf'],
 #                max_depth = __params['max_depth']
@@ -1407,31 +1416,55 @@ def main():
 #            random_state=1
         )
         ce.set_classifier(clf)
-        ce.run()
-
-        ce.print_stats()
+#        ce.run()
+#
+#        ce.print_stats()
+#        Tracer()()
+#        __plot(ce.feature_importances, 'imp1', data.template_order)
         #plot_feature_importances(
         #    ce.feature_importances,
         #    data.template_order,
         #    idx_to_class,
         #    data
         #)
-        plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
-        plt.show()
+        #plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, 
+        #        show_values=True)
+        #plt.show()
         print ('total time {}'.format(time.time()-t1))
 
+        Tracer()()
         #fimpc = copy.deepcopy(ce.feature_importances)
+        fimpc = copy.deepcopy(fi)
+        print('templates used in clf: {}'.format(len(fi)));
+        rej = [x[0] for x in zip(data.template_order, fi) if x[1] == 0]
+        keep = [x[0] for x in zip(data.template_order, fi) if x[1] != 0]
+        ce.reject_templates = rej
         #print('templates used in clf: {}'.format(len(ce.feature_importances)));
         #rej = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] == 0]
         #keep = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] != 0]
         #ce.reject_templates = rej
-        #ce.run()
+        ce.run()
 
         print('templates used in clf now: {}'.format(len(ce.feature_importances)));
 
+        Tracer()()
+
+        __plot([x for x in ce.feature_importances if x != -1], 'imp2', keep)
         #plot_feature_importances([x for x in ce.feature_importances if x != -1], keep, idx_to_class, data)
 
         Tracer()()
+
+        # get top 5 sgrams for species
+        #
+        # tls = [idx_to_class[data.y[data.ids.index(x.split('-')[0])]] for x in
+        # data.template_order]
+        #
+        # indices = [i for i,x in enumerate(tls) if x == 'Commoon Blackbird']
+        #
+        # top5 = zip(*heapq.nlargest(5, enumerate([fi[i] for i in
+        # indices]),key=operator.itemgetter(1)))[0]
+        #
+        # uids = [data.template_order[indices[i]] for i in top5]
 
         #plt.bar(range(0, [x for x in ce.feature_importances if x != -1]), [x for x in ce.feature_importances if x != -1])
         #plt.show()

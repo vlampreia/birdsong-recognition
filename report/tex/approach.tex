@@ -47,7 +47,7 @@ Each part is detailed in their relevant sections, including discussion on
 possible alternatives and improvements to the mechanisms that have been
 developed.
 \begin{enumerate}
-  \item \textbf{Collection and Specification:}
+  \item \textbf{Collection:}
     Data is sourced from field recordings done in uncontrolled environments.
     The variety provides a good estimate of real-world performance and
     introduces many quality related issues.
@@ -69,36 +69,24 @@ developed.
     designed to reduce statistical bias.
 \end{enumerate}
 
-Performance is an equally important aspect of this project, as such some
-analysis is discussed on the cost of key stages.
-
 \subsection{Architectural Overview}
 
-\begin{figure}
+Flexibility is the primary concern in designing this system.
+It is imperative that new processing and classification techniques are able to
+be implemented and quickly evaluated.
+Each stage is developed as a discrete stage in the system.
+Figure~\ref{fig:sysoverview} describes the layout of the system by visualising
+the flow of data.
+
+Performance aspects are discussed as they appear in their relevant sections.
+A summary of technologies and libraries used is available in Appendix~\ref{app:tech}.
+
+Formal system and unit tests have not been written.
+Given time the architecture could be concretised and test suites surely written.
+
+\begin{figure}[!htb]
   \centering
+  \includegraphics[width=1\textwidth]{block}
   \caption{System block diagram}
   \label{fig:sysoverview}
 \end{figure}
-
-
-Flexibility was the primary concern in designing the system.
-We built a framework from which discrete stages in the pipeline are as isolated
-as possible.
-Throughout the development process it became clear that performance was a
-primary concern due to the large volume of data and the complexity of the
-operations on such data.
-Some effort is made to improve performance in key areas, such as the use of
-multiprocessing in template extraction and cross-correlation, and on-demand
-loading of samples and templates, as opposed to loading everything during
-initialisation.
-Performance improvements to specific mechanisms such as template matching are
-discussed in their respective sections.
-
-
-
-
-discuss The codebase evolved through several iterations 
-leave retrospective dev thoughts to conclusion section
-what libs are used, python ver etc
-diagram of various stages
-anything that might be of notable interest or achievement architecture wise

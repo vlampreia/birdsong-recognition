@@ -1,0 +1,33 @@
+digraph {
+  rankdir = TB
+
+  node [
+    shape = record
+  ]
+
+  edge [
+    arrowhead = empty
+  ]
+
+  collection
+  selection
+  fe [label="feature engineering"]
+  classification
+  evaluation
+
+  collection -> selection
+  selection -> fe
+  fe -> classification
+  classification -> evaluation
+
+  fe_pp [label="preprocess"]
+  fe_te [label="template extract"]
+  fe_ccm [label="cross-correlate"]
+
+  {rank=same fe fe_pp}
+
+  fe -> fe_pp [length=0]
+  fe -> fe_ccm
+  fe_pp -> fe_te
+  sgram_1 -> fe_ccm
+}

@@ -71,7 +71,7 @@ We have chosen to use a single multithreaded multi-class random forest.
 
 
 \subsubsection{Extremely Randomised Trees}
-Extremely Randomised Trees \parencite{geurt2006} is an algorithm similar to a
+Extremely Randomised Trees \parencite{geurts2006} is an algorithm similar to a
 traditional Random Forest, however the thresholds during splitting arerandomised,
 instead of being computed for optimal performance.
 This has the benefit of being faster, with the drawback of being more sensitive
@@ -139,9 +139,9 @@ For comparison, the following parameters have found to be optimal through the tu
 discussed in Section~\ref{sec:tuning}, and is used throughout evaluation in
 Sections~\ref{sec:acc_eval} and \ref{sec:feature_imp}:
 \begin{itemize}[noitemsep]
-  \item Estimators: ?
-  \item Max features: ?
-  \item Min samples to split: ?
-  \item Min samples leaf: ?
-  \item Max depth: ?
+  \item Estimators: 300
+  \item Max features: $0.33*n$
+  \item Min samples to split: 2
+  \item Min samples leaf: 1
+  \item Max depth: |none|
 \end{itemize}

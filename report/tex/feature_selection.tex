@@ -125,7 +125,7 @@ in ambiguity.
 The same operation is made to the spectrograms subject to cross-correlation
 mapping for consistency.
 
-\subsection{Advanced Template Elimination}
+\subsection{Advanced Template Elimination}\label{sec:advrem}
 It is desireable to reduce the template count further.
 This can be made possible by recognizing correlations between candidate templates.
 This subsection outlines some speculative methods for
@@ -143,7 +143,7 @@ In many of these cases, one template's bounding box intersects or is contained
 entirely within another template's bounding box as shown in
 Figure~\ref{fig:segment_intersect_a}.
 These errors can be corrected by taking the bounding box of their unions.
-In contrast, Figure~\ref{fig:segment_intersec_b} shows that this does not always
+In contrast, Figure~\ref{fig:segment_intersect_b} shows that this does not always
 work, and result in large, incorrect groupings.
 
 \begin{figure}[!htb]
@@ -156,7 +156,6 @@ work, and result in large, incorrect groupings.
   \begin{subfigure}[h]{0.5\textwidth}
     \centering
     \includegraphics[width=1.0\textwidth]{spatial_unfix}
-    \caption{}
     \caption{}\label{fig:segment_intersect_b}
   \end{subfigure}
   \caption{Example of errorneous segmentations correctable (a) and incorrectable (b)

@@ -1,0 +1,26 @@
+[0] Config.pm:354> INFO - This is Biber 2.7
+[0] Config.pm:357> INFO - Logfile is './report.blg'
+[36] biber:303> INFO - === Mon May  1, 2017, 13:50:14
+[53] Biber.pm:359> INFO - Reading './report.bcf'
+[132] Biber.pm:835> INFO - Found 24 citekeys in bib section 0
+[143] Biber.pm:3670> INFO - Processing section 0
+[157] Biber.pm:3840> INFO - Looking for bibtex format file 'refs.bib' for section 0
+[158] bibtex.pm:1435> INFO - Decoding LaTeX character macros into UTF-8
+[164] bibtex.pm:1292> INFO - Found BibTeX data source 'refs.bib'
+[197] Utils.pm:164> WARN - month field 'Jan' in entry 'otsu1979' is not an integer - this will probably not sort properly.
+[209] Utils.pm:164> WARN - BibTeX subsystem: /tmp/HGV82PaKZL/refs.bib_27270.utf8, line 107, warning: 1 characters of junk seen at toplevel
+[209] Utils.pm:164> WARN - BibTeX subsystem: /tmp/HGV82PaKZL/refs.bib_27270.utf8, line 113, warning: 1 characters of junk seen at toplevel
+[209] Utils.pm:164> WARN - I didn't find a database entry for 'nips' (section 0)
+[209] Utils.pm:164> WARN - I didn't find a database entry for 'fager2004' (section 0)
+[210] Utils.pm:164> WARN - I didn't find a database entry for crossref 'conf/icml/2003' in entry 'Bouckaert2003' - ignoring (section 0)
+[248] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[248] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[248] Biber.pm:3499> INFO - Sorting list 'nyt/global/' of type 'entry' with scheme 'nyt' and locale 'en-US'
+[248] Biber.pm:3505> INFO - No sort tailoring available for locale 'en-US'
+[266] bbl.pm:608> INFO - Writing './report.bbl' with encoding 'ascii'
+[270] Utils.pm:164> WARN - The entry 'brumm2004' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[271] Utils.pm:164> WARN - The entry 'fodor2013' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[273] Utils.pm:164> WARN - The entry 'lifeclef2014' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[275] Utils.pm:164> WARN - The entry 'marko2004' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[276] bbl.pm:712> INFO - Output to ./report.bbl
+[276] Biber.pm:109> INFO - WARNINGS: 10

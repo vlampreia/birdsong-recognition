@@ -35,9 +35,11 @@ used for training and validation.
 
 A total of 3 batches have been computed and merged, giving 12 species in total.
 Selection was performed using the mechanisms outlined in
-Section~\ref{sec:sample_select}.
+Section~\ref{sec:sample_select}, and feature vectors constructed as described
+in Section~\ref{sec:ccm}.
 Table~\ref{tbl:used_data} shows the selection of species including spectrogram
 and template counts per species.
+In total 4292760 cross correlation mappings were performed.
 
 \begin{table}[!htb]
   \caption{Selected species with spectrogram and template counts}
@@ -124,8 +126,6 @@ Results are promising, good performance has been achieved using the initial
 parameters, with observed improvements after tuning as is shown in
 Table~\ref{tbl:acc_before_after}.
 
-\textbf{update w/ new defaults}
-\textbf{wait for gs results... }
 \begin{table}[!htb]
   \centering
   \caption{Comparison of accuracies using default and tuned parameters}
@@ -134,11 +134,11 @@ Table~\ref{tbl:acc_before_after}.
     \begin{tabular}{l r r}
       & \multicolumn{2}{c}{Metric Scores} \\
       Metric    & Default Params. & Tuned Params. \\ \hline
-      Accuracy  & 79.5 (7.3) & 0 \\
-      F1 Score  & 77.9 (8.1) & 0 \\
-      Recall    & 79.5 (7.4) & 0 \\
-      Precision & 82.3 (8.5) & 0 \\
-      OOB Error & -- & --
+      Accuracy  & 79.6 (7.9) & 88.7 (6.2) \\
+      F1 Score  & 78.0 (8.6) & 87.9 (6.7) \\
+      Recall    & 79.6 (7.9) & 88.7 (6.2) \\
+      Precision & 82.0 (9.1) & 90.9 (6.5) \\
+      OOB Error & 31.5 (2.7) & 12.6 (1.4)
     \end{tabular}
     \begin{tablenotes}
       \footnotesize
@@ -160,21 +160,25 @@ class, and give
 some insight into how the classifier is responding to the selected features.
 
 Figure~\ref{fig:cnf12} shows the resulting confusion matrix from classifying the
-selected data, averaged over the 10-run 10-fold cross validation.
+selected data with the optimal parameters found through tuning,
+averaged over the 10-run 10-fold cross validation.
 Row-wise normalisation was performed.
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics[width=1.0\textwidth]{cnf_matrix_12}
+  \includegraphics[width=1.0\textwidth]{cnf_matrix_12_2}
   \caption{Row-Normalized Confusion Matrix}\label{fig:cnf12}
 \end{figure}
 
-The confusion matrix shows good classification performance for most species.\\
+The confusion matrix shows good classification performance for most species.
+A high (90\%+) true-positive rate is observed for half of the species.\\
 
-We can see from the results that the Common Blackbird is the worst performing
-classification with a 40\% false negative rate.
-It is often mistaken for a Great Reed Warbler, but not the other way around,
-which may indicate weakness in the Common Blackbird's templates.
+We see that the Common Blackbird is the worst performing
+classification with a 24\% false negative rate, and often mistaken for a Corn Bunting.
+The inverse is also true to a lesser extent.
+This suggests weakness in the precision of Common Blackbird or Corn Bunting
+templates.
+
 
 ... more speculation
 

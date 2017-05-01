@@ -1,0 +1,23 @@
+params: 0/89 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': 10, 'min_samples_leaf': 1}
+accuracies: 0.734166666667 std. 0.0881483913006
+fscores: 0.706472222222 std. 0.100120466224
+precisions: 0.734930555556 std. 0.114277179379
+recalls: 0.734166666667 std. 0.0881483913006
+
+params: 1/89 {'max_features': 'log2', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': 10, 'min_samples_leaf': 1}
+accuracies: 0.785833333333 std. 0.0927998144155
+fscores: 0.764751984127 std. 0.1050395434
+precisions: 0.797659722222 std. 0.115046167724
+recalls: 0.785833333333 std. 0.0927998144155
+
+params: 0/89 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 10, 'max_depth': None, 'min_samples_leaf': 1}
+accuracies: 0.796666666667 std. 0.0777906735341
+fscores: 0.776579365079 std. 0.0888295043271
+precisions: 0.81075 std. 0.0955124700992
+recalls: 0.796666666667 std. 0.0777906735341
+
+params: 1/89 {'max_features': 'sqrt', 'min_samples_split': 2, 'n_estimators': 500, 'max_depth': None, 'min_samples_leaf': 1}
+accuracies: 0.832083333333 std. 0.0807849941374
+fscores: 0.816892857143 std. 0.0911011597733
+precisions: 0.850666666667 std. 0.0933677350621
+recalls: 0.832083333333 std. 0.0807849941374

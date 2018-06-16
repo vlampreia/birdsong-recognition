@@ -4,7 +4,6 @@ from bsrdata import Sample, Spectrogram, Template
 
 import logging
 
-from classifier import *
 from preprocessor import *
 from utils import *
 from xenocantoscraper import XenoCantoScraper
@@ -39,157 +38,13 @@ from optparse import OptionParser
 import cv2
 import random
 
+from ClassifierEvaluator import ClfEval, FeatureData, load_feature_data
+
 DIR_SPECTROGRAMS = './spectrograms'
 DIR_SAMPLES = './samples'
 
 g_options = None
 
-
-
-class ClfEval:
-    clf = None
-
-    cnf = None
-
-    feature_importances = None
-
-    stats = None
-
-    n_shuffles=0
-    n_splits=0
-
-    data=None
-
-    random_state=None
-
-    reject_templates = None
-
-
-    def __init__(self, data, n_shuffles=1, n_splits=0, random_state=None):
-        self.n_shuffles = n_shuffles
-        self.n_splits = n_splits
-        self.data = data
-        self.random_state = random_state
-        self.reject_templates = []
-
-        self.stats = defaultdict(list)
-
-        self.cnf = [[0] * len(set(self.data.y))] * len(set(self.data.y))
-        self.feature_importances = [-1] * len(self.data.template_order)
-
-
-    def merge_results_(self, y_true, predictions):
-        accuracy = accuracy_score(y_true=y_true, y_pred=predictions)
-        precision, recall, fscore, support = precision_recall_fscore_support(
-            y_true = y_true, y_pred = predictions,
-            average='macro'
-        )
-
-        self.stats['accuracies'].append(accuracy)
-        self.stats['precisions'].append(precision)
-        self.stats['recalls'].append(recall)
-        self.stats['fscores'].append(fscore)
-
-        print('{:.4f} {:.4f} {:.4f} {:.4f}'.format(accuracy, precision, recall, fscore));
-
-        self.cnf = map(add, self.cnf, confusion_matrix(y_true, predictions))
-
-
-    def merge_importances_(self, importances, idxs):
-        for i,v in enumerate(importances):
-            #self.feature_importances[idxs[i]] += v
-            if (self.feature_importances[idxs[i]] == -1):
-                self.feature_importances[idxs[i]] = 0;
-            self.feature_importances[idxs[i]] += v
-#        self.feature_importances = map(
-#            add,
-#            zip(importances, self.feature_importances)
-#        )
-#            self.feature_importances = map(
-#                lambda (a,b): a+b \
-#                    if a != -1 \
-#                    else b, \
-#                zip(importances, self.feature_importances)
-#            )
-
-
-    def fit_evaluate_(self, X_train, X_test, y_train, y_test):
-        self.clf.fit(X_train, y_train)
-
-        preds = self.clf.predict(X_test)
-
-        self.merge_results_(y_test, preds)
-        self.merge_importances_(self.clf.feature_importances_)
-
-
-    def run(self):
-        self.feature_importances = [-1] * len(self.data.template_order)
-
-        oobs = []
-
-        for shuffle_idx in range(self.n_shuffles):
-            print('shuffle {} of {}'.format(shuffle_idx+1, self.n_shuffles))
-
-            if self.n_splits > 0:
-                kfold = StratifiedKFold(
-                    n_splits=self.n_splits,
-                    shuffle=True,
-                    random_state=self.random_state
-                )
-
-                split_idx = 0
-                for train_indices, test_indices in kfold.split(self.data.X, self.data.y):
-                    split_idx += 1
-                    print('split {} of {}, [{}/{}] '.format(
-                        split_idx, self.n_splits,
-                        len(train_indices), len(test_indices)
-                    ), end='')
-
-                    X_train, X_test, y_train, y_test, template_idxs = \
-                            split_data(
-                                self.data,
-                                train_indices,
-                                test_indices,
-                                self.reject_templates
-                            )
-
-
-
-                    self.clf.fit(X_train, y_train)
-                    print('OOB predictive accuracy: {} '.format(self.clf.oob_score_), end='')
-                    oobs.append(self.clf.oob_score_)
-                    #imp1 = copy.deepcopy(self.clf.feature_importances_)
-                    preds = self.clf.predict(X_test)
-                    #imp2 = copy.deepcopy(self.clf.feature_importances_)
-                    #logging.info('MEASURE IMPORTANCES NOW')
-                    #Tracer()()
-
-                    self.merge_results_(y_test, preds)
-                    self.merge_importances_(self.clf.feature_importances_,
-                            template_idxs)
-
-                    #self.fit_evaluate_(X_train, X_test, y_train, y_test)
-
-                    #logging.info('accuracy: {}'.format(
-                    #    np.mean(self.accuracies[split_idx]))
-                    #)
-            print('  {} {} res acc: {:.4f} {:.4f}  precision: {:.4f} {:.4f}  recall: {:.4f} {:.4f}  fscore: {:.4f} {:.4f}'.format(
-                np.mean(oobs), np.std(oobs),
-                np.mean(self.stats['accuracies'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['accuracies'][shuffle_idx:shuffle_idx+self.n_shuffles]),
-                np.mean(self.stats['precisions'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['precisions'][shuffle_idx:shuffle_idx+self.n_shuffles]),
-                np.mean(self.stats['recalls'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['recalls'][shuffle_idx:shuffle_idx+self.n_shuffles]),
-                np.mean(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles]), np.std(self.stats['fscores'][shuffle_idx:shuffle_idx+self.n_shuffles]),
-            ))
-
-        print ('{} {}'.format(np.mean(oobs),np.std(oobs)))
-
-    def set_classifier(self, clf):
-        self.clf = clf
-
-
-    def print_stats(self):
-        for k,v in self.stats.iteritems():
-            print('{}: {} std. {}'.format(k, np.mean(v), np.std(v)))
 
 
 def make_class_mapping(samples):
@@ -204,86 +59,6 @@ def make_class_mapping(samples):
     return mapping
 
 
-def get_sample_from_path(path):
-    label = os.path.split(os.path.split(path)[0])[1]
-    uid = os.path.splitext(os.path.split(path)[1])[0]
-    return Sample(uid, label)
-
-
-def gather_samples():
-    samples  = []
-    pcm_paths = list_types(DIR_SAMPLES, ['.wav'])
-    pcm_paths = list_types(DIR_SPECTROGRAMS, ['.png'])
-
-    for path in pcm_paths:
-        if 'templates' in path: continue;
-        samples.append(get_sample_from_path(path))
-
-    return samples
-
-
-class FeatureData:
-    X = None
-    y = None
-    ids = None
-    label_map = None
-    template_order = None
-
-
-    def __init__(self, X=None, y=None, ids=None, label_map=None, template_order=None):
-        self.X              = X
-        self.y              = y
-        self.ids            = ids
-        self.label_map      = label_map
-        self.template_order = template_order
-
-
-    def from_legacy(self, data):
-        self.X              = data['X']
-        self.y              = data['y']
-        self.ids            = data['ids']
-        self.label_map      = data['label_map']
-        self.template_order = data['template_order']
-
-        return self
-
-
-def find_samples(ids):
-    samples = [None] * len(ids)
-    sample_paths = [p for p in list_types(DIR_SPECTROGRAMS, '.png') if 'templates' not in p]
-    sample_paths = {os.path.splitext(os.path.split(k)[1])[0]: v for k, v in zip(sample_paths, sample_paths)}
-
-    for idx, uid in enumerate(ids):
-        if uid in sample_paths:
-            path = sample_paths[uid]
-            label = os.path.split(os.path.split(path)[0])[1]
-            samples[idx] = Sample(uid, label)
-        else:
-            print( 'WARNING did not load sample {}'.format(uid))
-
-    return samples
-
-
-def find_templates(ids):
-    templates = [None] * len(ids)
-    template_paths = [p for p in list_types(DIR_SPECTROGRAMS, '.png') if 'templates' in p]
-    template_paths = {os.path.splitext(os.path.split(k)[1])[0]: v for k, v in zip(template_paths, template_paths)}
-
-    for idx, uid in enumerate(ids):
-        if uid in template_paths:
-            path = template_paths[uid]
-            sample_uid = uid.split('-')[0]
-            template_idx = uid.split('-')[1]
-
-            im_t = -cv2.imread(template_paths[uid], 0)
-            t = Template(Sample(sample_uid, None), im_t, int(template_idx))
-            templates[idx] = t
-        else:
-            print('WARNING did not load template {}'.format(uid))
-
-    return templates
-
-
 def build_all_spectrograms(samples):
     num_build = 0
 
@@ -293,9 +68,9 @@ def build_all_spectrograms(samples):
         if not os.path.exists(path): continue
 
         sgpath = sample.get_spectrogram_path()
-#        if os.path.exists(''.join([sgpath, '.pkl'])):
-#            print('spectrogram exists: {}'.format(sgpath))
-#            continue
+        if os.path.exists(''.join([sgpath, '.pkl'])):
+            print('spectrogram exists: {}'.format(sgpath))
+            continue
 
         try:
             pcm, fs = load_pcm(path)
@@ -347,11 +122,7 @@ def build_all_spectrograms(samples):
 #        plt.xlim(0,time[len(time)-1])
 #        plt.xaxis.set_major_formatter(formatter)
 
-
-
         #plt.show()
-
-
 
         #Tracer()()
         #exit()
@@ -368,45 +139,7 @@ def build_all_spectrograms(samples):
     return num_build
 
 
-#def load_all_spectrograms(samples, label_filter = None):
-#    num_spectrograms = 0
-#
-#    for sample in samples:
-#        path = sample.get_spectrogram_path(DIR_SPECTROGRAMS)
-#        if not os.path.exists(''.join([path, '.pkl'])): continue
-#
-#        if label_filter is not None and sample.get_label() != label_filter:
-#            continue
-#
-#        pxx, freqs, times = load_specgram(path)
-#        sgram = Spectrogram(sample, pxx, freqs, times)
-#
-#        sample.spectrogram = sgram
-#        num_spectrograms += 1
-#
-#    return num_spectrograms
-
-
-def store_all_spectrograms(samples):
-    for sample in samples:
-        path = sample.get_spectrogram_path(DIR_SPECTROGRAMS)
-        sgram = sample.spectrogram
-        if sgram is None: continue
-
-        write_specgram(sgram.pxx, sgram.freqs, sgram.times, path)
-
-
-def delete_stored_templates(samples):
-    for sample in samples:
-        template_dir = sample.get_template_dir(DIR_SPECTROGRAMS)
-        if not os.path.exists(template_dir): continue
-
-        for f in os.listdir(template_dir):
-            if not os.path.splitext(f)[1] == '.png': continue
-            os.remove(os.path.join(template_dir, f))
-
-
-def build_all_templates(samples, label_filter = None):
+def build_all_templates(samples, opt, label_filter = None):
     """
     Build all templates from each spectrogram from each sample.
     Sample must have a spectrogram image.
@@ -416,14 +149,13 @@ def build_all_templates(samples, label_filter = None):
     Returns a list of all templates.
     """
 
-    global g_options
     all_templates = []
 
     for sample in samples:
         if label_filter is not None and sample.get_label() not in label_filter:
             continue
 
-        if g_options.verbose:
+        if opt.verbose:
             print('Extracting templates for {} {}'.format(
                 sample.get_uid(), sample.get_label()))
 
@@ -431,70 +163,12 @@ def build_all_templates(samples, label_filter = None):
             print('Sample {} has no spectrogram...'.format(sample.get_uid()))
             continue
 
-        #clean = filter_specgram(sample.spectrogram.pxx)
         templates = extract_templates(
             sample.get_spectrogram().get_pxx(),
-            g_options.templates_interactive
+            opt.templates_interactive
         )
 
-#        for idx, template in enumerate(templates):
-#            t = Template(sample, template, idx)
-#            all_templates.append(t)
-#            sample.spectrogram.templates.append(t)
-
     return all_templates
-
-
-def load_all_templates(samples):
-    num_templates = 0
-
-    for sample in samples:
-        if sample.spectrogram is None: continue
-        template_dir = sample.get_template_dir(DIR_SPECTROGRAMS)
-        if not os.path.exists(template_dir): continue
-
-        for f in os.listdir(template_dir):
-            if not os.path.splitext(f)[1] == '.png': continue
-            if not f.startswith(sample.get_uid()): continue
-
-            im_t = -cv2.imread(os.path.join(template_dir, f), 0)
-            uid = os.path.splitext(f)[0]
-            idx = uid.split('-')[1]
-            t = Template(sample, im_t, int(idx))
-
-            sample.spectrogram.templates.append(t)
-            num_templates += 1
-
-    return num_templates
-
-
-#def store_all_templates(samples):
-#    for sample in samples:
-#        if sample.spectrogram is None: continue
-#
-#        template_dir = sample.get_template_dir(DIR_SPECTROGRAMS)
-#        if not os.path.exists(template_dir): os.makedirs(template_dir)
-#
-#        for template in sample.spectrogram.templates:
-#            fname = ''.join([template.get_uid(), '.png'])
-#            path = os.path.join(template_dir, fname)
-#            cv2.imwrite(path, -template.im)
-
-
-def print_loaded_data(data, idx_to_class):
-    used_labels = set([idx_to_class[l] for l in data.y])
-    templates_per_class = defaultdict(int)
-    for tuid in data.template_order:
-        suid = tuid.split('-')[0]
-        templates_per_class[data.y[data.ids.index(suid)]] += 1
-
-    fmt_str = '{:<32}  {:<5}  {:<5}'
-    print(fmt_str.format('label', 'sgrms', 'templates'))
-    print('{:_<82}'.format(''))
-    for k,v in templates_per_class.iteritems():
-        print(fmt_str.format(idx_to_class[k], len([l for l in data.y if l == k]), v))
-    print('{:-<82}'.format(''))
-    print(fmt_str.format('TOTAL', len(data.y), len(data.template_order)))
 
 
 def print_template_statistics(samples):
@@ -587,26 +261,8 @@ def extract_features(samples, templates, class_mapping):
     return (X, y, ids)
 
 
-def store_features(X, y):
-    print('store_features NOT IMPLEMENTED')
-    pass
 
-
-def split_and_classify(X, y, test_size):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=0
-    )
-
-    print('> classification test')
-
-    clf = RandomForestClassifier()
-    r1 = clf.fit(X_train,  y_train)
-    r2 = clf.score(X_test, y_test)
-
-    Tracer()()
-
-
-def cr(ccm_maxs, sgram, offset, templates):
+def cross_correlate_work__(ccm_maxs, sgram, offset, templates):
     divisions = 4
     group_size = int(len(templates)/divisions)
     errors = []
@@ -653,7 +309,7 @@ def cross_correlate(sgram, templates):
         print('proc {}: {} to {}'.format(pidx, left, right))
         procs.insert(
             pidx,
-            mp.Process(target=cr, args=(ccm_maxs, sgram, left, templates[left:right]))
+            mp.Process(target=cross_correlate_work__, args=(ccm_maxs, sgram, left, templates[left:right]))
         )
 
     def _do_start(_startc):
@@ -682,40 +338,6 @@ def cross_correlate(sgram, templates):
         procs[pidx].join()
 
     return ccm_maxs;
-
-
-def select_samples(samples, exception_list=[]):
-    """
-    Filters the given samples to classes with at least 20 samples
-    """
-    selected_samples = []
-    class_counts = defaultdict(int)
-
-    for sample in samples:
-        class_counts[sample.get_label()] += 1
-
-    for sample in samples:
-        if class_counts[sample.get_label()] < 20: continue
-        if sample.get_uid() in exception_list: continue
-        selected_samples.append(sample)
-
-    return selected_samples
-
-
-def limit_samples(samples):
-    """
-    Limits the number of samples to 20 per class
-    """
-    selected_samples = []
-    selected_samples_per_class = defaultdict(int)
-
-    for sample in samples:
-        if selected_samples_per_class[sample.get_label()] < 20 and \
-           sample.spectrogram is not None:
-            selected_samples.append(sample)
-            selected_samples_per_class[sample.get_label()] += 1
-
-    return selected_samples
 
 
 def get_first_n_templates_per_class(repository, n):
@@ -749,136 +371,12 @@ def get_first_n_templates_per_class(repository, n):
     return all_templates
 
 
-def filter_samples(samples, exclude_labels):
-    """
-    filters down the sample list to four classes, each with at least 2000
-    templates
-    """
-
-    selected_samples = []
-    template_counts = defaultdict(int)
-
-    for sample in samples:
-        if sample.spectrogram is None: continue
-        template_counts[sample.get_label()] += len(sample.spectrogram.templates)
-    #selected_samples = [s for s in samples if template_counts[s.label] <= 3000 and template_counts[s.label] >= 2000]
-    selected_samples = [s for s in samples if template_counts[s.get_label()] >= 2000]
-
-    samples_per_class = {}
-    for sample in selected_samples:
-        if sample.spectrogram is None: continue;
-        if sample.get_label() not in samples_per_class:
-            samples_per_class[sample.get_label()] = []
-        samples_per_class[sample.get_label()].append(sample)
-
-    selected_samples = []
-    num=0
-    for k,group in samples_per_class.iteritems():
-        if num == 4: break
-        if exclude_labels is not None and k in exclude_labels: continue
-        num += 1
-        selected_samples.extend(group)
-
-    return selected_samples
-
-
-def split_data(data, train_indices, test_indices, reject_templates):
-    X = np.array(data.X)
-    y = np.array(data.y)
-    ids = np.array(data.ids)
-
-    X_train = X[train_indices]
-    y_train = y[train_indices]
-
-    X_test = X[test_indices]
-    y_test = y[test_indices]
-
-    ids_train = ids[train_indices]
-    ids_test  = ids[test_indices]
-
-    used_templates = []
-    template_idxs = []
-    for idx, uid in enumerate(data.template_order):
-        if uid in reject_templates: continue
-        if uid.split('-')[0] in ids_train:
-            template_idxs.append(idx)
-            used_templates.append(uid)
-
-    X_train_t = np.zeros((len(X_train), len(template_idxs)))
-    X_test_t =  np.zeros((len(X_test),  len(template_idxs)))
-
-    for i, v in enumerate(X_train):
-        X_train_t[i] = v[template_idxs]
-    for i, v in enumerate(X_test):
-        X_test_t[i] = v[template_idxs]
-
-    return X_train_t, X_test_t, y_train, y_test, template_idxs
-
-
-def plot_feature_importances(
-    importances,
-    template_ids,
-    idx_to_class,
-    data, plot_now=False
-):
-    prev_sid = ''
-    prev_label = ''
-    labels = []
-    ticks = []
-    agr_labels = []
-    agr_ticks = []
-    idx = 0
-    agr_sum = 0
-    agr_importances = []
-
-    #for i, uid in enumerate(data.template_order):
-    for i, uid in enumerate(template_ids):
-        sid = uid.split('-')[0]
-        label = idx_to_class[data.y[data.ids.index(sid)]]
-
-        if label != prev_label:
-            sid = sid + '\n' + label
-            if prev_label != '':
-                agr_importances.append(agr_sum)
-                agr_sum = 0
-            prev_label = label
-            agr_ticks.append(idx)
-            agr_labels.append(label)
-            idx += 1
-
-        if len(labels) == 0 or sid != prev_sid:
-            prev_sid = sid
-            labels.append(sid)
-            ticks.append(i)
-
-        agr_sum += max(importances[i], 0.0)
-
-    fig, ax = plt.subplots(nrows=2)
-    ax[0].imshow([agr_importances]*2, interpolation='none', cmap=plt.cm.Blues)
-    ax[0].set_xticks(agr_ticks)
-    ax[0].set_xticklabels(agr_labels, rotation=45)
-    ax[0].set_yticks([])
-    ax[0].set_yticklabels([])
-
-    cax = ax[1].bar(range(0, len(importances)), importances)
-    #cax = ax[1].contourf([importances]*2, interpolation='none', cmap=plt.cm.Blues)
-    ax[1].set_xticks(ticks)
-    ax[1].set_xticklabels(labels, rotation=45)
-#   ax[1].set_yticks([])
-#   ax[1].set_yticklabels([])
-    #fig.colorbar(cax, ax=ax[1])
-    #fig.tight_layout()
-
-    if plot_now: plt.show()
-
-
 def plot_cnf_matrix(cnf, y, idx_to_class, plot_now=False, normalize=False, show_values=False):
     _cnf = cnf
     if normalize:
         _cnf = np.array(cnf, copy=True, dtype='float')
         sums = _cnf.sum(axis=1)
         _cnf = cnf / sums[:, np.newaxis]
-#        _cnf /= _cnf.max()
 
     plt.figure()
     plt.imshow(_cnf, interpolation='nearest', cmap=plt.cm.Blues)
@@ -932,35 +430,6 @@ def process_stats_options(options, repository):
     return True
 
 
-def load_results(path):
-    if path is None: return None
-    if not os.path.exists(path): return None
-
-    data = None
-    with open(path, 'r') as f:
-        data = pickle.load(f)
-    if type(data) == type({}):
-        logging.warning('loaded legacy data format, maybe you should store as new?')
-        _data = FeatureData().from_legacy(data)
-        data = _data
-
-    return data
-
-
-def store_results_safe(results, path):
-    def _mv_bak(path):
-        new_path = path + '.bak'
-        if os.path.exists(new_path):
-            _mv_bak(new_path)
-        os.rename(path, new_path)
-
-    if os.path.exists(path):
-        _mv_bak(path)
-
-    with open(path, 'w') as f:
-        pickle.dump(results, f)
-
-
 def merge_results_d(result_a, result_b, repository):
     if result_a.label_map != result_b.label_map:
         print('error, label mappings dont match, intervention required')
@@ -969,8 +438,10 @@ def merge_results_d(result_a, result_b, repository):
     class_to_idx = result_a.label_map
     samples_1 = repository.get_samples_by_uid(result_a.ids)
     samples_2 = repository.get_samples_by_uid(result_b.ids)
-    templates_1 = repository.get_templates_by_uid(result_a.template_order, samples_1)
-    templates_2 = repository.get_templates_by_uid(result_b.template_order, samples_2)
+    templates_1 = repository.get_templates_by_uid(
+        result_a.template_order, samples_1)
+    templates_2 = repository.get_templates_by_uid(
+        result_b.template_order, samples_2)
 
     Tracer()()
     X_a, y_a, ids_a = extract_features(samples_1, templates_2, class_to_idx)
@@ -992,95 +463,7 @@ def merge_results_d(result_a, result_b, repository):
     data.template_order = result_a.template_order + result_b.template_order
 
 
-def merge_results(y_true, predictions, results, cnf):
-    accuracy = accuracy_score(y_true=y_true, y_pred=predictions)
-    precision, recall, fscore, support = precision_recall_fscore_support(
-            y_true = y_true, y_pred = predictions,
-            average='weighted'
-            )
-    results['accuracy'].append(accuracy)
-    results['precision'].append(precision)
-    results['recall'].append(recall)
-    results['fscore'].append(fscore)
-    #results['support'].append(support)
-
-    _cnf = confusion_matrix(y_true, predictions)
-    cnf = map(add, cnf, _cnf)
-
-
-def merge_importances(importances, new_importances):
-    map(
-        lambda (a,b): a+b \
-            if a != -1 \
-            else b, \
-        zip(importances, new_importances)
-    )
-
-
-def shuffle_split_and_classify(data, n_shuffles, n_splits):
-    all_cnf = [[0] * len(set(data.y))] * len(set(data.y))
-    all_feature_importances = [-1] * len(data.template_order)
-    template_uid_to_idx = {v:i for i,v in enumerate(data.template_order)}
-    all_results = defaultdict(list)
-
-    for i in range(n_shuffles):
-        print('\niteration {}'.format(i+1))
-
-        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=None)
-        results = defaultdict(list)
-
-        clf = ExtraTreesClassifier(
-            #warm_start=True,
-            #oob_score=True,
-            n_estimators=500,
-            max_features='sqrt',
-            min_samples_split=3,
-            #bootstrap=True,
-            n_jobs=4,
-            random_state=None
-        )
-
-        split_n=0
-        for train_indices, test_indices in skf.split(data.X, data.y):
-            print('  fold {} train {} test {}...'.format(split_n+1, len(train_indices), len(test_indices)))
-
-            t1 = time.time()
-
-            X_train, X_test, y_train, y_test, template_uids = split_data(
-                data, train_indices, test_indices)
-
-            print('    split time {}'.format(time.time() - t1))
-
-            t1 = time.time()
-            clf.fit(X_train, y_train)
-
-            predictions = clf.predict(X_test)
-            feature_importances = clf.feature_importances_
-
-            merge_results(y_test, predictions, results, all_cnf)
-            merge_importances(feature_importances, clf.feature_importances_)
-
-            print('    clf pred time {}'.format(time.time() - t1))
-            print('    accuracy: {} precision: {} recall: {} fscore: {}'.format(accuracy, precision, recall, fscore, support))
-
-            split_n += 1
-
-
-        print('\n  {} fold cv results:'.format(n_splits))
-        for k,v in results.iteritems():
-            print('    {}: {} std: {}'.format(k, np.mean(v), np.std(v)))
-            all_results[k].extend(v)
-
-
-    print('\n  {} shuffle iteration results:'.format(n_splits))
-    for k,v in all_results.iteritems():
-        print('    {}: {} std: {}'.format(k, np.mean(v), np.std(v)))
-
-    plot_feature_importances(all_feature_importances, idx_to_class, data)
-    plot_cnf_matrix(cm, y_test, idx_to_class, normalize=True, show_values=True)
-    plt.show()
-
-def __ev(params, left, data):
+def evaluate_clf_params(params, left, data):
     ce = ClfEval(data, 10, 10, None)
     __i = 0
     for param in params:
@@ -1100,6 +483,7 @@ def __ev(params, left, data):
             oob_score=True
 #            random_state=1
         )
+
         print('{} doing params: {}/{} {}'.format(left, __i, len(params), param))
         ce.set_classifier(clf)
         ce.run()
@@ -1109,6 +493,53 @@ def __ev(params, left, data):
         print('')
         __i += 1
 
+
+def plot_feature_importances(fi, path, torder, show=False):
+    fi_s = [s/100 for s in fi]
+    fig = plt.figure()
+    fig.set_size_inches(10,5)
+    ax = fig.add_subplot(111)
+    ax.plot(fi_s)
+    prev_sid = ''
+    prev_label = ''
+    labels = []
+    ticks = []
+    agr_labels = []
+    agr_ticks = []
+    idx = 0
+    agr_sum = 0
+    agr_importances = []
+    v = 0
+    for i, uid in enumerate(torder):
+        sid = uid.split('-')[0]
+        label = idx_to_class[data.y[data.ids.index(sid)]]
+
+        if label != prev_label:
+            sid = sid + '\n' + label
+            if prev_label != '':
+                agr_importances.append(agr_sum)
+                agr_sum = 0
+                ax.vlines(i,0,np.max(fi_s), 'r', 'dotted')
+            ax.text(i, np.max(fi_s)-(0.0004+(v%2)*0.0004), label[:12])
+            v += 1
+            prev_label = label
+            agr_ticks.append(idx)
+            agr_labels.append(label)
+            idx += 1
+
+        if len(labels) == 0 or sid != prev_sid:
+            prev_sid = sid
+            labels.append(sid)
+            ticks.append(i)
+
+    ax.set_ylabel('Importance (%)')
+    ax.set_xlabel('Feature number')
+    ax.set_xlim(0,len(fi_s))
+    ax.set_ylim(0, np.max(fi_s))
+    plt.tight_layout()
+
+    if show: plt.show()
+    plt.savefig(path)
 
 
 def main():
@@ -1125,9 +556,6 @@ def main():
     parser.add_option("--stats", dest="stats", action="store_true",
                       help="Print statistics for local samples")
 
-    parser.add_option("-s", "--load-spectrograms", dest="spectrograms_load",
-                      action="store_true",
-                      help="Load spectrograms from file")
     parser.add_option("-S", "--make-spectrograms", dest="spectrograms_build",
                       action="store_true",
                       help="Make and overwrite spectrograms to file.")
@@ -1170,7 +598,8 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
 
-    __loaddata = True#not options.classify
+    __loaddata = not options.classify
+
     if __loaddata:
         repository = SampleRepository(
             spectrograms_dir=DIR_SPECTROGRAMS,
@@ -1182,7 +611,7 @@ def main():
         if process_scrape_options(options, repository): exit()
         if process_stats_options(options, repository): exit()
 
-        previous_data = load_results(options.data_load) or None
+        previous_data = load_feature_data(options.data_load) or None
 
         logging.info('{} samples'.format(len(repository.samples)))
 
@@ -1193,104 +622,81 @@ def main():
         idx_to_class = {v: k for k, v in class_to_idx.iteritems()}
         logging.info('{} classes'.format(len(class_to_idx)))
 
+
+        # filter ids (keep/reject previous incl. labels)
         previous_ids = previous_data.ids if previous_data is not None else []
-        logging.info('rejecting ids: {}'.format(previous_ids))
         preserve = True;
+
         if preserve:
-            #repository.filter_labels(['Common Blackbird', 'Great Reed Warbler', 'Common Rosefinch', 'Common Cuckoo'], reject=False)
-            #repository.filter_uids(['XC144519'], reject=False)
+            logging.info('keeping ids: {}'.format(previous_ids))
             if len(previous_ids) != 0:
                 repository.filter_uids(previous_ids, reject=False)
         else:
+            logging.info('rejecting ids: {}'.format(previous_ids))
             repository.filter_uids(previous_ids, reject=True)
-            logging.info('remove previous ids: filtered down to {} samples'.format(len(repository.samples)))
+            logging.info(
+                'remove previous ids: filtered down to {} samples'.format(
+                    len(repository.samples))
+            )
 
             previous_labels = set([idx_to_class[y] for y in previous_data.y])
             logging.info('rejecting labels: {}'.format(previous_labels))
             repository.filter_labels(previous_labels, reject=True)
-            logging.info('filter labels: filtered down to {} samples'.format(len(repository.samples)))
+            logging.info('filter labels: filtered down to {} samples'.format(
+                len(repository.samples)))
 
-            repository.filter_labels(['Eurasian Blackcap', 'Garden Warbler'], reject=False)
+            repository.filter_labels(
+                ['Eurasian Blackcap', 'Garden Warbler'], reject=False
+            )
 
             repository.reject_by_class_count(at_least=20)
-            logging.info('remove low bound: filtered down to {} samples'.format(len(repository.samples)))
-            #samples = select_samples(repository.samples, exception_list=previous_ids)
+            logging.info('remove low bound: filtered down to {} samples'.format(
+                len(repository.samples)))
+
             repository.keep_n_of_each_class(20)
 
         if options.spectrograms_build:
-            logging.error('UNSUPPORTED ACTION')
+            logging.error('UNSUPPORTED ACTION -- NOT STORING SGRAMS DEV ONLY')
             sgram_count = build_all_spectrograms(repository.samples)
             logging.info('built {} spectrograms'.format(sgram_count))
             #repository.store_all()
             #store_all_spectrograms(samples)
-    #    elif options.spectrograms_load:
-    #        if options.verbose: print 'loading spectrograms..'
-    #        num_spectrograms = load_all_spectrograms(samples, options.label_filter)
-    #        logging.info('loaded {} spectrograms'.format(num_spectrograms))
 
 
-    #    if options.spectrograms_load or options.spectrograms_build:
-    #        print_template_statistics(samples)
-    #        samples = limit_samples(samples)
-    #        print_template_statistics(samples)
-
-        # ignore classes with only one spectrogram
         logging.info('filtered down to {} samples'.format(len(repository.samples)))
         print_template_statistics(repository.samples)
 
         if options.templates_build:
-            #logging.error('UNSUPPORTED ACTION')
-            #exit()
+            logging.error("WILL NOT STORE TEMPLATES .. DEV ONLY")
             #Tracer()()
             #delete_stored_templates(samples)
-            all_templates = build_all_templates(repository.samples, 
-                    options.label_filter)
-            exit()
+            all_templates = build_all_templates(
+                repository.samples, 
+                options,
+                options.label_filter
+            )
+            #store_all_templates(samples)
             logging.info('extracted {} templates'.format(len(all_templates)),
                 '',
                 'vvv after template build vvv')
             print_template_statistics(samples)
+            exit()
 
-            #store_all_templates(samples)
-    #    elif options.templates_load or options.features_build:
-    #        if options.verbose:
-    #            print 'loading templates..'
-    #        num_templates = load_all_templates(samples)
-    #        if options.verbose or options.informative:
-    #            print 'loaded {} templates'.format(num_templates)
-
-
-        #samples = filter_samples(samples, ['Common Whitethroat', 'White-breasted Wood Wren', 'Pale-breasted Spinetail', 'Chestnut-breasted Wren', 'Corn Bunting', 'Ortolan Bunting', 'Common Chiffchaff'])
-        #samples = filter_samples(samples, None)
         repository.reject_by_template_count_per_class(at_least=2000)
         print_template_statistics(repository.samples)
-
-
-    #    templates_per_class = defaultdict(list)
-    #    for t in all_templates: templates_per_class[t.get_src_sample().get_label()].append(t)
-    #    for k, v in templates_per_class.iteritems(): print k, len(v)
-
-
-    #    for sample in repository.samples:
-    #        if selected_templates_per_class[sample.get_label()] >= 3000: continue
-    #        all_templates.extend(sample.get_spectrogram().get_templates()[:2500])
-    #        #all_templates.extend(sample.spectrogram.templates[:2500])
-    #        selected_templates_per_class[sample.get_label()] += min(2500,len(sample.spectrogram.templates))
-
-
 
         X = None
         y = None
         ids = None
         if options.merge_results:
-            data_1 = load_results('./merged_data_2.pkl')
-            data_2 = load_results('./_new_data_1.pkl')
+            data_1 = load_feature_data('./merged_data_2.pkl')
+            data_2 = load_feature_data('./_new_data_1.pkl')
             pids = data_1.ids + data_2.ids
             Tracer()()
             repository.filter_uids(pids, reject=False)
             data = merge_results_d(data_1, data_2, repository)
 
-            store_results_safe(results, './_merged_results.pkl')
+            pickle_safe(results, './_merged_results.pkl')
             Tracer()()
 
         elif options.features_build:
@@ -1314,7 +720,7 @@ def main():
                 'template_order': used_templates
             }
 
-            store_results_safe(data, options.features_build)
+            pickle_safe(data, options.features_build)
         elif options.features_load:
             data = previous_data
 
@@ -1326,7 +732,7 @@ def main():
         #plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, show_values=True)
         #Tracer()()
 
-        data = load_results(options.data_load)
+        data = load_feature_data(options.data_load)
         ce = ClfEval(data, 10, 10, None)
         #clf = ExtraTreesClassifier(
         param_grid = {
@@ -1338,136 +744,71 @@ def main():
         }
         __params_l = list(ParameterGrid(param_grid))
         __i=0
-        t1 = time.time()
 
         print('')
         for p in __params_l:
             print('  {}'.format(p))
         print('')
 
-        #__ev(__params_l, 0, data)
-
-        with open('./cnfdata', 'r') as f:
-            cnf = pickle.load(f)
-        with open('./fidata', 'r') as f:
-            fi = pickle.load(f)
-
-        def __plot(fi, path, torder):
-            fi_s = [s/100 for s in fi]
-            fig = plt.figure()
-            fig.set_size_inches(10,5)
-            ax = fig.add_subplot(111)
-            ax.plot(fi_s)
-            prev_sid = ''
-            prev_label = ''
-            labels = []
-            ticks = []
-            agr_labels = []
-            agr_ticks = []
-            idx = 0
-            agr_sum = 0
-            agr_importances = []
-            v = 0
-            for i, uid in enumerate(torder):
-                sid = uid.split('-')[0]
-                label = idx_to_class[data.y[data.ids.index(sid)]]
-
-                if label != prev_label:
-                    sid = sid + '\n' + label
-                    if prev_label != '':
-                        agr_importances.append(agr_sum)
-                        agr_sum = 0
-                        ax.vlines(i,0,np.max(fi_s), 'r', 'dotted')
-                    ax.text(i, np.max(fi_s)-(0.0004+(v%2)*0.0004), label[:12])
-                    v += 1
-                    prev_label = label
-                    agr_ticks.append(idx)
-                    agr_labels.append(label)
-                    idx += 1
-
-                if len(labels) == 0 or sid != prev_sid:
-                    prev_sid = sid
-                    labels.append(sid)
-                    ticks.append(i)
-
-            ax.set_ylabel('Importance (%)')
-            ax.set_xlabel('Feature number')
-            ax.set_xlim(0,len(fi_s))
-            ax.set_ylim(0, np.max(fi_s))
-            plt.tight_layout()
-
-            #plt.show()
-            plt.savefig(path)
-
-        clf = RandomForestClassifier(
-            n_estimators = 300,
-            max_features = 0.33,
-            oob_score=True,
-#                min_samples_split = __params['min_samples_split'],
-#                min_samples_leaf = __params['min_samples_leaf'],
-#                max_depth = __params['max_depth']
-#            #warm_start=True,
-#            #oob_score=True,
-#            n_estimators=500,
-#            max_features='sqrt',
-#            min_samples_split=3,
-#            #bootstrap=True,
-            n_jobs=4
-#            random_state=1
-        )
-        ce.set_classifier(clf)
-#        ce.run()
-#
-#        ce.print_stats()
-#        Tracer()()
-#        __plot(ce.feature_importances, 'imp1', data.template_order)
-        #plot_feature_importances(
-        #    ce.feature_importances,
-        #    data.template_order,
-        #    idx_to_class,
-        #    data
-        #)
-        #plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, 
-        #        show_values=True)
-        #plt.show()
+        # Evaluate all parameters. !! Results are dumped to console !!
+        t1 = time.time()
+        evaluate_clf_params(__params_l, 0, data)
         print ('total time {}'.format(time.time()-t1))
 
-        Tracer()()
-        #fimpc = copy.deepcopy(ce.feature_importances)
-        fimpc = copy.deepcopy(fi)
-        print('templates used in clf: {}'.format(len(fi)));
-        rej = [x[0] for x in zip(data.template_order, fi) if x[1] == 0]
-        keep = [x[0] for x in zip(data.template_order, fi) if x[1] != 0]
-        ce.reject_templates = rej
-        #print('templates used in clf: {}'.format(len(ce.feature_importances)));
-        #rej = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] == 0]
-        #keep = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] != 0]
-        #ce.reject_templates = rej
-        ce.run()
 
-        print('templates used in clf now: {}'.format(len(ce.feature_importances)));
+        ##############################################################
+        # Evaluate performance with removed insignificant templates ..
+        ##############################################################
+        # 
+        # with open('./cnfdata', 'r') as f:
+        #     cnf = pickle.load(f)
+        # with open('./fidata', 'r') as f:
+        #     fi = pickle.load(f)
 
-        Tracer()()
+        # clf = RandomForestClassifier(
+        #     n_estimators = 300,
+        #     max_features = 0.33,
+        #     oob_score=True,
+        #     n_jobs=4
+        # )
+        # ce.set_classifier(clf)
+        # ce.run()
 
-        __plot([x for x in ce.feature_importances if x != -1], 'imp2', keep)
-        #plot_feature_importances([x for x in ce.feature_importances if x != -1], keep, idx_to_class, data)
+        # ce.print_stats()
+        # plot_feature_importances(ce.feature_importances, 'imp1', data.template_order)
+        # plot_cnf_matrix(ce.cnf, data.y, idx_to_class, normalize=True, 
+        #         show_values=True)
+        # plt.show()
 
-        Tracer()()
+        # Tracer()()
 
-        # get top 5 sgrams for species
-        #
-        # tls = [idx_to_class[data.y[data.ids.index(x.split('-')[0])]] for x in
-        # data.template_order]
-        #
-        # indices = [i for i,x in enumerate(tls) if x == 'Commoon Blackbird']
-        #
-        # top5 = zip(*heapq.nlargest(5, enumerate([fi[i] for i in
-        # indices]),key=operator.itemgetter(1)))[0]
-        #
-        # uids = [data.template_order[indices[i]] for i in top5]
+        # evaluate performance after removing insignificant templates
+        # #fimpc = copy.deepcopy(ce.feature_importances)
+        # fimpc = copy.deepcopy(fi)
+        # print('templates used in clf: {}'.format(len(fi)));
+        # rej = [x[0] for x in zip(data.template_order, fi) if x[1] == 0]
+        # keep = [x[0] for x in zip(data.template_order, fi) if x[1] != 0]
+        # ce.reject_templates = rej
+        # #print('templates used in clf: {}'.format(len(ce.feature_importances)));
+        # #rej = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] == 0]
+        # #keep = [x[0] for x in zip(data.template_order, ce.feature_importances) if x[1] != 0]
+        # #ce.reject_templates = rej
+        # ce.run()
+        # print('templates used in clf now: {}'.format(len(ce.feature_importances)));
+        # Tracer()()
+        # plot_feature_importances([x for x in ce.feature_importances if x != -1], 'imp2', keep)
 
-        #plt.bar(range(0, [x for x in ce.feature_importances if x != -1]), [x for x in ce.feature_importances if x != -1])
-        #plt.show()
+        # # get top 5 sgrams for species
+        # #
+        # # tls = [idx_to_class[data.y[data.ids.index(x.split('-')[0])]] for x in
+        # # data.template_order]
+        # #
+        # # indices = [i for i,x in enumerate(tls) if x == 'Commoon Blackbird']
+        # #
+        # # top5 = zip(*heapq.nlargest(5, enumerate([fi[i] for i in
+        # # indices]),key=operator.itemgetter(1)))[0]
+        # #
+        # # uids = [data.template_order[indices[i]] for i in top5]
 
 
 if __name__ == "__main__":

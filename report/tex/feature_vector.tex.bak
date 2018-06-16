@@ -1,11 +1,11 @@
 \section{Feature Engineering}\label{sec:ccm}
 With a collection of extracted templates from each spectrogram, feature vectors
-are constructed through template matching.
-This is done by taking the matching
-probabilities of cross-correlating all templates against samples of known
-species.
+can be constructed to distinguish between various bird species.
+This is done through cross-correlation mapping, an image recognition algorithm.
+A feature vector is derived from the results of cross-correlating all
+templates against samples of known species.
 These feature vectors are then used to train a machine learning algorithm to
-classify new recordings from their spectrograms after template matching.
+classify new recordings from their spectrograms.
 
 This section describes the mechanisms used to perform cross-correlation mapping
 for feature vector construction and a short analysis of the computational
@@ -30,10 +30,9 @@ intermediate results.
 The cost analysis in the following section justifies the need for batching.
 
 \subsubsection{Persistence}
-It is desireable to store intermediate and final results to disk for reloading
-on-demand, as these values are extremely expensive to compute.
-Storage is written using the Python |Pickle| module.
-Each result file is self-sufficient, containing all the necessary information
+Results are stored on disk.
+This is done using the Python |Pickle| module.
+Each result file is self-sufficient, as it contains all the necessary information
 to classify and manipulate feature sets:
 \begin{itemize}[noitemsep]
   \item Ordered list of \textbf{feature vectors} for each sample;
@@ -54,10 +53,10 @@ Normalisation is used to reduce the effect of background noise in the
 spectrogram images.
 
 The result of cross-correlation is a 2-dimensional vector with dimensions equal to
-those of the target image, with floating point values ranging from 0 to 1. %(Figure~\ref{fig:ccm}).
+those of the target image, with values from 0 to 1. %(Figure~\ref{fig:ccm}).
 Greater values indicate a higher level of correlation for the template in that
 area.
-This can be visualised as a heat-map of the template's correlation.
+This can be thought of and visualised as a heat-map of the template's correlation.
 
 %\begin{figure}[!htb]
 %  \centering
@@ -83,7 +82,7 @@ feature importances.
 
 \subsubsection{Implementation and cost}
 We use Open-CV's |matchTemplate| function with the normalised CCM method.
-Its implementation uses a Fourier analysis approach for improved performance over
+It's implementation uses a Fourer analysis approach for improved performance over
 the traditional raw statistical methods.
 This works by first applying a FFT to the template and target images before
 performing the cross-correlation.
@@ -92,13 +91,13 @@ Even with such optimisations, template matching takes a considerable amount of
 time.
 Template matching takes on average 16 minutes per spectrogram, or 0.07 seconds
 per template,
-given a mean area of 21941 and 34 pixels for spectrograms and templates respectively.
-Considerably larger spectrograms occur often enough to significantly add to the costs,
+given mean volume of 21941 and 34 pixels for spectrograms and templates respectively.
+Considerably larger spectrograms occur often enough to add to the costs,
 potentially in the order of hours.
 Considering the quantity of templates being analysed, the time required quickly
 amounts to days.
 
-To gain insight into how the resource usage responds to the size of a
+To gain insight into how the requirements respond to the size of a
 spectrogram, a feature extraction run was performed for 80 spectrograms of
 varying sizes, with 12204 total templates.
 Spectrograms and templates were selected at random following the same selection
@@ -122,14 +121,18 @@ Appendix~\ref{app:machine}.\\
   cross-correlation of a single spectrogram against 12204 templates}
 \end{figure}
 
-Aside from dimensionality reduction as described in Section~\ref{sec:extract},
-template matching is parallelised using Python's |multiprocessing| module.
+Further optimisations have been implemented.
+In particular, dimensionality reduction is performed on templates and
+spectrograms by blurring and reducing their size as discussed in
+Section~\ref{sec:extract}.
+
+In addition, template matching is multi-threaded using Python's |multiprocessing|
+module.
 Spectrograms are split into even chunks equalling the number of usable CPUs on
 the machine, joining results upon completion.
-This cuts the cost down to approximately $1/4$ of the original time on our
-machine.\\
+This cuts the cost down to approximately $1/4$ of the original time.\\
 
-Additional optimisations can, but have not been implemented:
+Additional optimisations could, but have not been implemented:
 \begin{itemize}[noitemsep]
   \item Template matching can be confined to the general area at which the template
     was extracted.
@@ -156,8 +159,8 @@ The template matching results are used to construct a feature vector for each
 recording.
 The feature vector of each sample therefore encodes the extent at which it's
 recording contains similar characteristics to each species' song.
-Feature vectors compose the training and test data for the machine learning stage
-described in Chapter~\ref{cha:clf}.
+Feature vectors compose the training and test data for machine learning in
+Chapter~\ref{cha:clf}.
 
 The length of each feature vector is constant across all species and is equal to
 the number of extracted templates.

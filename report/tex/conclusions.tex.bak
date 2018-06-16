@@ -10,7 +10,7 @@
 %  know now.
 
 \section{Summary}
-This report describes the solution developed for automatic birdsong
+This report describes the solution developed for the task of automatic birdsong
 recognition.
 Existing approaches to relevant problems were used as a starting point.
 The approach reduces the initial problem to image recognition using spectrograms
@@ -23,11 +23,9 @@ achieving a peak accuracy of 89\%, and F1 score of 88\%.
 Finally, feature importances were analysed to rank templates and perform further
 feature reductions to improve scalability.
 
-Several speculative improvements were discussed throughout the report.
-
 \section{Reflection}
 An open-ended project such as this is highly exploratory in nature.
-Regardless of the approach taken, it is likely to involve on many
+Regardless of the approach taken, the nature of the project touches on many
 facets of computer science.
 Our approach focuses on computer vision and machine learning, touching on
 performance computing with (relatively) large amounts of data.\\
@@ -51,15 +49,15 @@ Given more time, other classifiers may be evaluated as well,
 however validation was limited immensely by the lack of data processed data.
 A total of 20 samples per label was not enough to confidently measure the
 performance of the classifier.
-Given more data, a further separation between development and validation data
-would have been possible, leading to a more representative evaluation.\\
+Given more data, a further separation of development and validation could have
+been done, leading to a more representative evaluation.\\
 
 The lack of data stems from the immense processing power required to
 perform over 4,000,000 cross-correlations.
-This makes it extremely expensive to test new template extractions.
+This makes it extremely expensive to evaluate new template extractions.
 With this in mind it would have been justifiable to seek external computing
 resources early on, and to spend more time on optimisations.
-Also, Python was not the right choice in terms of performance.\\
+With this in mind, Python was not the right choice in terms of performance.\\
 
 
 On the topic of software engineering, recommended practices were not observed.
@@ -68,11 +66,10 @@ in the software.
 Some effort was expended to restructure large portions of the code to make it
 more robust to future changes, however this quickly deteriorated.
 This was due to the fact that no strict requirements were produced for the
-program's functionality,
-as it was intended to be a test-bed for the explored methods.
-There exists a trade-off between developing the framework and developing the solution.
-
-We have learned instead that simplicity is key: equal performance could have
+program's functionality.
+It was always inteded as a test-bed for the explored methods, and there exists
+a tradeoff between developing the framework and developing the solution.
+We have learned instead that simplicity is key: equal performance would have
 been achieved by splitting the program into discrete artefacts, and transferring
 data through files instead of in-memory.
 This pattern ensures separation of concern, and code alterations would not
@@ -80,20 +77,19 @@ influence the operation of irrelevant parts of the code.
 
 
 \section{Future Work}
-The approach taken here shows great promise for further development.
 
 There is much work to be done for preprocessing.
-Improving this is non trivial, but there are many possible starting points
+Improving  this part is non trivial, but there are many possible starting points
 (Sections~\ref{sec:preproc} and~\ref{sec:advrem}).
 
-Once a healthy number of samples have been processed, of least 30 species, with
-50 spectrograms each as a starting point, we can concentrate on
+Once a healthy number of samples have been processed, at least 30 species, with
+50 spectrograms each to start out with, we can concentrate on
 improving the machine learning and feature extraction mechanisms.
 
 Before the method can be comfortably scaled, performance optimisations must be
 considered.
 Immediately obvious improvements are migrating to a more performant language,
-such as C++ or Java, and utilising GPU acceleration for any heavy computations.
+such as C++ or Java, and utilising GPU acceleration for all heavy computations.
 A machine with more notable specifications would be advantageous, but a
 distributed approach would be better.
 Many of the mechanisms used here can easily be parallelised, and therefore

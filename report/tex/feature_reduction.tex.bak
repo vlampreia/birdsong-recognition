@@ -5,32 +5,33 @@ importances from our classifier.
 This allows us to reduce the number of templates involved in classifying a given
 sample, significantly cutting down the cost of template matching per species.
 Feature importances also help us analyse the preprocessing performance in detail,
-as well as view inter-species correlations in cases where there exists a high
+as well as view inter-species correlations in cases where there is a high
 level of confusion.
 
 \subsection{In Random Forests}
+
 The two most common methods for retrieving feature importance from a random
 are detailed in this section.
 
 \subsubsection{Mean decrease accuracy}
-A simple method for measuring the impact of each feature is through the mean decrease
+One method for measuring the impact of each feature is through the mean decrease
 in accuracy.
-With this method, the impact of removing each feature is measured one-by-one.
+With this method, the impact of removing each feature one-by-one is measured.
 This method may be sensitive to the random nature of the classifier, so multiple
-runs may be required to reduce variance.
+runs may be required to eliminate any variance.
 This can be prohibitively expensive.
 
 \subsubsection{Mean decrease impurity}
 Because tree nodes in a random forest correlate directly with a specific
-feature, it is possible to measure or estimate the importance of each
+feature, it is possible to directly measure or estimate the importance of each
 feature by determining the probability of a node in a tree being traversed over 
 the number of nodes in the forest.
-This is known as the mean decrease impurity, or Gini importance, which is what
+This is known as the mean decrease impurity, or gini importance, which is what
 we use in Sckikit's random forest classifier implementation.
 
 \subsection{Results and Analysis}\label{sec:template_analysis}
 Measuring feature importances exposes 43\% (15343 out of 35773) templates as 
-completely irrelevant for classification within our data-set
+completely irrelevant for classification within our dataset
 (Figure~\ref{fig:fimp_a}).
 Removing these features shows no reduction in accuracy, and a significant speedup
 during template matching is potentially gained.
@@ -48,21 +49,16 @@ cutoff.
 Removing features and reevaluating the classifier takes no significant time in
 contrast to template extraction and may therefore be done by iteratively removing
 and checking classifier accuracy, adjusting the importance cutoff accordingly.
-This course only reduces the time required to classify new samples.
-We have not done this.\\
+This however will of course only reduce the time required to classify new samples.
+We have not done this however.\\
 
-Feature reduction is beneficial to feature extraction, specifically when
+Feature reduction is also beneficial to feature extraction, specifically when
 merging the results of two batches.
-Templates with importance scores equalling or approaching zero can be safely removed
+Templates with importance scores equalling or close to zero can be safely removed
 from the set before merging with another batch, saving a considerable amount of time.
 Although we have not done this in practice the estimated amount of time saved is
 in the order of 2 and a half hours per sample, assuming a consistent 43\%
 template reduction rate.
-
-Because we are using a single algorithm to classify the entire label set, it is
-difficult to determine individual label-specific importances of each feature.
-The importance figures extracted here represent the overall impact of each
-template in classifying \emph{all} labels.
 
 \begin{figure}[!htb]
   \centering
@@ -83,6 +79,11 @@ template in classifying \emph{all} labels.
 
 
 \subsubsection{Survey}
+Because we are using a single algorithm to classify the entire label set, it is
+difficult to determine individual label-specific importances of each feature.
+The importance figures extracted here represent the overall impact of each
+template in classifying \emph{all} labels.
+
 To gain some insight into the preferable structure of a template, we have
 extracted the top ten most influential templates from the best (Acc. 99\%) and
 worst performing (Acc. 75\%) label.
@@ -93,7 +94,7 @@ It is somewhat surprising that some of these features, although appearing to be
 overly generic, are the most influential.
 
 It may be possible that these high importance features score well because they
-fit only to very specific samples, or perhaps they are excellent discriminators
+fit only to very specific samples, or that they are excellent discriminators
 for other species.
 It is difficult to make further analysis without label-specific importances
 and measuring the effect of modifying the feature vector further.

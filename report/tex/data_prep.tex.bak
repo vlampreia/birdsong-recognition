@@ -5,8 +5,8 @@ This section discusses the transformative steps and the end representation that
 the program will work with from the initial state until classification.
 
 \subsection{Resampling}
-Because the source recordings vary in format, we first normalise these to the
-following format:
+Because the source recordings vary in format, we normalise these to the following
+format:
 \begin{itemize}[noitemsep]
   \item \textbf{Format:} Raw WAV
   \item \textbf{Audio channels:} 1
@@ -17,10 +17,10 @@ following format:
 If a recording is found to have more than a single channel, all but the left
 channel are discarded.
 It is unclear whether discarding a channel is better than summing them.
-Although summing retains all information, it may also introduce further noise.
-Conversely, it is also possible for the left channel to have a worse signal to
+While summing retains all information, it may also introduce further noise.
+Conversely, it is allso possible for the left channel to have a worse signal to
 noise ratio than the right.
-The number of multi-channel recordings is low enough however for this not to be much
+The number of multi-channel recordings is low enough for this not to be much
 of an issue.
 
 Sample rates are reduced to lower the memory and processing demands of
@@ -57,16 +57,16 @@ of the waveform.
     \includegraphics[width=1.0\textwidth]{sgram}
     \caption{}
   \end{subfigure}
-  \caption{Waveform (a) and corresponding spectrogram (b) of a bird song recording}
+  \caption{Waveform (a) and corresponding spectrogram (b) of a bird 1 recording}
   \label{fig:sgram_pcm}
 \end{figure}
 
 Our image recognition approach makes use of this spectrographic representation.
 
-Spectrogram construction is performed for all recordings, sequentially,
-and immediately stored on disk.
+Spectrogram construction is performed for all recordings.
+This is performed sequentially and immediately stored on disk.
 The audio is first loaded as raw pulse-code modulation (PCM).
-The windowed fast Fourier transform (FFT) method is then used to generate a
+The windowed fast fourier transform (FFT) method is then used to generate a
 spectrogram from the PCM.
 
 Modern hardware handles FFT computations very well, making this stage very quick.

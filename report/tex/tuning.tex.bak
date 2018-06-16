@@ -1,28 +1,27 @@
 \section{Tuning}\label{sec:tuning}
-There exists no default set of parameters or rule set which will
-guarantee optimal performance.
+In machine learning there is no default set of parameters or rule set which will
+gaurantee optimal performance.
 The only conclusive method to find optimal parameter values is to evaluate
 each by comparison.
-This can quickly lead to over-fitting if the results are misinterpreted or
+This can quickly lead to overfitting if the results are misinterpreted or
 incorrectly measured.
 
-The primary cause of over-fitting is tuning on the entire data-set.
-To reduce the chance of this, data-sets should be split into completely
-independent development
+The primary cause of overfitting is tuning on the entire dataset.
+To reduce the chance of this, datasets should be split into development
 and evaluation sets, on top of cross validation.
 Although we don't do this here, we do use 10-times 10-fold cross validation as
 described in Section~\ref{sec:acc_eval}.
 
 The OOB error rate gives us an estimate of real-world performance, and we may
-gain some insight into whether or not we are actually gaining performance in
-other metrics or over-fitting by comparing this with the OOB error.\\
+gain some insight into whether or not we are actaully gaining performance in
+other metrics or overfitting by comparing this with the OOB error.\\
 
 In order to confidently produce unbiased statistics, and ensure that tuning is
-not guided to over-fitting, validation curves can be computed.
+not guided to overfitting, validation curves should be computed.
 These compare
-the performance of the classifier on separate development and validation data-sets.
+the performance of the classifier on separate training and validation datasets.
 This has not been done because we have not collected sufficient data to be able
-to split it further on top of the cross validation used.
+to split it further, on top of the cross validation used.
 
 We could also plot the learning rate, which shows the performance of the classifier
 with a varying number of samples, allowing us to gauge whether adding more
@@ -34,8 +33,8 @@ This has also not been done.
 The most basic form of parameter search is gridsearch.
 A set of influential parameters are chosen, as well as a range of discrete
 values to test.
-An exhaustive enumeration of all possible parameter
-value combinations is then run.
+Gridsearch then involves the exhaustive enumeration of all possible parameter
+value combinations.
 
 We test each combination using the usual evaluation mechanism with the following
 search space:
@@ -49,6 +48,8 @@ We have not tested other parameters due to the time cost of doing so.
 
 
 \subsubsection{Results}
+
+
 The OOB error rate (Figure~\ref{fig:tuning_oob}) shows that the random forest is
 predicted to achieve peak
 performance with $0.33 * n. features$ at around 300 estimators, rising outside
@@ -61,11 +62,11 @@ for all max feature functions, peaking at 89\% accuracy for $0.33*n$.
 This correlates with the global minimum OOB error at 300 estimators.
 
 Both metrics quickly drop somewhere between $[300,500]$, where the random forest
-is most likely beginning to over-fit and lose generalisation.
-After this point, as the number of trees increases, we observe over-fitting as
+is most likely beginning to overfit and lose generalisation.
+After this point, as the number of trees increases, we observe overfitting as
 accuracy, F1-score, and the OOB error rate increases.
 
-Because the OOB error begins to stabilise at 100, it is likely that peak
+Because the OOB error begins to stabalise at 100, it is likely that peak
 real-world performance will lie within $[100,300[$ for most max feature functions.
 
 Performance improvements are generally observed with the increase in max features.

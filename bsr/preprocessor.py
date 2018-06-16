@@ -67,7 +67,6 @@ def extract_templates(im, interactive = False):
         cv2.CHAIN_APPROX_SIMPLE
     )
 
-
     templates = []
 
     im_dbg_template_rejected = None

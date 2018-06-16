@@ -1,39 +1,40 @@
 \section{Classification}
 With feature vectors constructed, we select a machine learning algorithm to
-train and classify birdsongs, forming our model.
+train and classify birdsong using these, giving rise to our model.
 This section discusses the considerations made when choosing an algorithm,
 and details our choice of algorithm and variations in its mechanism.
-Parameter tuning is also discussed is Section~\ref{sec:tuning}
+Parameter tuning is discussed is Section~\ref{sec:tuning}
 
 \subsection{Approaches to Classification}\label{sec:clfapp}
 We are approaching this as a multi-class machine learning task, that is, the
-classification of a sample as a single label given a set of possible labels.
-A multi-label approach could also have been taken, identifying
-multiple labels.
+classification of a sample as a single label given a set of possibile labels.
+A mutli-label approach may also be taken, to identify multiple labels from a
+given sample, although this potentially is raises the complexity of the problem
+somewhat, especially during feature extraction.
 Given that most recordings appear to have a single dominant vocalising
-bird, we opt for the multi-class approach.
+bird, this has not been pursued.
 
-There exist many suitable machine learning algorithms.
-It is desirable to obtain a probabilistic output from which we can gauge the
-confidence of our classifier.
+There exist many suitable multi-class machine learning algorithms.
+It is desireable to obtain a probabilistic output, which gives the probabilities
+for each label.
+This is useful to gauge the confidence level of the classifier and increase the
+transparency of our classifications.
 
-We may also wish to use an ensemble approach through binary relevance to isolate
-label features.
+A multi-class classifier may also be constructed from an ensemble of several
+binary classifiers by combining the results of each.
 Doing so may allow us to use a wider variety of verification metrics and to
 identify label-specific behaviours.\\
 
-The primary consideration when selecting a classifier is of course the nature
+The initial decision of which classifier to use depends mostly on the nature
 of the data being classified.
 In our case, we are working with a small sample set, but with a very high 
 dimensionality.
-Feature values are continuous and normalised.
-Samples are labelled, therefore a supervised learning algorithm is appropriate.
-Good computational performance is desirable considering the high feature count.
+Samples are labeled, therefore a supervised learning algorithm is appropriate.
+Good computational performance is desireable considering the high feature count.
 In addition, it is useful to have an efficient means of analysing the impact of
 individual templates, in our case measurable directly through feature importance.
 
-There is no hard and fast rule to selecting an optimal classifier, therefore
-once an initial algorithm has been chosen, it may be compared to others through
+Once an initial algorithm has been chosen, it may be compared to others through
 multi-run cross-validation, comparing accuracy results.
 \parencite{Bouckaert2003}.
 
@@ -54,7 +55,7 @@ parallelised \parencite{breiman2001}.
 It does not allow for online learning however since trees have to be recomputed, 
 and so the addition of extra training samples, features and thus labels may
 become expensive for larger additions.
-This is somewhat counteracted by the short time required to train an entire forest
+This is countered somewhat by the short time required to train an entire forest
 on our data.
 
 Although we have not done so, it is possible to employ an ensemble of binary
@@ -66,13 +67,12 @@ needing to rebuild all of the forests.
 Although this method ignores higher-order interactions between class features,
 it has been shown to exhibit good performance \parencite{lasseck2013}.\\
 
-Given this suitability, we have chosen to use a single multi-threaded multi-class
-random forest.
+We have chosen to use a single multithreaded multi-class random forest.
 
 
 \subsubsection{Extremely Randomised Trees}
-Extremely Randomised Trees \parencite{geurts2006} is an algorithm similar to the
-traditional Random Forest, however the thresholds during splitting are randomised,
+Extremely Randomised Trees \parencite{geurts2006} is an algorithm similar to a
+traditional Random Forest, however the thresholds during splitting arerandomised,
 instead of being computed for optimal performance.
 This has the benefit of being faster, with the drawback of being more sensitive
 to noisy features.\\
@@ -82,12 +82,12 @@ A speed increase is likely to be observed with many more trees.
 
 \subsection{Parameter Selection}\label{sec:param}
 The most impactful parameters for random forest performance are the number of
-trees and the maximum number of features usable at each split.
+trees and the number of features at each split.
 Random forests are generally trained so that trees are fully grown to minimise
-bias, and then increasing the number of trees as much as necessary to minimise
+bias, and the number of trees is increased as much as necessary to minimise
 variance \parencite{breiman2001}.
 Altering the remaining parameters mostly results is tree pruning, which may be
-desirable if over-fitting occurs.
+desireable if overfitting occurs.
 
 \begin{itemize}
   \item \textbf{Max features:}
@@ -97,8 +97,8 @@ desirable if over-fitting occurs.
     Decreasing this value reduces variance at the increase of bias in individual
     trees.
     The ratio of good features to noise affects the choice of this parameter,
-    as reducing the feature sample size decreases the chance of picking good
-    features from the entire set.
+    the less features are selectable, the less chance of picking a good feature
+    amongst the set.
 
   \item \textbf{Number of estimators:}
     Defines the maximum number of trees to build.
@@ -133,7 +133,7 @@ of tuning:
   \item Min samples leaf: 1
   \item Max depth: |none|
 \end{itemize}
-Note that max features is a function of the number of features.
+Max features is a function of the number of features.
 
 For comparison, the following parameters have found to be optimal through the tuning mechanism
 discussed in Section~\ref{sec:tuning}, and is used throughout evaluation in

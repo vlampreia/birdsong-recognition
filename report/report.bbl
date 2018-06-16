@@ -491,6 +491,30 @@
       \endverb
       \keyw{Displays;Gaussian distribution;Histograms;Least squares approximation;Marine vehicles;Q measurement;Radar tracking;Sea measurements;Surveillance;Target tracking}
     \endentry
+    \entry{jake2016}{thesis}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,hash=1888f3dd1b2132761fb288b66865b7a6}{%
+           family={Palmer},
+           familyi={P\bibinitperiod},
+           given={Jake},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {School of Computer Science, University of Manchester}%
+      }
+      \strng{namehash}{1888f3dd1b2132761fb288b66865b7a6}
+      \strng{fullhash}{1888f3dd1b2132761fb288b66865b7a6}
+      \strng{authornamehash}{1888f3dd1b2132761fb288b66865b7a6}
+      \strng{authorfullhash}{1888f3dd1b2132761fb288b66865b7a6}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Bird Song Recognition}
+      \field{type}{3rd year project report}
+      \field{year}{2016}
+    \endentry
     \entry{podos2007}{article}{}
       \name{author}{2}{}{%
         {{uniquename=0,hash=39a0ce8254b46be15d6caefc56a4bd17}{%

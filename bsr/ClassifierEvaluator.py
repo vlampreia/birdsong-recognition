@@ -1,3 +1,66 @@
+from __future__ import print_function
+
+
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import StratifiedKFold
+
+from collections import defaultdict
+from operator import add
+
+
+import numpy as np
+
+
+class FeatureData:
+    X = None
+    y = None
+    ids = None
+    label_map = None
+    template_order = None
+
+
+    def __init__(
+        self,
+        X=None,
+        y=None,
+        ids=None,
+        label_map=None,
+        template_order=None
+    ):
+        self.X              = X
+        self.y              = y
+        self.ids            = ids
+        self.label_map      = label_map
+        self.template_order = template_order
+
+
+    def from_legacy(self, data):
+        self.X              = data['X']
+        self.y              = data['y']
+        self.ids            = data['ids']
+        self.label_map      = data['label_map']
+        self.template_order = data['template_order']
+
+        return self
+
+def load_feature_data(path):
+    """Does not verify file contents....
+    """
+    if path is None: return None
+    if not os.path.exists(path): return None
+
+    data = None
+    with open(path, 'r') as f:
+        data = pickle.load(f)
+    if type(data) == type({}):
+        logging.warning('loaded legacy data format, maybe you should store as new?')
+        _data = FeatureData().from_legacy(data)
+        data = _data
+
+    return data
+
 
 class ClfEval:
     clf = None
@@ -8,12 +71,12 @@ class ClfEval:
 
     stats = None
 
-    n_shuffles=0
-    n_splits=0
+    n_shuffles = 0
+    n_splits = 0
 
-    data=None
+    data = None
 
-    random_state=None
+    random_state = None
 
     reject_templates = None
 
@@ -43,7 +106,9 @@ class ClfEval:
         self.stats['recalls'].append(recall)
         self.stats['fscores'].append(fscore)
 
-        print('{:.4f} {:.4f} {:.4f} {:.4f}'.format(accuracy, precision, recall, fscore));
+        print('{:.4f} {:.4f} {:.4f} {:.4f}'.format(
+            accuracy, precision, recall, fscore)
+        )
 
         self.cnf = map(add, self.cnf, confusion_matrix(y_true, predictions))
 
@@ -52,7 +117,7 @@ class ClfEval:
         for i,v in enumerate(importances):
             #self.feature_importances[idxs[i]] += v
             if (self.feature_importances[idxs[i]] == -1):
-                self.feature_importances[idxs[i]] = 0;
+                self.feature_importances[idxs[i]] = 0
             self.feature_importances[idxs[i]] += v
 #        self.feature_importances = map(
 #            add,
@@ -91,7 +156,8 @@ class ClfEval:
                 )
 
                 split_idx = 0
-                for train_indices, test_indices in kfold.split(self.data.X, self.data.y):
+                splits = kfold.split(self.data.X, self.data.y)
+                for train_indices, test_indices in splits:
                     split_idx += 1
                     print('split {} of {}, [{}/{}] '.format(
                         split_idx, self.n_splits,
@@ -105,7 +171,6 @@ class ClfEval:
                                 test_indices,
                                 self.reject_templates
                             )
-
 
 
                     self.clf.fit(X_train, y_train)
@@ -144,3 +209,35 @@ class ClfEval:
         for k,v in self.stats.iteritems():
             print('{}: {} std. {}'.format(k, np.mean(v), np.std(v)))
 
+
+def split_data(data, train_indices, test_indices, reject_templates):
+    X = np.array(data.X)
+    y = np.array(data.y)
+    ids = np.array(data.ids)
+
+    X_train = X[train_indices]
+    y_train = y[train_indices]
+
+    X_test = X[test_indices]
+    y_test = y[test_indices]
+
+    ids_train = ids[train_indices]
+    ids_test  = ids[test_indices]
+
+    used_templates = []
+    template_idxs = []
+    for idx, uid in enumerate(data.template_order):
+        if uid in reject_templates: continue
+        if uid.split('-')[0] in ids_train:
+            template_idxs.append(idx)
+            used_templates.append(uid)
+
+    X_train_t = np.zeros((len(X_train), len(template_idxs)))
+    X_test_t =  np.zeros((len(X_test),  len(template_idxs)))
+
+    for i, v in enumerate(X_train):
+        X_train_t[i] = v[template_idxs]
+    for i, v in enumerate(X_test):
+        X_test_t[i] = v[template_idxs]
+
+    return X_train_t, X_test_t, y_train, y_test, template_idxs

@@ -34,3 +34,16 @@ def list_files(path, extensions):
                 paths.append(os.path.join(dirpath, filename))
 
     return paths
+
+def pickle_safe(data, path):
+    def _mv_bak(path):
+        new_path = path + '.bak'
+        if os.path.exists(new_path):
+            _mv_bak(new_path)
+        os.rename(path, new_path)
+
+    if os.path.exists(path):
+        _mv_bak(path)
+
+    with open(path, 'w') as f:
+        pickle.dump(results, f)

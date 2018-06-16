@@ -1,10 +1,10 @@
 \section{Sample Selection}\label{sec:sample_select}
-A local database of birdsong samples is created, using collections
+A local database of birdsong samples has been created, using collections
 extracted from Xeno-Canto through the described automatic procedure.
 Over the course of several days, 2211 total distinct samples have been downloaded
 and processed.
 189 individual species have been catalogued, with approximately half of these
-represented by more than 10 individual samples.
+including more than 10 individual samples.
 The top 10 species, and their sample counts are shown in Table~\ref{tab:top10}.
 See Appendix~\ref{app:samples} for a full list.
 The average length of each recording is approximately 1 minute.
@@ -24,8 +24,8 @@ data volume and time cost:
   \item Keep first 3000 templates of each species
 \end{itemize}
 
-To reduce bias, samples and templates may instead be picked at random, however
-we did not have time to implement a method for tracking this random sampling.
+To reduce bias samples and templates may instaed be picked at random, however
+we did not have time to implement a method for tracking the random sampling.
 
 \begin{table}[!htb]
   \caption{Top 10 species by sample count}\label{tab:top10}

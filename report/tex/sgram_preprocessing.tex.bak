@@ -1,13 +1,13 @@
 \subsection{Spectrogram Preprocessing}\label{sec:preproc}
 
-Before any features can be cleanly identified, their pixel boundaries must be found.
+Before any features can be extracted, their pixel boundaries must be found.
 This is a non-trivial problem due to noise and recording artefacts
 that may be present in each spectrogram.
 The complexity of the problem is increased by their inconsistency.
 
 Figure~\ref{fig:sgram_noise} shows an example of a noisy spectrogram.
 Notice how baseline and background noise makes it difficult to determine 
-the exact boundary of some vocalisations.
+the exact boundary of some of the vocalisations.
 
 \begin{figure}[h]
   \centering
@@ -18,13 +18,13 @@ the exact boundary of some vocalisations.
 \end{figure}
 
 Even with the metadata-based quality prefiltering done when downloading recordings from
-Xeno-canto, noise levels remain at unsuitable levels for direct pixel isolation.
+Xeno-canto, noise levels remain at unsuitable levels for direct signal detection.
 
-Removing noise and unwanted artefacts manually is precise, but tedious and
-impractical at this scale..
+Removing noise and unwanted artefacts manually is precise, although tedious.
 Because a high number of samples is required for our approach, we developed an
-automatic noise reduction stage.
-Standard computer vision techniques for noise reduction are used, as well as
+automatic noise reduction stage, as doing so manually would be far too
+impractical at this scale.
+Standard computer vision techinques for noise reduction are used, as well as
 techniques for discrete object identification.
 
 \begin{figure}[!htb]
@@ -60,23 +60,23 @@ techniques for discrete object identification.
 %taken from xc210575
 \subsubsection{The mechanism}
 A filter is first applied to the spectrogram, which reduces the noise in the
-image by smoothing it just enough until granular noise is reduced sufficiently
+image by smoothing just enough until granular noise is reduced sufficiently
 (Figure~\ref{fig:preproc_vis_filter}).
 This is accomplished using a Gaussian filter with a 5x5 kernel and sigma of 0.
 Several other filtering methods were also tested, including a median filter,
 but these were not compared directly.
 
-The image is then thresholded.
+The image is then thresholded using a thresholding algorithm
 (Figure~\ref{fig:preproc_vis_thresh}).
-Otsu's binarisation thresholding technique \parencite{otsu1979} was used to
+Otsu's binarization thresholding technique \parencite{otsu1979} was used to
 select an optimal threshold value.
 Because of pixel intensity inconsistencies throughout individual spectrograms,
 specifically in areas where noise is prominent, an adaptive thresholding
 algorithm was also tested.
 This does not appear to provide generally better results.
 Thresholding is performed twice, initially as a truncation method, then again
-for binarisation (Figure~\ref{fig:preproc_vis_thresh2}).
-This appears to perform better in observed cases than binarising immediately.
+for binarization (Figure~\ref{fig:preproc_vis_thresh2}).
+This appears to perform better than binarizing immediately.
 
 Further noise reduction is then performed using dilation and erosion
 (Figure~\ref{fig:preproc_vis_dilation1}),
@@ -101,7 +101,7 @@ isolating sections of song.
 It is not clear if phrases perform better than syllables or elements for example.
 An evaluation should therefore be performed to determine the best granularity.
 
-Comprehensively testing different granularities bears the weight of template matching
+Conclusive testing different granularities bears the weight of template matching
 for all new templates, which is extremely time consuming.
 
 Further, achieving consistent granularity across all spectrograms is not a trivial
@@ -109,9 +109,9 @@ task, and is certainly not possible if a single parameter set is used for
 all spectrograms.
 
 A loose aim is therefore taken to extract the smallest possible non-singular
-vocalisations, as close as possible to a syllable.
+vocalisations, as close as possible to what is defined as a syllable.
 This of course does not always work, but the developed mechanism provides generally
-acceptable results in the end.
+good results.
 
 
 \subsubsection{Quality and consistency}
@@ -132,9 +132,9 @@ Consistent quality becomes less of a concern as the number of samples used for
 training increases.
 It can be shown that as the sample count increases, the number of valid templates
 tends to increase.
-The number of noise also increases, however these tend not to inter-correlate
-as valid templates do, and are mostly handled well by less sensitive classifiers such as
-random forests \parencite{marko2004} as long as there are not too many of them.
+The number of noise also increases, however these do not intercorrelate as valid
+templates do, and are handled well by less sensitive classifiers such as
+random forests \parencite{marko2004} so long as there are not too many of them.
 
 Quality is therefore moderated after preprocessing in the selection stage as
 described in Section~\ref{sec:template_select}.

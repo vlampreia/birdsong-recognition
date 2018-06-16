@@ -3,42 +3,42 @@
 The ability to recognise bird species through the sounds they produce has
 benefited ornithologists and amateurs in the observation of such creatures in
 the wild.
-Most birds vocalise, for communicative purposes involving mating, territorial
-claims, and coordination efforts.
+Most birds vocalise, for communicative purposes such as mating, territoral, and
+coordination.
 
 Vocalisations are categorised into songs and calls, which differ by the duration
 and complexity of the sounds.
-Calls are relatively simple in structure and are often brief.
-Conversely, songs are usually composed of long sequences of sounds, often featuring
-structurally complex and melodic tones, with some repetition.
+Calls are relatively simple in structure and is often breif.
+Conversely, songs are usually long sequences of sounds, often featuring
+structurally complex and melodic tones.
 
 The trained ear can distinguish birds through their songs and calls, but with
 over 10,000 uniquely catalogued species around the world, this becomes a far cry
 from practicality.
 Some methods have been developed to assist in the identification of species.
 The introduction of the use of sonograms for instance has made identification
-both quicker and more precise for experienced ornithologists, undoubtedly
-influencing the breadth and depth of scientific inquiry into the behaviour of
+both faster and more precise for experienced ornithologists, undoubtebly
+influincing the breadth and depth of scientific inquiry into the behaviour of
 birds.
 
 Current manual and semi-automatic methods for bird sound recognition are limited
 by the cost and challenge of analysing enormous amounts of field recordings.
-A fully automatic mechanism would be highly advantageous and could allow for
+A fully automatic mechanism would be highly advantageous could allow for
 large scale, close to real-time or passive classification.
 
-Example applications of such a system include population monitoring
-and migration tracking of species in the field of biogeography and for conservation
+Example applications of such observation technologies include population monitoring
+and migration tracking of species in the fields of biogeography and conservation
 efforts, as well as the possibility to support public software for the general
 birdwatcher.
 
-The problem itself touches on many facets of computer science,
-such as digital signal processing and analysis, image recognition,
-machine learning, and performance optimisation.
+The problem itself touches on many facets of computer science and engineering,
+including digital signal processing and analysis, image recognition,
+machine learning, and performance optimization.
 
 \section{Assumptions and Scope}
 The primary aim of this project is to research and develop potential methods
-for automatic birdsong recognition, such that the system functions with little
-to no user interaction.
+for automatic birdsong recognition, which function with little to no user
+interaction.
 The end-goal is to produce a program which is able to identify the species of
 the most prominent bird present in a recording.
 It is not the goal of this project to produce commercial software ready for
@@ -46,45 +46,46 @@ public consumption.
 
 Recordings used for development and evaluation
 originate from arbitrary locations and sources around the world.
-They do not undergo any form of manual selection or processing.
-In similar vein, they are also not subjected to rigorous quality control,
-aside from basic metadata-based quality filtering.
-This is to ensure that validation represents real-world performance as much
-as possible.\\
+They shall not undergo any form of manual selection or processing.
+In similar vein, they should also not be subjected to rigorous quality control
+aside from what classifications may be provided by sources.
+This is to ensure that validation represents real-world performance.\\
 
-For the purposes of this project, some restrictions in scope are imposed to
+For the purposes of this project, some limitations in scope are imposed to
 simplify some problem areas:
 \begin{itemize}
 \item A general level of quality is ensured by selecting only higher quality recordings
       as defined by the data source.
-      This is a reasonable restriction as it increases the signal to noise ratio.
+      This is a reasonable restriction which reduces the number of recordings required.
 \item The number of species the system should know about is limited to 12
       randomly picked labels.
 \item Only bird songs are considered.
+      Bird songs differ from calls in complexity, length and context.
+      song is usually but not always performed by males.
+      a few more details
 \end{itemize}
 
 
 \section{Existing Approaches}
 Automatic birdsong recognition has become increasingly popular in the field of
-data science within the past decade.
+data science the past decade.
 Several competitions have taken place to develop
-solutions to the problem, each with varying requirements and data-sets.
+solutions to the problem, each with varying requirements and data.
 
 The MLSP 2013 challenge \parencite{kaggle} for example has lead to a few
-successful approaches with a fairly normalised data set consisting of 645 10
-second audio files covering 19 individual species, as well as data which may be used
+successful approaches with a fairly normalised dataset consisting of 645 10
+second audio files of 19 individual species, including data which may be used
 directly as features for classification.
 The most successful entry \parencite{fodor2013} achieved an AUC of 95.6\% using
-spectrogram cross-correlation and a binary relevance (ensemble) approach with
-random forests.
+spectrogram cross-correlation and a binary relavance approach with random forests.
 
-The LifeCLEF 2014 challenge \parencite{lifeclef2014} expanded on this by offering
-a much larger data set of 14027 non-controlled audio files sourced from Xeno-Canto
-\parencite{xenocanto}, covering 501 different species.
+The LifeCLEF 2014 challenge \parencite{lifeclef2014} expanded by offering a much
+larger dataset of 14027 non controlled audio files sourced from Xeno-Canto
+\parencite{xenocanto}, encompassing 501 different species.
 A winning solution \parencite{lasseck2014} achieved an AUC of 91.5\%, with a
 precision of 51.1\%.
 The solution made use of a combination of audio scene analysis techniques,
-spectrogram cross-correlation, and an extremely randomised trees classifier.
+spectrogram cross-correlation, and a extremely randomised trees classifier.
 
 The author had also competed in the NIPS 2013 \parencite{nips} competition
 using spectrogram segment analysis and spectrogram cross-correlation with an
@@ -92,10 +93,7 @@ ensemble of extremely randomised trees classifiers. An AUC of 91.6\% was
 achieved.\\
 
 A few commercial software solutions exist, such as Warblr \parencite{warblr} and
-Chirpomatic \parencite{chirpomatic},
-although these appear to be limited in scope and accuracy.
+Chirpomatic \parencite{chirpomatic} eixst,
+although these are typically limited in scope and accuracy.
 
-This task has also been tackled in 2016 at the University of Manchester as a
-third year project, which
-used a dynamic time warping algorithm to measure similarities between waveforms,
-acheiving an accuracy of 63\% across 4 species \parencite{jake2016}.
+the previous student

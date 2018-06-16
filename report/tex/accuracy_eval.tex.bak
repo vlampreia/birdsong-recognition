@@ -1,8 +1,11 @@
-\section{Evaluation and Validation}\label{sec:acc_eval}
-To validate our model, several metrics are taken to measure its performance.
-Although random forests are less likely to over-fit, it can still occur, and is
+\section{ Evaluation and Validation}\label{sec:acc_eval}
+To validate our model, several metrics are taken to measure the performance of
+our model.
+Although random forests are less likely to overfit, it can still occur, and is
 nonetheless important to detect.
 
+Most metrics, natively suited to binary classifiers, are easily adapted for use
+in multi-class tasks.
 It is equally important to correctly sample the data as to avoid bias.
 This section discusses first the framework around which the performance of our
 model is measured, the metrics used, and finally an analysis of the results.
@@ -11,8 +14,8 @@ Section~\ref{sec:tuning} analyses the performance of the classifier with varying
 parameters, in order to find their optimal values.
 
 \subsection{Validation Strategy and Sample Space}
-In effort to reduce sensitivity to variance, all
-measurements are performed through a multi-run stratified 10-fold cross validation.
+In effort to reduce sensitivity to chance selection of random samples, all
+measurements are performed using a multi-run stratified 10-fold cross validation.
 This gives us a 90/10 train/test data split, and is repeated with a new random
 sample shuffling 10 times.
 Stratification ensures that there exists an equal class balance in the testing
@@ -20,12 +23,12 @@ and training splits, so that all classes are represented equally.
 
 This is especially important given the small number of representative samples
 for each class.
-Advanced methods exist in order to further improve our results, such as
-bootstrapping, but this has not been pursued directly.
-Random forests use bootstrap sampling internally however, where a portion of the data is
+Advanced methods exist in order to futher improve our results, such as
+bootstrapping, but this has not been pursued.
+Note that random forests use bootstrap sampling, where a portion of the data is
 not used for training.
-This produces a measurable result similar in effect to cross-validation,
-referred the OOB error, discussed in Section~\ref{sec:metrics}.
+This does produce a measurable result similar in effect to cross-validation,
+called the OOB error, discussed in Section~\ref{sec:metrics}.
 
 For each fold, only features from the selected training samples are
 used for training and validation.
@@ -103,7 +106,7 @@ They are then stored and averaged at the end of the cross validation.
     Is the out-of-bag (OOB) samples are those which were not selected during the
     construction of a specific tree.
     Given the most common label from classifying a sample with its respective tree,
-    the proportion of incorrect classifications is averaged over all OOB samples
+    the porportion of incorrect classifications is averaged over all OOB samples
     is taken as the OOB error rate on the training data.
 
 \end{itemize}
@@ -115,7 +118,7 @@ Because this is a multi-class classification task, each metric is computed
 on a per-label basis.
 The average is then computed using "macro" averaging, in which the mean of each
 score is computed with equal weighting for all labels.
-This is appropriate considering we use stratified cross-validation, and each
+This is appropriate considering we use stratified k-fold, and each
 species is considered equally important to all the others.
 
 \subsubsection{Results}
@@ -154,7 +157,7 @@ We construct a confusion matrix to evaluate the performance of the classifier
 and the features used to discriminate between species.
 In this case the matrix allows us to visualise the performance distribution per
 class, and give
-some insight into how the classifier responds to the selected features.
+some insight into how the classifier is responding to the selected features.
 
 Figure~\ref{fig:cnf12} shows the resulting confusion matrix from classifying the
 selected data with the optimal parameters found through tuning,
@@ -164,7 +167,7 @@ Row-wise normalisation was performed.
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=1.0\textwidth]{cnf_matrix_12_2}
-  \caption{Row-Normalised Confusion Matrix}\label{fig:cnf12}
+  \caption{Row-Normalized Confusion Matrix}\label{fig:cnf12}
 \end{figure}
 
 The confusion matrix shows good classification performance for most species.
@@ -175,6 +178,9 @@ classification with a 24\% false negative rate, and often mistaken for a Corn Bu
 The inverse is also true to a lesser extent.
 This suggests weakness in the precision of Common Blackbird or Corn Bunting
 templates.
+
+
+... more speculation
 
 Aside from computing the metrics shown in Section~\ref{sec:metrics}, a confusion
 matrix can only offer a speculative insight into template performance.
